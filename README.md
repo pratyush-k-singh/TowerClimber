@@ -40,4 +40,8 @@ We have gathered together the following list of some example features you might 
 This section should assign every feature in the previous section to a particular group member and a particular week they will implement it.
 
 ## Section 4: Disaster Recovery
-This section should describe how each member plans to get back on track if they fall behind.  Please take this section seriously.
+Firstly, we will each develop a personalized plan to outline specific steps to take should we fall behind. This could include dedicating extra time to the project and adjusting priorities, but most importantly seeking help from teammates and TAs. By proactively seeking assistance from teammates if we encounter challenges, we can leverage the collective knowledge and expertise of the team to hasten problem solving.
+
+Secondly, we will regularly meet up so that we can check in with each other. During these meetings, we will evaluate and track progress on the current tasks. If our expectations turn out to be unrealistic, we have sufficient flexibility so that we can discuss redistributing tasks or adjusting the timeline. Furthermore, in these meetings, we can obtain feedback on our current work and identify areas for improvement, if necessary.
+
+Lastly, we will encourage frequent testing and commits to identify and fix errors earlier, improve code quality, and prevent catastrophic code failures caused by large, untested changes. By saving and committing to Git on a semi-frequent basis, we can ensure that we can collaborate effectively by facilitating the integration of new features and fixes into the main code as well as secure a functional version of the game that we can revert to in case a new feature causes previous implementations to fail.
