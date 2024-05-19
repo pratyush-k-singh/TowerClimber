@@ -28,7 +28,7 @@ struct mouse_state {
   vector_t start_pos;
   vector_t end_pos;
   bool aiming;
-} mouse_state_t;
+};
 
 struct state {
   scene_t *scene;
