@@ -22,6 +22,8 @@ const vector_t MAX = {1000, 1000};
 
 rgb_color_t RED = (rgb_color_t){0.5, 0.5, 0.5};
 
+typedef struct mouse_state mouse_state_t;
+
 struct mouse_state {
   vector_t start_pos;
   vector_t end_pos;
