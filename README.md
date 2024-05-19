@@ -1,10 +1,9 @@
 # Game Design Document
 
 ## Section 0: Summary
-This section should tell the reader what to expect in the future sections.  In particular, it should contain at least:
-- a working title for your game
-- a list of your team members (and their roles if decided)
-- a "concept statement" of your game ("your game in a tweet")
+Title: 
+Team Members: Tommaso Colombo, Pratysuh Singh, Karen Zhou
+Concept Statement:
 
 ## Section 1: Gameplay
 This section should address simple questions about how your game works:
