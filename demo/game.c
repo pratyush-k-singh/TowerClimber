@@ -13,6 +13,7 @@
 
 const double USER_RADIUS = 15;
 const double USER_MASS = 5;
+const double CIRC_NPOINTS = 20;
 const vector_t USER_INIT_POS = {500, 70};
 
 const vector_t MIN = {0, 0};
@@ -46,9 +47,9 @@ state_t *emscripten_init() {
 
   state->scene = scene_init();
 
-  list_t user_shape = make_circle(USER_INIT_POS, USER_RADIUS);
+  list_t *user_shape = make_circle(USER_INIT_POS, USER_RADIUS);
   state->user = body_init_with_info(user_shape, USER_MASS, RED, NULL, body_free);
-  scene_add_body(state->user);
+  scene_add_body(state->scene, state->user);
   
   return state;
 }
@@ -61,6 +62,6 @@ bool emscripten_main(state_t *state) {
 }
 
 void emscripten_free(state_t *state) {
-  body_free(user);
+  body_free(state->user);
   free(state);
 }
