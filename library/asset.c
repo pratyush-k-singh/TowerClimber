@@ -150,10 +150,6 @@ bool asset_on_button_click(asset_t *asset, state_t *state, double x, double y) {
 
 void asset_render(asset_t *asset) {
   SDL_Rect box = asset->bounding_box;
-  double x = box.x;
-  double y = box.y;
-  double width = box.w;
-  double height = box.h;
   vector_t loc = {x, y};
 
   switch (asset->type) {

@@ -134,6 +134,6 @@ void handle_click_drag(state *state, double x, double y) {
 void handle_no_click(state *state) {
   if (state->aiming) {
     cur_state->aiming = false;
-    body_set_centroid(cur_state->user, (vector_t) state->aim_end_pos);
+    body_set_centroid(state->user, (vector_t) state->aim_end_pos);
   }
 }
