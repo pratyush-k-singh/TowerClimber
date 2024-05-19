@@ -56,7 +56,7 @@ state_t *emscripten_init() {
   scene_add_body(state->scene, state->user);
 
   state->aim_start_pos = VEC_ZERO;
-  state->end_end_pos = VEC_ZERO;
+  state->aim_end_pos = VEC_ZERO;
   state->aiming = false;
   
   return state;

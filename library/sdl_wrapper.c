@@ -150,10 +150,10 @@ bool sdl_is_done(void *state) {
       bool button_clicked = asset_cache_handle_buttons(state, event->button.x, event->button.y);
       if(!button_clicked) {
         if (!state->mouse->aiming) {
-          state->mouse->aiming = true;
-          state->mouse->start_pos = (vector_t) {event->button.x, event->button.y};
+          state->aiming = true;
+          state->aim_start_pos = (vector_t) {event->button.x, event->button.y};
         } else {
-          state->mouse->end_pos = (vector_t) {event->button.x, event->button.y};
+          state->aim_end_pos = (vector_t) {event->button.x, event->button.y};
         }
       }
       break;
