@@ -147,8 +147,23 @@ bool sdl_is_done(void *state) {
       break;
 
     case SDL_MOUSEBUTTONDOWN: {
-      asset_cache_handle_buttons(state, event->button.x, event->button.y);
+      bool button_clicked = asset_cache_handle_buttons(state, event->button.x, event->button.y);
+      if(!button_clicked) {
+        if (!state->mouse->aiming) {
+          state->mouse->aiming = true;
+          state->mouse->start_pos = (vector_t) {event->button.x, event->button.y};
+        } else {
+          state->mouse->end_pos = (vector_t) {event->button.x, event->button.y};
+        }
+      }
       break;
+    }
+
+    case SDL_MOUSEBUTTONUP: {
+      if (state->mouse->aiming) {
+        state->mouse->aiming = false;
+        body_set_centroid(state->user, (vector_t) {100, 100});
+      }
     }
     }
   }

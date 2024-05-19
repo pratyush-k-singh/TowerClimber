@@ -54,7 +54,8 @@ void asset_cache_register_button(asset_t *button);
  * @param state the game state
  * @param x the x position of the mouse click
  * @param y the y position of the mouse click
+ * @return whether a button was clicked
  */
-void asset_cache_handle_buttons(state_t *state, double x, double y);
+bool asset_cache_handle_buttons(state_t *state, double x, double y);
 
 #endif // #ifndef __ASSET_CACHE_H__
