@@ -2,7 +2,9 @@
 
 ## Section 0: Summary
 Title: 
+
 Team Members: Tommaso Colombo, Pratysuh Singh, Karen Zhou
+
 Concept Statement:
 
 ## Section 1: Gameplay
