@@ -22,18 +22,12 @@ const vector_t MAX = {1000, 1000};
 
 rgb_color_t RED = (rgb_color_t){0.5, 0.5, 0.5};
 
-typedef struct mouse_state mouse_state_t;
-
-struct mouse_state {
-  vector_t start_pos;
-  vector_t end_pos;
-  bool aiming;
-};
-
 struct state {
   scene_t *scene;
   body_t *user; 
-  mouse_state_t *mouse;
+  vector_t aim_start_pos;
+  vector_t aim_end_pos;
+  bool aiming;
 };
 
 list_t *make_circle(vector_t center, double radius) {
@@ -61,10 +55,9 @@ state_t *emscripten_init() {
   state->user = body_init_with_info(user_shape, USER_MASS, RED, NULL, NULL);
   scene_add_body(state->scene, state->user);
 
-  state->mouse = malloc(sizeof(mouse_state_t));
-  state->mouse->start_pos = VEC_ZERO;
-  state->mouse->end_pos = VEC_ZERO;
-  state->mouse->aiming = false;
+  state->aim_start_pos = VEC_ZERO;
+  state->end_end_pos = VEC_ZERO;
+  state->aiming = false;
   
   return state;
 }
@@ -78,6 +71,5 @@ bool emscripten_main(state_t *state) {
 
 void emscripten_free(state_t *state) {
   body_free(state->user);
-  free(state->mouse);
   free(state);
 }
