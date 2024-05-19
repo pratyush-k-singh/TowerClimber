@@ -58,8 +58,8 @@ void asset_cache_register_button(asset_t *button);
  */
 bool asset_cache_handle_buttons(state_t *state, double x, double y);
 
-void handle_click_drag(state *state, double x, double y);
+void handle_click_drag(state_t *state, double x, double y);
 
-void handle_no_click(state *state);
+void handle_no_click(state_t *state);
 
 #endif // #ifndef __ASSET_CACHE_H__
