@@ -26,12 +26,12 @@ struct mouse_state {
   vector_t start_pos;
   vector_t end_pos;
   bool aiming;
-};
+} mouse_state_t;
 
 struct state {
   scene_t *scene;
   body_t *user; 
-  mouse_state *mouse;
+  mouse_state_t *mouse;
 };
 
 list_t *make_circle(vector_t center, double radius) {
@@ -59,7 +59,7 @@ state_t *emscripten_init() {
   state->user = body_init_with_info(user_shape, USER_MASS, RED, NULL, NULL);
   scene_add_body(state->scene, state->user);
 
-  state->mouse = malloc(sizeof(mouse_state));
+  state->mouse = malloc(sizeof(mouse_state_t));
   state->mouse->start_pos = VEC_ZERO;
   state->mouse->end_pos = VEC_ZERO;
   state->mouse->aiming = false;
