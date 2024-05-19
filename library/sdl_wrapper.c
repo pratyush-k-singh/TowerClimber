@@ -120,6 +120,7 @@ void sdl_init(vector_t min, vector_t max) {
 
 bool sdl_is_done(void *state) {
   SDL_Event *event = malloc(sizeof(*event));
+  state_t *cur_state = (state_t *) state;
   assert(event != NULL);
   while (SDL_PollEvent(event)) {
     switch (event->type) {
@@ -149,20 +150,20 @@ bool sdl_is_done(void *state) {
     case SDL_MOUSEBUTTONDOWN: {
       bool button_clicked = asset_cache_handle_buttons(state, event->button.x, event->button.y);
       if(!button_clicked) {
-        if (!state->mouse->aiming) {
-          state->aiming = true;
-          state->aim_start_pos = (vector_t) {event->button.x, event->button.y};
+        if (!cur_state->mouse->aiming) {
+          cur_state->aiming = true;
+          cur_state->aim_start_pos = (vector_t) {event->button.x, event->button.y};
         } else {
-          state->aim_end_pos = (vector_t) {event->button.x, event->button.y};
+          cur_state->aim_end_pos = (vector_t) {event->button.x, event->button.y};
         }
       }
       break;
     }
 
     case SDL_MOUSEBUTTONUP: {
-      if (state->mouse->aiming) {
-        state->mouse->aiming = false;
-        body_set_centroid(state->user, (vector_t) {100, 100});
+      if (cur_state->mouse->aiming) {
+        cur_state->mouse->aiming = false;
+        body_set_centroid(cur_state->user, (vector_t) {100, 100});
       }
     }
     }
