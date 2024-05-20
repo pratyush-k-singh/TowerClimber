@@ -52,11 +52,9 @@ Priority 4 Features:
 - Character/Level Creation/Body Sprites (Tommaso): 
     - Implement basic inelastic collisions of the user with the walls
     - The bodies (walls, user, enemy AI) created and initialized by the person who works on this as they will know how to implement the collisions of those said created bodies with each other 
-
 - Mouse handler/Path angle (Karen): 
     - Development of the mouse handler to determine the trajectory of the jump based on click and drag 
     - Implementation of the physics of the jump applied to the body (we can assume that the user body has already been implemented)
-
 - Implement 2D Parallax logic (Pratyush):
     - Implementation of 2D parallax where the user’s screen moves along with the user
 
@@ -66,25 +64,20 @@ Priority 4 Features:
     - The tracking of the enemy AI bodies can be implemented this week instead of last
     - Destructive collision with enemy AI
     - Initialization of damaging obstacles that have a destructive collision with the user randomly/more as the user progressed through each scene
-
 - Forces (Karen): 
     - Apply gravity to the jumps and making them arcs for realism
     - Apply speed independent friction to walls 
-
 - UI Elements (Pratyush):
     - Incorporate menu/title screens that allows the user to start the game
-
 
 **Week 3:**
 
 - Sound effects + Damaging obstacles (Tommaso):
     - Add sound effects to the game including sound made when colliding with walls and other bodies, as well as flying through the air.
     - Addition of damaging obstacles that damages/kills the user upon impact, depending on the user’s health
-
 - Power-Ups + Health bar (Karen): 
     - Add power ups to the game that gives advantages to the user upon collection
     - Implement health bar that allows the user to see how they are doing and if they will die upon collision with an obstacle/ghost
-
 - Text-based Cues/Story + Music (Pratyush):
     - Write a text based story
     - Add background music to the game depending on the scene
