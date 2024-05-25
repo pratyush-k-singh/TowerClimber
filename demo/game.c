@@ -59,10 +59,8 @@ list_t *make_user(double outer_radius, double inner_radius) {
  * @param state a pointer to a state object representing the current demo state
  */
 bool game_over(state_t *state) {
-
   return false;
 }
-
 
 
 state_t *emscripten_init() {
@@ -87,11 +85,11 @@ bool emscripten_main(state_t *state) {
   sdl_render_scene(scene, user);
   body_tick(user, dt);
 
-
   return game_over(state);
-
 }
 
 void emscripten_free(state_t *state) {
-  
+  scene_free(state->scene);
+  body_free(state->user_body);
+  free(state);
 }
