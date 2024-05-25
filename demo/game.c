@@ -19,7 +19,7 @@ const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
-const vector_t USER_CENTER = {500, 60}; // SHOULDN"T BE A CONSTANT ANYMORE (have to change)
+const vector_t USER_CENTER = {500, 60}; 
 
 const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
