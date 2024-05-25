@@ -128,6 +128,8 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
+    //create_collision(scene, left_wall, state -> user_body, physics_collision_handler, NULL, WALL_ELASTICITY);
+
 
   }
 }
