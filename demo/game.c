@@ -90,7 +90,7 @@ void make_wall_points(vector_t corner, list_t *points){
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
   vector_t left_wall_corner = MIN;
-  vector_t right_wall_corner = {MAX.x - 50, 0};
+  vector_t right_wall_corner = {MAX.x - WALL_WIDTH, 0};
   if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
     corner = left_wall_corner;
   } else {
@@ -120,13 +120,13 @@ void wall_init(state_t *state) {
   for (size_t i = 0; i < NUM_LEVELS; i++){
     list_t *left_points = make_wall((void *)LEFT_WALL_INFO);
     list_t *right_points = make_wall((void *)RIGHT_WALL_INFO);
-    body_t *left_wall = body_init_with_info(left_points, 3, 
+    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, (void *)LEFT_WALL_INFO, 
                                             NULL);
     body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
                                             USER_COLOR, (void *)RIGHT_WALL_INFO, 
                                             NULL);
-    create_destructive_collision(scene, state -> user_body, left_wall);
+    // create_destructive_collision(scene, state -> user_body, left_wall);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
 
@@ -146,7 +146,7 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_set_rotation(state->user_body, USER_ROTATION);
- // body_set_velocity(state -> user_body, (vector_t){50, 10});
+  body_set_velocity(state -> user_body, (vector_t){50, 10});
   state->game_over = false;
   return state;
 }
