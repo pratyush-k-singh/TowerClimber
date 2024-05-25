@@ -64,17 +64,6 @@ list_t *make_user(double outer_radius, double inner_radius) {
   return c;
 }
 
-list_t *make_wall(void *wall_info) {
-  if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
-    vector_t corner = LEFT_WALL_CORNER;
-  } else {
-    vector_t corner = RIGHT_WALL_CORNER;
-  }
-  list_t *c = list_init(WALL_POINTS, free);
-  make_wall_points(corner, c);
-  return c;
-}
-
 /**
  * Generates the list of points for a Wall shape given the vector of the bottom left
  * corner
@@ -83,7 +72,7 @@ list_t *make_wall(void *wall_info) {
  * the wall
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
-static void make_wall_points(vector_t corner, list_t *points){
+void make_wall_points(vector_t corner, list_t *points){
   vector_t *v_1 = malloc(sizeof(*v_1));
   *v_1 = (vector_t){corner};
   vector_t *v_2 = malloc(sizeof(*v_2));
@@ -97,6 +86,20 @@ static void make_wall_points(vector_t corner, list_t *points){
   list_add(points, v_3);
   list_add(points, v_4);
 }
+
+list_t *make_wall(void *wall_info) {
+  vector_t corner = VEC_ZERO;
+  if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
+    corner = LEFT_WALL_CORNER;
+  } else {
+    corner = RIGHT_WALL_CORNER;
+  }
+  list_t *c = list_init(WALL_POINTS, free);
+  make_wall_points(corner, c);
+  return c;
+}
+
+
 
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
