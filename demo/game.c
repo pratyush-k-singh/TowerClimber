@@ -74,13 +74,13 @@ list_t *make_user(double outer_radius, double inner_radius) {
  */
 void make_wall_points(vector_t corner, list_t *points){
   vector_t *v_1 = malloc(sizeof(*v_1));
-  *v_1 = (vector_t){corner};
+  *v_1 = corner;
   vector_t *v_2 = malloc(sizeof(*v_2));
-  *v_2 = (vector_t){vec_add(*v_1, WALL_LENGTH)};
+  *v_2 = vec_add(*v_1, WALL_LENGTH);
   vector_t *v_3 = malloc(sizeof(*v_3));
-  *v_3 = (vector_t){vec_add(*v_2, WALL_WIDTH)};
+  *v_3 = vec_add(*v_2, WALL_WIDTH);
   vector_t *v_4 = malloc(sizeof(*v_4));
-  *v_4 = (vector_t){vec_subtract(*v_3, WALL_LENGTH)};
+  *v_4 = vec_subtract(*v_3, WALL_LENGTH);
   list_add(points, v_1);
   list_add(points, v_2);
   list_add(points, v_3);
