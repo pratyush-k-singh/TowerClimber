@@ -147,9 +147,9 @@ state_t *emscripten_init() {
 
   // debugging collision handler
   body_t* temp = body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
-  body_set_centroid(temp, (vector_t){100, 50});
+  body_set_centroid(temp, (vector_t){200, 50});
   scene_add_body(state -> scene, temp);
-  create_physics_collision(state -> scene, state -> user_body, temp, 0);
+  // create_physics_collision(state -> scene, state -> user_body, temp, 0);
   //
   body_set_rotation(state->user_body, USER_ROTATION);
   
