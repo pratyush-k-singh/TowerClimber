@@ -27,7 +27,7 @@ const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 
 // Wall constants
-const vector_t WALL_LENGTH = {0, 1000};
+const vector_t WALL_LENGTH = {0, 500};
 const vector_t WALL_WIDTH = {50, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
