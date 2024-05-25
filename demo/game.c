@@ -69,15 +69,15 @@ list_t *make_user(double outer_radius, double inner_radius) {
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
 void make_wall_points(vector_t corner, list_t *points){
-  vector_t WALL_LENGTH = {0, MAX.y};
+  vector_t wall_length = {0, MAX.y};
   vector_t *v_1 = malloc(sizeof(*v_1));
   *v_1 = corner;
   vector_t *v_2 = malloc(sizeof(*v_2));
-  *v_2 = vec_add(*v_1, WALL_LENGTH);
+  *v_2 = vec_add(*v_1, wall_length);
   vector_t *v_3 = malloc(sizeof(*v_3));
   *v_3 = vec_add(*v_2, WALL_WIDTH);
   vector_t *v_4 = malloc(sizeof(*v_4));
-  *v_4 = vec_subtract(*v_3, WALL_LENGTH);
+  *v_4 = vec_subtract(*v_3, wall_length);
   list_add(points, v_1);
   list_add(points, v_2);
   list_add(points, v_3);
@@ -86,12 +86,12 @@ void make_wall_points(vector_t corner, list_t *points){
 
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
-  vector_t LEFT_WALL_CORNER = MIN;
-  vector_t RIGHT_WALL_CORNER = {MAX.x - 50, 0};
+  vector_t left_wall_corner = MIN;
+  vector_t right_wall_corner = {MAX.x - 50, 0};
   if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
-    corner = LEFT_WALL_CORNER;
+    corner = left_wall_corner;
   } else {
-    corner = RIGHT_WALL_CORNER;
+    corner = right_wall_corner;
   }
   list_t *c = list_init(WALL_POINTS, free);
   make_wall_points(corner, c);
