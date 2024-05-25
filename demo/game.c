@@ -19,7 +19,7 @@ const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
-const vector_t USER_CENTER = {500, 40};  // Change so that the user is stuck
+const vector_t USER_CENTER = {500, 60};  // Change so that the user is stuck
                                         // onto a wall to begin game
 
 const double OUTER_RADIUS = 60;
