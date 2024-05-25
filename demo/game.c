@@ -31,8 +31,7 @@ const vector_t WALL_LENGTH = {0, 500};
 const vector_t WALL_WIDTH = {50, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
-const vector_t LEFT_WALL_CORNER = {0, 0};
-const vector_t RIGHT_WALL_CORNER = {950, 0};
+
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 
@@ -89,6 +88,8 @@ void make_wall_points(vector_t corner, list_t *points){
 
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
+  vector_t LEFT_WALL_CORNER = MIN;
+  vector_t RIGHT_WALL_CORNER = {MAX.x - 50, 0};
   if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
     corner = LEFT_WALL_CORNER;
   } else {
