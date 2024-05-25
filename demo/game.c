@@ -12,7 +12,7 @@
 #include "sdl_wrapper.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {1000, 500};
+const vector_t MAX = {700, 500};
 
 // User constants
 const double USER_MASS = 5;
