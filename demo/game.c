@@ -128,7 +128,18 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    create_physics_collision(scene, right_wall, state -> user_body, 0);
+
+    printf("Left wall points:\n");
+    for (size_t i = 0; i < list_size(left_points); i++) {
+      vector_t *point = list_get(left_points, i);
+      printf("  (%f, %f)\n", point->x, point->y);
+    }
+    printf("Right wall points:\n");
+    for (size_t i = 0; i < list_size(right_points); i++) {
+      vector_t *point = list_get(right_points, i);
+      printf("  (%f, %f)\n", point->x, point->y);
+    }
+    // create_physics_collision(scene, right_wall, state -> user_body, 0);
 
 
   }
