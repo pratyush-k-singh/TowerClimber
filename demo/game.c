@@ -126,9 +126,10 @@ void wall_init(state_t *state) {
     body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
                                             USER_COLOR, (void *)RIGHT_WALL_INFO, 
                                             NULL);
+    create_destructive_collision(scene, state -> user_body, left_wall);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    create_destructive_collision(scene, state -> user_body, left_wall);
+
     // create_collision(scene, left_wall, state -> user_body, 
     //                 create_destructive_collision, NULL, WALL_ELASTICITY);
   }
