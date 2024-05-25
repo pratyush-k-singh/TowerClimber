@@ -151,8 +151,8 @@ void asset_render(asset_t *asset) {
   SDL_Rect box = asset->bounding_box;
   double x = box.x;
   double y = box.y;
-  double width = box.w;
-  double height = box.h;
+  // double width = box.w;
+  // double height = box.h;
   vector_t loc = {x, y};
 
   switch (asset->type) {
