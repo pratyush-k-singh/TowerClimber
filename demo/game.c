@@ -16,7 +16,7 @@ const vector_t MAX = {1000, 500};
 
 // User constants
 const double USER_MASS = 5;
-const rgb_color_t USER_COLOR = (rgb_color_t){0.1, 0.9, 0.2};
+const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
 const vector_t USER_CENTER = {500, 30};  // Change so that the user is stuck
