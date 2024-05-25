@@ -19,15 +19,12 @@ const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
-const vector_t USER_CENTER = {500, 60};  // Change so that the user is stuck
-                                        // onto a wall to begin game
-
+const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 
 // Wall constants
-const vector_t WALL_LENGTH = {0, 500};
 const vector_t WALL_WIDTH = {50, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
@@ -50,7 +47,7 @@ struct state {
 };
 
 list_t *make_user(double outer_radius, double inner_radius) {
-  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x, outer_radius};
+  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x, MIN.y + outer_radius};
   center.y += inner_radius;
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
@@ -72,6 +69,7 @@ list_t *make_user(double outer_radius, double inner_radius) {
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
 void make_wall_points(vector_t corner, list_t *points){
+  vector_t WALL_LENGTH = {0, MAX.y};
   vector_t *v_1 = malloc(sizeof(*v_1));
   *v_1 = corner;
   vector_t *v_2 = malloc(sizeof(*v_2));
