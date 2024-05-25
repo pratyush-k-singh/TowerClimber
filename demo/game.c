@@ -90,7 +90,7 @@ void make_wall_points(vector_t corner, list_t *points){
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
   vector_t left_wall_corner = MIN;
-  vector_t right_wall_corner = {MAX.x - WALL_WIDTH, 0};
+  vector_t right_wall_corner = {MAX.x - WALL_WIDTH.x, 0};
   if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
     corner = left_wall_corner;
   } else {
