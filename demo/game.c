@@ -59,7 +59,6 @@ list_t *make_user(double outer_radius, double inner_radius) {
  * @param state a pointer to a state object representing the current demo state
  */
 bool game_over(state_t *state) {
-  scene_t *scene = state->scene;
 
   return false;
 }
