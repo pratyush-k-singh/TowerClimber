@@ -28,6 +28,7 @@ const size_t USER_NUM_POINTS = 20;
 const vector_t WALL_WIDTH = {50, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
+const double WALL_ELASTICITY = 0;
 
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
@@ -125,6 +126,8 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
+    create_collision(scene, left_wall, state -> user_body, 
+                    physics_collision_handler, NULL, WALL_ELASTICITY);
   }
 }
 
@@ -139,6 +142,7 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_set_rotation(state->user_body, USER_ROTATION);
+  body_set_velocity(state -> user_body, (vector_t){50, 10});
   state->game_over = false;
   return state;
 }
