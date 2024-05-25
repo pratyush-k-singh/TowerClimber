@@ -32,7 +32,7 @@ const vector_t WALL_WIDTH = {50, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
 const vector_t LEFT_WALL_CORNER = {0, 0};
-const vector_t RIGHT_WALL_CORNER = {450, 0};
+const vector_t RIGHT_WALL_CORNER = {950, 0};
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 
