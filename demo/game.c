@@ -50,7 +50,7 @@ struct state {
 };
 
 list_t *make_user(double outer_radius, double inner_radius) {
-  vector_t center = {MIN.x + inner_radius + WALL_WIDTH, outer_radius};
+  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x, outer_radius};
   center.y += inner_radius;
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
