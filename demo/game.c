@@ -23,7 +23,7 @@ const vector_t USER_CENTER = {500, 30};  // Change so that the user is stuck
                                         // onto a wall to begin game
 
 const double OUTER_RADIUS = 60;
-const double INNER_RADIUS = 25;
+const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 
 
