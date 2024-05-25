@@ -23,7 +23,7 @@ const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
-const double GAP = 1;
+const double GAP = 10;
 
 // Wall constants
 const vector_t WALL_WIDTH = {50, 0};
