@@ -26,12 +26,25 @@ const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 
+// Wall constants
+const vector_t WALL_LENGTH = {0, 1000};
+const vector_t WALL_WIDTH = {50, 0};
+const size_t WALL_POINTS = 4;
+const double WALL_MASS = INFINITY;
+const vector_t LEFT_WALL_CORNER = {0, 0};
+const vector_t RIGHT_WALL_CORNER = {450, 0};
+const char *LEFT_WALL_INFO = "left_wall";
+const char *RIGHT_WALL_INFO = "right_wall";
+
+// Game constants
+const size_t NUM_LEVELS = 1;
+
 
 struct state {
   scene_t *scene;
   list_t *body_assets;
   body_t *user_body;
-  size_t *user_health;
+  size_t user_health;
   size_t ghost_counter;
   double ghost_timer;
   bool game_over;
@@ -51,6 +64,40 @@ list_t *make_user(double outer_radius, double inner_radius) {
   return c;
 }
 
+list_t *make_wall(void *wall_info) {
+  if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
+    vector_t corner = LEFT_WALL_CORNER;
+  } else {
+    vector_t corner = RIGHT_WALL_CORNER;
+  }
+  list_t *c = list_init(WALL_POINTS, free);
+  make_wall_points(corner, c);
+  return c;
+}
+
+/**
+ * Generates the list of points for a Wall shape given the vector of the bottom left
+ * corner
+ *
+ * @param corner a vector that contains the coordinates of the bottom left corner of
+ * the wall
+ * @param points an empty list to add the points to, the points are pointers to vectors
+ */
+static void make_wall_points(vector_t corner, list_t *points){
+  vector_t *v_1 = malloc(sizeof(*v_1));
+  *v_1 = (vector_t){corner};
+  vector_t *v_2 = malloc(sizeof(*v_2));
+  *v_2 = (vector_t){vec_add(*v_1, WALL_LENGTH)};
+  vector_t *v_3 = malloc(sizeof(*v_3));
+  *v_3 = (vector_t){vec_add(*v_2, WALL_WIDTH)};
+  vector_t *v_4 = malloc(sizeof(*v_4));
+  *v_4 = (vector_t){vec_subtract(*v_3, WALL_LENGTH)};
+  list_add(points, v_1);
+  list_add(points, v_2);
+  list_add(points, v_3);
+  list_add(points, v_4);
+}
+
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
  * (loss), the user falls off the map (loss)
@@ -62,12 +109,30 @@ bool game_over(state_t *state) {
   return false;
 }
 
+// initialize the walls at start of game
+void wall_init(state_t *state) {
+  scene_t *scene = state -> scene;
+  for (size_t i = 0; i < NUM_LEVELS; i++){
+    list_t *left_points = make_wall((void *)LEFT_WALL_INFO);
+    list_t *right_points = make_wall((void *)RIGHT_WALL_INFO);
+    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
+                                            USER_COLOR, (void *)LEFT_WALL_INFO, 
+                                            NULL);
+    body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
+                                            USER_COLOR, (void *)RIGHT_WALL_INFO, 
+                                            NULL);
+    scene_add_body(scene, left_wall);
+    scene_add_body(scene, right_wall);
+  }
+}
+
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   state_t *state = malloc(sizeof(state_t));
   assert(state);
   state->scene = scene_init();
+  wall_init(state);
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
