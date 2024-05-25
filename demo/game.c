@@ -120,7 +120,7 @@ void wall_init(state_t *state) {
   for (size_t i = 0; i < NUM_LEVELS; i++){
     list_t *left_points = make_wall((void *)LEFT_WALL_INFO);
     list_t *right_points = make_wall((void *)RIGHT_WALL_INFO);
-    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
+    body_t *left_wall = body_init_with_info(left_points, 3, 
                                             USER_COLOR, (void *)LEFT_WALL_INFO, 
                                             NULL);
     body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
