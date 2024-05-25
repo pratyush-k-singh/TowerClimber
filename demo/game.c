@@ -144,8 +144,15 @@ state_t *emscripten_init() {
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
+
+  // debugging collision handler
+  body_t* temp = body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL)
+  body_set_centroid(temp, {100, 50});
+  scene_add_body(state -> scene, temp);
+  create_physics_collision(state -> scene, state -> user_body, temp, 0);
+  //
   body_set_rotation(state->user_body, USER_ROTATION);
-  body_set_velocity(state -> user_body, (vector_t){50, 10});
+  
   state->game_over = false;
   return state;
 }
