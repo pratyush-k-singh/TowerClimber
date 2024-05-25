@@ -32,7 +32,7 @@ const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
-const vector_t LEFT_CORNER = {0, 0};
+const vector_t LEFT_CORNER = {300, -200};
 const vector_t RIGHT_CORNER = {950, 0};
 
 // Game constants
