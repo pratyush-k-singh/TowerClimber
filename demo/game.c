@@ -23,6 +23,7 @@ const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
+const double GAP = 1;
 
 // Wall constants
 const vector_t WALL_WIDTH = {50, 0};
@@ -48,7 +49,8 @@ struct state {
 };
 
 list_t *make_user(double outer_radius, double inner_radius) {
-  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x, MIN.y + outer_radius};
+  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x + GAP, 
+                    MIN.y + outer_radius};
   center.y += inner_radius;
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
