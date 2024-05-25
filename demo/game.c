@@ -96,7 +96,7 @@ list_t *make_wall(void *wall_info) {
   } else {
     corner = right_wall_corner;
   }
-  list_t *c = list_init(WALL_POINTS, free);
+  list_t *c = list_init(10, free);
   make_wall_points(corner, c);
   return c;
 }
