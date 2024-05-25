@@ -19,20 +19,19 @@ const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
-const vector_t USER_CENTER = {500, 60};  // Change so that the user is stuck
-                                        // onto a wall to begin game
+const vector_t USER_CENTER = {500, 60}; // SHOULDN"T BE A CONSTANT ANYMORE (have to change)
 
 const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 
 // Wall constants
-const vector_t WALL_LENGTH = {0, 500};
+const vector_t WALL_LENGTH = {0, MAX.y}; // NOT A CONSTANT (have to change)
 const vector_t WALL_WIDTH = {50, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
 const vector_t LEFT_WALL_CORNER = {0, 0};
-const vector_t RIGHT_WALL_CORNER = {950, 0};
+const vector_t RIGHT_WALL_CORNER = {MAX.x - WALL_WIDTH.x, 0}; //NOT A CONSTANT ANYMORE (have to change)
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 
