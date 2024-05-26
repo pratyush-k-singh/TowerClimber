@@ -28,7 +28,7 @@ Lastly, our priority 4 features are music, sound effects, and a health bar. Musi
 Priority 1 Features:
 - Character/Level Creation/Body Sprites (Tommaso)
 - Mouse Handler/Path Angle (Karen)
-- Implement 2D Parallax logic (Pratyush)
+- Implement Verical Scrolling (Pratyush)
 
 Priority 2 Features
 - Forces (Karen)
@@ -55,8 +55,8 @@ Priority 4 Features:
 - Mouse handler/Path angle (Karen): 
     - Development of the mouse handler to determine the trajectory of the jump based on click and drag 
     - Implementation of the physics of the jump applied to the body (we can assume that the user body has already been implemented)
-- Implement 2D Parallax logic (Pratyush):
-    - Implementation of 2D parallax where the user’s screen moves along with the user
+- Implement Verical Scrolling (Pratyush):
+    - Implementation of vertical scrolling where the user’s screen moves along with the user
 
 **Week 2:**
 
