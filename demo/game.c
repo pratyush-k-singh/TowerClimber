@@ -123,7 +123,7 @@ void wall_init(state_t *state) {
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, (void *)LEFT_WALL_INFO, 
                                             NULL);
-    body_t *right_wall = body_init_with_info(right_points, 5, 
+    body_t *right_wall = body_init_with_info(right_points, INFINITY, 
                                             USER_COLOR, (void *)RIGHT_WALL_INFO, 
                                             NULL);
     scene_add_body(scene, left_wall);
