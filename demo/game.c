@@ -204,7 +204,7 @@ bool emscripten_main(state_t *state) {
   body_t *user = state->user_body;
   scene_t *scene = state->scene;
 
-  list_t *buttons = state->manual_buttons;
+  list_t *buttons = state->button_assets;
   for (size_t i = 0; i < list_size(buttons); i++) {
     asset_render(list_get(buttons, i));
   }
