@@ -89,14 +89,12 @@ void make_wall_points(vector_t corner, list_t *points){
 
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
-  vector_t left_wall_corner = MIN;
-  vector_t right_wall_corner = {MAX.x - WALL_WIDTH.x, 0};
   if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
-    corner = left_wall_corner;
+    corner = MIN;
   } else {
-    corner = right_wall_corner;
+    corner = {MAX.x - WALL_WIDTH.x, 0};
   }
-  list_t *c = list_init(10, free);
+  list_t *c = list_init(WALL_POINTS, free);
   make_wall_points(corner, c);
   return c;
 }
@@ -151,11 +149,11 @@ state_t *emscripten_init() {
   state_t *state = malloc(sizeof(state_t));
   assert(state);
   state->scene = scene_init();
-  wall_init(state);
+  
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
-
+  wall_init(state);
   body_set_rotation(state->user_body, USER_ROTATION);
 
   state->game_over = false;
