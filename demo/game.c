@@ -127,6 +127,7 @@ void wall_init(state_t *state) {
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
     create_physics_collision(scene, right_wall, state -> user_body, 0);
+    create_physics_collision(scene, left_wall, state -> user_body, 0);
 
 
     printf("Left wall points:\n");
@@ -149,12 +150,14 @@ state_t *emscripten_init() {
   state_t *state = malloc(sizeof(state_t));
   assert(state);
   state->scene = scene_init();
-  
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   wall_init(state);
   body_set_rotation(state->user_body, USER_ROTATION);
+
+  // testing wall collisions
+  body_set_velocity(state -> user_body, (vector_t){100, 0})
 
   state->game_over = false;
   return state;
