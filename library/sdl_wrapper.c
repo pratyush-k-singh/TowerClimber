@@ -147,16 +147,7 @@ bool sdl_is_done(void *state) {
       break;
 
     case SDL_MOUSEBUTTONDOWN: {
-      bool button_clicked = asset_cache_handle_buttons(state, event->button.x, event->button.y);
-      if(!button_clicked) {
-        handle_click_drag(state, event->button.x, event->button.y);
-      }
       break;
-    }
-
-    case SDL_MOUSEBUTTONUP: {
-      handle_no_click(state);
-    }
     }
   }
   free(event);
