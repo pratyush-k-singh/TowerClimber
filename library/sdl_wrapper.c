@@ -149,6 +149,7 @@ bool sdl_is_done(void *state) {
     case SDL_MOUSEBUTTONDOWN: {
       break;
     }
+    }
   }
   free(event);
   return false;
