@@ -128,19 +128,6 @@ void wall_init(state_t *state) {
     scene_add_body(scene, right_wall);
     create_physics_collision(scene, right_wall, state -> user_body, 0);
     create_physics_collision(scene, left_wall, state -> user_body, 0);
-
-
-    printf("Left wall points:\n");
-    for (size_t i = 0; i < list_size(left_points); i++) {
-      vector_t *point = list_get(left_points, i);
-      printf("  (%f, %f)\n", point->x, point->y);
-    }
-    printf("Right wall points:\n");
-    for (size_t i = 0; i < list_size(right_points); i++) {
-      vector_t *point = list_get(right_points, i);
-      printf("  (%f, %f)\n", point->x, point->y);
-    }
-
   }
 }
 
@@ -156,10 +143,6 @@ state_t *emscripten_init() {
   wall_init(state);
   body_set_rotation(state->user_body, USER_ROTATION);
 
-  // testing wall collisions
-  
-  body_set_velocity(state -> user_body, (vector_t){300, 240});
-
   state->game_over = false;
   return state;
 }
@@ -168,12 +151,9 @@ bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
   scene_t *scene = state->scene;
-
   scene_tick(scene, dt);
   sdl_render_scene(scene, user);
-  body_add_force(state -> user_body, (vector_t){0, -980});
   body_tick(user, dt);
-
   return game_over(state);
 }
 
