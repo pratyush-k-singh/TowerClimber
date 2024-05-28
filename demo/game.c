@@ -66,6 +66,7 @@ button_info_t jump_button_info = {
      .text_color = (rgb_color_t){255, 255, 255},
      .text = "Jump",
      //.handler = (void *)jump_user};
+};
 
 list_t *make_user(double outer_radius, double inner_radius) {
   vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x, MIN.y + outer_radius};
