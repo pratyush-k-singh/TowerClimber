@@ -14,6 +14,9 @@
 const vector_t MIN = {0, 0};
 const vector_t MAX = {700, 500};
 
+const char *BACKGROUND_PATH = "assets/background.png";
+const char *USER_PATH = "assets/body.png";
+
 // User constants
 const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
@@ -41,6 +44,7 @@ const size_t NUM_LEVELS = 1;
 struct state {
   scene_t *scene;
   list_t *body_assets;
+  asset_t *user_sprite;
   body_t *user_body;
   size_t user_health;
   size_t ghost_counter;
@@ -133,6 +137,7 @@ void wall_init(state_t *state) {
 
 
 state_t *emscripten_init() {
+  
   sdl_init(MIN, MAX);
   state_t *state = malloc(sizeof(state_t));
   assert(state);
