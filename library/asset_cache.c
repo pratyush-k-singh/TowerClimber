@@ -121,19 +121,3 @@ bool asset_cache_handle_buttons(state_t *state, double x, double y) {
   }
   return false;
 }
-
-void handle_click_drag(state *state, double x, double y) {
-  if (!state->aiming) {
-    state->aiming = true;
-    state->aim_start_pos = (vector_t) {event->button.x, event->button.y};
-    } else {
-      state->aim_end_pos = (vector_t) {event->button.x, event->button.y};
-    }
-}
-
-void handle_no_click(state *state) {
-  if (state->aiming) {
-    cur_state->aiming = false;
-    body_set_centroid(state->user, (vector_t) state->aim_end_pos);
-  }
-}
