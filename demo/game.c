@@ -204,6 +204,11 @@ bool emscripten_main(state_t *state) {
   body_t *user = state->user_body;
   scene_t *scene = state->scene;
 
+  list_t *buttons = state->manual_buttons;
+  for (size_t i = 0; i < list_size(buttons); i++) {
+    asset_render(list_get(buttons, i));
+  }
+
   scene_tick(scene, dt);
   sdl_render_scene(scene, user);
   body_tick(user, dt);
@@ -212,7 +217,10 @@ bool emscripten_main(state_t *state) {
 }
 
 void emscripten_free(state_t *state) {
+  TTF_Quit();
   scene_free(state->scene);
+  list_free(state->button_assets);
+  asset_cache_destroy();
   body_free(state->user_body);
   free(state);
 }
