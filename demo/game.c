@@ -171,7 +171,7 @@ bool emscripten_main(state_t *state) {
 
   scene_tick(scene, dt);
   sdl_render_scene(scene, user);
-  body_add_force(state -> user_body, (vector_t){0, -98});
+  body_add_force(state -> user_body, (vector_t){0, -980});
   body_tick(user, dt);
 
   return game_over(state);
