@@ -147,6 +147,7 @@ bool sdl_is_done(void *state) {
       break;
 
     case SDL_MOUSEBUTTONDOWN: {
+      asset_cache_handle_buttons(state, event->button.x, event->button.y);
       break;
     }
     }
