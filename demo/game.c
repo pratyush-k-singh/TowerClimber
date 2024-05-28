@@ -158,7 +158,7 @@ state_t *emscripten_init() {
 
   // testing wall collisions
   
-  body_set_velocity(state -> user_body, (vector_t){100, 50});
+  body_set_velocity(state -> user_body, (vector_t){300, 150});
 
   state->game_over = false;
   return state;
