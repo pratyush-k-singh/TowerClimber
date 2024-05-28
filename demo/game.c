@@ -139,7 +139,7 @@ void wall_init(state_t *state) {
       vector_t *point = list_get(right_points, i);
       printf("  (%f, %f)\n", point->x, point->y);
     }
-    // create_physics_collision(scene, right_wall, state -> user_body, 0);
+
 
 
   }
@@ -157,13 +157,6 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
 
-  // debugging collision handler
-  body_t* temp = body_init_with_info(points_temp, INFINITY, USER_COLOR, (void *)USER_INFO, NULL);
-  body_set_centroid(temp, (vector_t){500, 70});
-  scene_add_body(state -> scene, temp);
-  create_physics_collision(state -> scene, state -> user_body, temp, 0);
-  body_set_velocity(state -> user_body, (vector_t){100, 0});
-  //
   body_set_rotation(state->user_body, USER_ROTATION);
 
   state->game_over = false;
