@@ -11,65 +11,207 @@
 #include "forces.h"
 #include "sdl_wrapper.h"
 
-const double USER_RADIUS = 15;
-const double USER_MASS = 5;
-const double CIRC_NPOINTS = 20;
-const vector_t USER_INIT_POS = {500, 70};
-
-const vector_t VEC_ZERO = {0, 0};
 const vector_t MIN = {0, 0};
-const vector_t MAX = {1000, 1000};
+const vector_t MAX = {700, 500};
 
-rgb_color_t RED = (rgb_color_t){0.5, 0.5, 0.5};
+// User constants
+const double USER_MASS = 5;
+const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
+const char *USER_INFO = "user";
+const double USER_ROTATION = 0;
+const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
+const double OUTER_RADIUS = 60;
+const double INNER_RADIUS = 15;
+const size_t USER_NUM_POINTS = 20;
+
+// Wall constants
+const vector_t WALL_WIDTH = {50, 0};
+const size_t WALL_POINTS = 4;
+const double WALL_MASS = INFINITY;
+
+const char *LEFT_WALL_INFO = "left_wall";
+const char *RIGHT_WALL_INFO = "right_wall";
+
+// Game constants
+const size_t NUM_LEVELS = 1;
+const size_t NUM_BUTTONS = 1;
 
 struct state {
   scene_t *scene;
-  body_t *user; 
-  vector_t aim_start_pos;
-  vector_t aim_end_pos;
-  bool aiming;
+  list_t *body_assets;
+  body_t *user_body;
+  asset_t *jump_button;
+  list_t *button_assets;
+  size_t user_health;
+  size_t ghost_counter;
+  double ghost_timer;
+  bool game_over;
 };
 
-list_t *make_circle(vector_t center, double radius) {
-  list_t *c = list_init(CIRC_NPOINTS, free);
-  for (size_t i = 0; i < CIRC_NPOINTS; i++) {
-    double angle = 2 * M_PI * i / CIRC_NPOINTS;
+typedef struct button_info {
+  const char *image_path;
+  const char *font_path;
+  SDL_Rect image_box;
+  SDL_Rect text_box;
+  rgb_color_t text_color;
+  const char *text;
+  button_handler_t handler;
+} button_info_t;
+
+button_info_t jump_button_info = {
+    .image_path = "assets/black_circle.png",
+     .font_path = "assets/Roboto-Regular.ttf",
+     .image_box = (SDL_Rect){0, 400, 100, 100},
+     .text_box = (SDL_Rect){25, 425, 50, 50},
+     .text_color = (rgb_color_t){255, 255, 255},
+     .text = "Jump",
+     .handler = (void *)jump_user};
+
+list_t *make_user(double outer_radius, double inner_radius) {
+  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x, MIN.y + outer_radius};
+  center.y += inner_radius;
+  list_t *c = list_init(USER_NUM_POINTS, free);
+  for (size_t i = 0; i < USER_NUM_POINTS; i++) {
+    double angle = 2 * M_PI * i / USER_NUM_POINTS;
     vector_t *v = malloc(sizeof(*v));
-    *v = (vector_t){center.x + radius * cos(angle),
-                    center.y + radius * sin(angle)};
+    *v = (vector_t){center.x + inner_radius * cos(angle),
+                    center.y + outer_radius * sin(angle)};
     list_add(c, v);
   }
   return c;
 }
 
+/**
+ * Generates the list of points for a Wall shape given the vector of the bottom left
+ * corner
+ *
+ * @param corner a vector that contains the coordinates of the bottom left corner of
+ * the wall
+ * @param points an empty list to add the points to, the points are pointers to vectors
+ */
+void make_wall_points(vector_t corner, list_t *points){
+  vector_t wall_length = {0, MAX.y};
+  vector_t *v_1 = malloc(sizeof(*v_1));
+  *v_1 = corner;
+  vector_t *v_2 = malloc(sizeof(*v_2));
+  *v_2 = vec_add(*v_1, wall_length);
+  vector_t *v_3 = malloc(sizeof(*v_3));
+  *v_3 = vec_add(*v_2, WALL_WIDTH);
+  vector_t *v_4 = malloc(sizeof(*v_4));
+  *v_4 = vec_subtract(*v_3, wall_length);
+  list_add(points, v_1);
+  list_add(points, v_2);
+  list_add(points, v_3);
+  list_add(points, v_4);
+}
+
+list_t *make_wall(void *wall_info) {
+  vector_t corner = VEC_ZERO;
+  vector_t left_wall_corner = MIN;
+  vector_t right_wall_corner = {MAX.x - 50, 0};
+  if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
+    corner = left_wall_corner;
+  } else {
+    corner = right_wall_corner;
+  }
+  list_t *c = list_init(WALL_POINTS, free);
+  make_wall_points(corner, c);
+  return c;
+}
+
+/**
+ * Using `info`, initializes a button in the scene.
+ *
+ * @param info the button info struct used to initialize the button
+ * @return the created button
+ */
+asset_t *create_button_from_info(state_t *state, button_info_t info) {
+  asset_t *image = asset_make_image(info.image_path, info.image_box);
+  asset_t *text = NULL;
+  if (info.font_path != NULL) {
+    text = asset_make_text(info.font_path, info.text_box, info.text,
+                           info.text_color);
+  }
+  asset_t *button =
+      asset_make_button(info.image_box, image, text, info.handler);
+  asset_cache_register_button(button);
+
+  return button;
+}
+
+/**
+ * Initializes and stores the button assets in the state.
+ */
+void create_button(state_t *state, button_info_t info) {
+  asset_t *button = create_button_from_info(state, info);
+  if (info.font_path == NULL) {
+    if (strcmp(info.image_path, "assets/black_circle.png") == 0) {
+      state->jump_button = button;
+    }
+  }
+}
+
+/**
+ * Check conditions to see if game is over. Game is over if the user has no more health
+ * (loss), the user falls off the map (loss)
+ * or the user reaches the top of the map (win).
+ *
+ * @param state a pointer to a state object representing the current demo state
+ */
+bool game_over(state_t *state) {
+  return false;
+}
+
+// initialize the walls at start of game
+void wall_init(state_t *state) {
+  scene_t *scene = state -> scene;
+  for (size_t i = 0; i < NUM_LEVELS; i++){
+    list_t *left_points = make_wall((void *)LEFT_WALL_INFO);
+    list_t *right_points = make_wall((void *)RIGHT_WALL_INFO);
+    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
+                                            USER_COLOR, (void *)LEFT_WALL_INFO, 
+                                            NULL);
+    body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
+                                            USER_COLOR, (void *)RIGHT_WALL_INFO, 
+                                            NULL);
+    scene_add_body(scene, left_wall);
+    scene_add_body(scene, right_wall);
+  }
+}
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
-
   state_t *state = malloc(sizeof(state_t));
   assert(state);
-
   state->scene = scene_init();
+  wall_init(state);
+  list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
+  state->user_body =
+      body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
+  body_set_rotation(state->user_body, USER_ROTATION);
+  state->game_over = false;
 
-  list_t *user_shape = make_circle(USER_INIT_POS, USER_RADIUS);
-  state->user = body_init_with_info(user_shape, USER_MASS, RED, NULL, NULL);
-  scene_add_body(state->scene, state->user);
+  asset_cache_init();
+  state->button_assets = list_init(NUM_BUTTONS, (free_func_t)asset_destroy);
+  create_button(state, jump_button_info);
 
-  state->aim_start_pos = VEC_ZERO;
-  state->aim_end_pos = VEC_ZERO;
-  state->aiming = false;
-  
   return state;
 }
 
 bool emscripten_main(state_t *state) {
-  sdl_render_scene(state->scene, NULL);
-  
+  double dt = time_since_last_tick();
+  body_t *user = state->user_body;
+  scene_t *scene = state->scene;
 
-  return false;
+  scene_tick(scene, dt);
+  sdl_render_scene(scene, user);
+  body_tick(user, dt);
+
+  return game_over(state);
 }
 
 void emscripten_free(state_t *state) {
-  body_free(state->user);
+  scene_free(state->scene);
+  body_free(state->user_body);
   free(state);
 }
