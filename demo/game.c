@@ -169,7 +169,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       }
     }
     else if (type == KEY_RELEASED) {
-      vector_t = cur_v;
+      vector_t new_v = cur_v;
     }
   }
   body_set_velocity(user, new_v);
