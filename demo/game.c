@@ -182,7 +182,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
           }
         }
     }
-  
+  }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
