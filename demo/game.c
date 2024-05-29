@@ -159,7 +159,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
     }
   }
 
-  if (type == KEY_RELEASED && new_v.y == 0) {
+  if (type == KEY_RELEASED && cur_v.y == 0) {
     new_v.x = 0;
   }
 
