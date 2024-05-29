@@ -150,8 +150,17 @@ bool asset_on_button_click(asset_t *asset, state_t *state, double x, double y) {
 
 void asset_render(asset_t *asset) {
   SDL_Rect box = asset->bounding_box;
+<<<<<<< HEAD
   vector_t loc = {box.x, box.y};
   
+=======
+  double x = box.x;
+  double y = box.y;
+  // double width = box.w;
+  // double height = box.h;
+  vector_t loc = {x, y};
+
+>>>>>>> 4b05da96eae588fd9e09d8e3def750790c972435
   switch (asset->type) {
   case ASSET_IMAGE: {
     image_asset_t *image = (image_asset_t *)asset;

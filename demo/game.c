@@ -11,8 +11,11 @@
 #include "forces.h"
 #include "sdl_wrapper.h"
 
-const vector_t MIN = {0, 0}; 
+const vector_t MIN = {0, 0};
 const vector_t MAX = {700, 500};
+
+const char *BACKGROUND_PATH = "assets/background.png";
+const char *USER_PATH = "assets/body.png";
 
 // User constants
 const double USER_MASS = 5;
@@ -26,24 +29,27 @@ const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 300;
+const double GAP = 10;
 
 // Wall constants
 const vector_t WALL_WIDTH = {50, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
+const double WALL_ELASTICITY = 0.1;
 
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
-const size_t NUM_BUTTONS = 1;
 
 struct state {
   scene_t *scene;
   list_t *body_assets;
   body_t *user_body;
   bool is_jumping;
+  asset_t *user_sprite;
+  body_t *user_body;
   size_t user_health;
   size_t ghost_counter;
   double ghost_timer;
@@ -51,7 +57,8 @@ struct state {
 };
 
 list_t *make_user(double outer_radius, double inner_radius) {
-  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x, MIN.y + outer_radius};
+  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x + GAP, 
+                    MIN.y + outer_radius};
   center.y += inner_radius;
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
@@ -90,12 +97,10 @@ void make_wall_points(vector_t corner, list_t *points){
 
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
-  vector_t left_wall_corner = MIN;
-  vector_t right_wall_corner = {MAX.x - 50, 0};
   if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
-    corner = left_wall_corner;
+    corner = MIN;
   } else {
-    corner = right_wall_corner;
+    corner = (vector_t){MAX.x - WALL_WIDTH.x, 0};
   }
   list_t *c = list_init(WALL_POINTS, free);
   make_wall_points(corner, c);
@@ -110,6 +115,7 @@ list_t *make_wall(void *wall_info) {
  * @param state a pointer to a state object representing the current demo state
  */
 bool game_over(state_t *state) {
+  // ends the game, we will need in future but I wrote it by accident sorry ;)
   // vector_t user_pos = body_get_centroid(state->user_body);
   // if (user_pos.y + OUTER_RADIUS <= 0) {
   //   return true;
@@ -194,6 +200,13 @@ state_t *emscripten_init() {
 
   state->scene = scene_init();
 
+
+state_t *emscripten_init() {
+  
+  sdl_init(MIN, MAX);
+  state_t *state = malloc(sizeof(state_t));
+  assert(state);
+  state->scene = scene_init();
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
