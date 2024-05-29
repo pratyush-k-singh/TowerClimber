@@ -23,7 +23,9 @@ const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
-const double USER_JUMP_HEIGHT = 50;
+const double RESTING_SPEED = 200;
+const double ACCEL = 100;
+const double USER_JUMP_HEIGHT = 100;
 
 // Wall constants
 const vector_t WALL_WIDTH = {50, 0};
@@ -157,8 +159,8 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
     }
   }
 
-  if (type == KEY_RELEASED && cur_v.y == 0) {
-    cur_v = 0;
+  if (type == KEY_RELEASED && new_v.y == 0) {
+    new_v.x = 0;
   }
 
   body_set_velocity(user, new_v);
