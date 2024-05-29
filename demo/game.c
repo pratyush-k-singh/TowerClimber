@@ -110,6 +110,11 @@ list_t *make_wall(void *wall_info) {
  * @param state a pointer to a state object representing the current demo state
  */
 bool game_over(state_t *state) {
+  vector_t user_pos = body_get_centroid(state->user_body);
+  if (user_pos.y - OUTER_RADIUS <= 0) {
+    return true;
+  }
+
   return false;
 }
 
@@ -127,7 +132,7 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    create_physics_collision(scene, right_wall, state -> user_body, 0);
+    // create_physics_collision(scene, right_wall, state -> user_body, 0);
     // create_physics_collision(scene, left_wall, state -> user_body, 0);
   }
 }
@@ -143,30 +148,29 @@ void wall_init(state_t *state) {
  */
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user_body;
-  vector_t cur_v = body_get_velocity(user);
   vector_t new_v = {0, 0};
 
-  if (type == KEY_PRESSED) {
-    switch (key) {
-    case LEFT_ARROW: {
-      new_v.x = -1 * (RESTING_SPEED + ACCEL * held_time);
-      break;
+  if (!state->is_jumping) {
+    if (type == KEY_PRESSED) {
+      switch (key) {
+      case LEFT_ARROW: {
+        new_v.x = -1 * (RESTING_SPEED + ACCEL * held_time);
+        break;
+      }
+      case RIGHT_ARROW: {
+        new_v.x = RESTING_SPEED + ACCEL * held_time;
+        break;
+      }
+      case UP_ARROW: {
+        new_v.y = USER_JUMP_HEIGHT;
+        break;
+      }
+      }
     }
-    case RIGHT_ARROW: {
-      new_v.x = RESTING_SPEED + ACCEL * held_time;
-      break;
-    }
-    case UP_ARROW: {
-      new_v.y = USER_JUMP_HEIGHT;
-      break;
-    }
+    else if (type == KEY_RELEASED) {
+      new_v = body_get_velocity(user);
     }
   }
-
-  if (type == KEY_RELEASED && cur_v.y == 0) {
-    new_v.x = 0;
-  }
-
   body_set_velocity(user, new_v);
 }
 
