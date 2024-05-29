@@ -169,14 +169,18 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       }
       }
     } else {
-      case LEFT_ARROW: {
-        new_vx = -1 * cur_v.x;
-        break;
-      }
-      case RIGHT_ARROW: {
-        new_vx = abs(cur_v.x);
-        break;
-      }
+        if (type == KEY_PRESSED) {
+          switch (key) {
+            case LEFT_ARROW: {
+              new_vx = -1 * cur_v.x;
+              break;
+            }
+            case RIGHT_ARROW: {
+              new_vx = fabs(cur_v.x);
+              break;
+            }
+          }
+        }
     }
     // else if (type == KEY_RELEASED) {
     //   new
