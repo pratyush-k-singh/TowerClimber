@@ -111,10 +111,9 @@ list_t *make_wall(void *wall_info) {
  */
 bool game_over(state_t *state) {
   vector_t user_pos = body_get_centroid(state->user_body);
-  if (user_pos.y - OUTER_RADIUS <= 0) {
+  if (user_pos.y + OUTER_RADIUS <= 0) {
     return true;
   }
-
   return false;
 }
 
