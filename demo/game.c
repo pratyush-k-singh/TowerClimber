@@ -148,29 +148,30 @@ void wall_init(state_t *state) {
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user_body;
   vector_t cur_v = body_get_velocity(user);
-  vector_t new_v = {RESTING_SPEED + ACCEL * held_time, 0};
+  double new_vx = RESTING_SPEED + ACCEL * held_time;
+  double new_vy = 0;
 
   if (!state->is_jumping) {
     if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        new_v.x = -1 * new_v.x;
+        new_vx = -1 * new_v.x;
         break;
       }
       case RIGHT_ARROW: {
         break;
       }
       case UP_ARROW: {
-        new_v.y = USER_JUMP_HEIGHT;
+        new_vy = USER_JUMP_HEIGHT;
         break;
       }
       }
     }
-    else if (type == KEY_RELEASED) {
-      new_v = cur_v;
-    }
+    // else if (type == KEY_RELEASED) {
+    //   new
+    // }
   }
-  body_set_velocity(user, new_v);
+  body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
 state_t *emscripten_init() {
