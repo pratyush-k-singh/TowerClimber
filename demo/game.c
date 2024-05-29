@@ -193,11 +193,11 @@ state_t *emscripten_init() {
   assert(state);
 
   state->scene = scene_init();
-  wall_init(state);
 
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
+  wall_init(state);
   body_set_rotation(state->user_body, USER_ROTATION);
   state->game_over = false;
 
