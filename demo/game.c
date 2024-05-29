@@ -43,6 +43,7 @@ struct state {
   scene_t *scene;
   list_t *body_assets;
   body_t *user_body;
+  bool is_jumping;
   size_t user_health;
   size_t ghost_counter;
   double ghost_timer;
@@ -126,7 +127,7 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    // create_physics_collision(scene, right_wall, state -> user_body, 0);
+    create_physics_collision(scene, right_wall, state -> user_body, 0);
     // create_physics_collision(scene, left_wall, state -> user_body, 0);
   }
 }
@@ -184,6 +185,7 @@ state_t *emscripten_init() {
   state->game_over = false;
 
   sdl_on_key((key_handler_t)on_key);
+  state->is_jumping = false;
 
   return state;
 }
