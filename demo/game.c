@@ -222,11 +222,11 @@ bool emscripten_main(state_t *state) {
   body_add_force(user, (vector_t) {0, GRAVITY});
   body_tick(user, dt);
 
-  // check if user has collided with wall
-  double cur_xpos = body_get_centroid(user).x;
-  if (cur_xpos > MAX.x - 1.25 * WALL_WIDTH.x || cur_xpos < MIN.x + 1.25 * WALL_WIDTH.x) {
-    state->is_jumping = false;
-  }
+  // // check if user has collided with wall
+  // double cur_xpos = body_get_centroid(user).x;
+  // if (cur_xpos > MAX.x - 1.25 * WALL_WIDTH.x || cur_xpos < MIN.x + 1.25 * WALL_WIDTH.x) {
+  //   state->is_jumping = false;
+  // }
 
   return game_over(state);
 }
