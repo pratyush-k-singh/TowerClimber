@@ -148,24 +148,28 @@ void wall_init(state_t *state) {
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user_body;
   vector_t cur_v = body_get_velocity(user);
-  double new_vx = RESTING_SPEED + ACCEL * held_time;
-  double new_vy = 0;
+  double new_vx = cur_v.x;//RESTING_SPEED + ACCEL * held_time;
+  double new_vy = cur_v.y;
 
   if (!state->is_jumping) {
     if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        new_vx = -1 * new_vx;
+        new_vx = -1 * RESTING_SPEED + ACCEL * held_time;
         break;
       }
       case RIGHT_ARROW: {
+        new_vx = RESTING_SPEED + ACCEL * held_time;
         break;
       }
       case UP_ARROW: {
         new_vy = USER_JUMP_HEIGHT;
+        state->is_jumping = true;
         break;
       }
       }
+    } else {
+
     }
     // else if (type == KEY_RELEASED) {
     //   new
