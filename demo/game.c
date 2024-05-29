@@ -20,8 +20,8 @@ const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
 const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
-const double OUTER_RADIUS = 260;
-const double INNER_RADIUS = 215;
+const double OUTER_RADIUS = 60;
+const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
@@ -147,17 +147,16 @@ void wall_init(state_t *state) {
  */
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user_body;
-  vector_t new_v = {0, 0};
+  vector_t new_v = {RESTING_SPEED + ACCEL * held_time, 0};
 
   if (!state->is_jumping) {
     if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        new_v.x = -1 * (RESTING_SPEED + ACCEL * held_time);
+        new_v.x = -1 * new_v.x;
         break;
       }
       case RIGHT_ARROW: {
-        new_v.x = RESTING_SPEED + ACCEL * held_time;
         break;
       }
       case UP_ARROW: {
