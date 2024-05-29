@@ -173,6 +173,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
           switch (key) {
             case LEFT_ARROW: {
               new_vx = -1 * cur_v.x;
+              printf("yay");
               break;
             }
             case RIGHT_ARROW: {
