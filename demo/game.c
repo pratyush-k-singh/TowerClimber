@@ -46,7 +46,6 @@ const size_t NUM_LEVELS = 1;
 struct state {
   scene_t *scene;
   list_t *body_assets;
-  body_t *user_body;
   bool is_jumping;
   asset_t *user_sprite;
   body_t *user_body;
@@ -194,18 +193,11 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 state_t *emscripten_init() {
-  sdl_init(MIN, MAX);
-  state_t *state = malloc(sizeof(state_t));
-  assert(state);
-
-  state->scene = scene_init();
-
-
-state_t *emscripten_init() {
   
   sdl_init(MIN, MAX);
   state_t *state = malloc(sizeof(state_t));
   assert(state);
+
   state->scene = scene_init();
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
