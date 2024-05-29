@@ -23,6 +23,7 @@ const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double OUTER_RADIUS = 60;
 const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
+const double USER_JUMP_HEIGHT = 50;
 
 // Wall constants
 const vector_t WALL_WIDTH = {50, 0};
@@ -40,32 +41,10 @@ struct state {
   scene_t *scene;
   list_t *body_assets;
   body_t *user_body;
-  asset_t *jump_button;
-  list_t *button_assets;
   size_t user_health;
   size_t ghost_counter;
   double ghost_timer;
   bool game_over;
-};
-
-typedef struct button_info {
-  const char *image_path;
-  const char *font_path;
-  SDL_Rect image_box;
-  SDL_Rect text_box;
-  rgb_color_t text_color;
-  const char *text;
-  button_handler_t handler;
-} button_info_t;
-
-button_info_t jump_button_info = {
-    .image_path = "assets/black_circle.png",
-     .font_path = "assets/Roboto-Regular.ttf",
-     .image_box = (SDL_Rect){0, 400, 100, 100},
-     .text_box = (SDL_Rect){25, 425, 50, 50},
-     .text_color = (rgb_color_t){255, 255, 255},
-     .text = "Jump",
-     //.handler = (void *)jump_user};
 };
 
 list_t *make_user(double outer_radius, double inner_radius) {
@@ -121,38 +100,6 @@ list_t *make_wall(void *wall_info) {
 }
 
 /**
- * Using `info`, initializes a button in the scene.
- *
- * @param info the button info struct used to initialize the button
- * @return the created button
- */
-asset_t *create_button_from_info(state_t *state, button_info_t info) {
-  asset_t *image = asset_make_image(info.image_path, info.image_box);
-  asset_t *text = NULL;
-  if (info.font_path != NULL) {
-    text = asset_make_text(info.font_path, info.text_box, info.text,
-                           info.text_color);
-  }
-  asset_t *button =
-      asset_make_button(info.image_box, image, text, info.handler);
-  asset_cache_register_button(button);
-
-  return button;
-}
-
-/**
- * Initializes and stores the button assets in the state.
- */
-void create_button(state_t *state, button_info_t info) {
-  asset_t *button = create_button_from_info(state, info);
-  if (info.font_path == NULL) {
-    if (strcmp(info.image_path, "assets/black_circle.png") == 0) {
-      state->jump_button = button;
-    }
-  }
-}
-
-/**
  * Check conditions to see if game is over. Game is over if the user has no more health
  * (loss), the user falls off the map (loss)
  * or the user reaches the top of the map (win).
@@ -180,21 +127,58 @@ void wall_init(state_t *state) {
   }
 }
 
+/**
+ * Move player on display screen based on key pressed.
+ *
+ * @param key the character of the key pressed
+ * @param type event type connected to key
+ * @param held_time double value representing the amount of time the key is held
+ * down
+ * @param state the state representing the current demo
+ */
+void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
+  body_t *user = state->user_body;
+  vector_t cur_v = body_get_velocity(user);
+  vector_t new_v = {resting_speed + ACCEL * held_time, 0};
+
+  if (type == KEY_PRESSED) {
+    switch (key) {
+    case LEFT_ARROW: {
+      new_v.x = -1 * new_v.x;
+      break;
+    }
+    case RIGHT_ARROW: {
+      break;
+    }
+    case UP_ARROW: {
+      new_v.y = USER_JUMP_HEIGHT;
+      break;
+    }
+    }
+  }
+
+  if (type == KEY_RELEASED && cur_v.y == 0) {
+    cur_v = 0;
+  }
+
+  body_set_velocity(user, new_v);
+}
+
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   state_t *state = malloc(sizeof(state_t));
   assert(state);
+
   state->scene = scene_init();
   wall_init(state);
+
   list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_set_rotation(state->user_body, USER_ROTATION);
   state->game_over = false;
 
-  asset_cache_init();
-  state->button_assets = list_init(NUM_BUTTONS, (free_func_t)asset_destroy);
-  create_button(state, jump_button_info);
+  sdl_on_key((key_handler_t)on_key);
 
   return state;
 }
@@ -203,12 +187,6 @@ bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
   scene_t *scene = state->scene;
-
-  list_t *buttons = state->button_assets;
-  for (size_t i = 0; i < list_size(buttons); i++) {
-    asset_render(list_get(buttons, i));
-  }
-
   scene_tick(scene, dt);
   sdl_render_scene(scene, user);
   body_tick(user, dt);
@@ -219,8 +197,6 @@ bool emscripten_main(state_t *state) {
 void emscripten_free(state_t *state) {
   TTF_Quit();
   scene_free(state->scene);
-  list_free(state->button_assets);
-  asset_cache_destroy();
   body_free(state->user_body);
   free(state);
 }
