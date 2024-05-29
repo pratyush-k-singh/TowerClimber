@@ -143,15 +143,16 @@ void wall_init(state_t *state) {
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user_body;
   vector_t cur_v = body_get_velocity(user);
-  vector_t new_v = {RESTING_SPEED + ACCEL * held_time, 0};
+  vector_t new_v = {0, 0};
 
   if (type == KEY_PRESSED) {
     switch (key) {
     case LEFT_ARROW: {
-      new_v.x = -1 * new_v.x;
+      new_v.x = -1 * (RESTING_SPEED + ACCEL * held_time);
       break;
     }
     case RIGHT_ARROW: {
+      new_v.x = RESTING_SPEED + ACCEL * held_time;
       break;
     }
     case UP_ARROW: {
