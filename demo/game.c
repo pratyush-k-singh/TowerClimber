@@ -28,7 +28,7 @@ const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
-const double USER_JUMP_HEIGHT = 300;
+const double USER_JUMP_HEIGHT = 200;
 const double GAP = 10;
 
 // Wall constants
