@@ -155,7 +155,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
     if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        new_vx = -1 * new_v.x;
+        new_vx = -1 * new_vx;
         break;
       }
       case RIGHT_ARROW: {
