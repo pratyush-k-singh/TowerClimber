@@ -110,10 +110,10 @@ list_t *make_wall(void *wall_info) {
  * @param state a pointer to a state object representing the current demo state
  */
 bool game_over(state_t *state) {
-  vector_t user_pos = body_get_centroid(state->user_body);
-  if (user_pos.y + OUTER_RADIUS <= 0) {
-    return true;
-  }
+  // vector_t user_pos = body_get_centroid(state->user_body);
+  // if (user_pos.y + OUTER_RADIUS <= 0) {
+  //   return true;
+  // }
   return false;
 }
 
@@ -168,12 +168,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       }
-    } else {
+    }
+  }
+  else {
         if (type == KEY_PRESSED) {
           switch (key) {
             case LEFT_ARROW: {
               new_vx = -1 * cur_v.x;
-              printf("yay");
               break;
             }
             case RIGHT_ARROW: {
@@ -183,7 +184,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
           }
         }
     }
-  }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
