@@ -162,10 +162,14 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case UP_ARROW: {
+        new_v.x = cur_v.x;
         new_v.y = USER_JUMP_HEIGHT;
         break;
       }
       }
+    }
+    else if (type == KEY_RELEASED) {
+      vector_t = cur_v;
     }
   }
   body_set_velocity(user, new_v);
