@@ -12,7 +12,7 @@
 #include "sdl_wrapper.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {700, 500};
+const vector_t MAX = {700, 700};
 
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
@@ -42,6 +42,7 @@ const char *RIGHT_WALL_INFO = "right_wall";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
+const double GRAVITY = -980;
 
 struct state {
   scene_t *scene;
@@ -218,8 +219,14 @@ bool emscripten_main(state_t *state) {
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
   sdl_render_scene(scene, user);
-  body_add_force(state -> user_body, (vector_t){0, -980});
+  body_add_force(user, (vector_t) {0, GRAVITY});
   body_tick(user, dt);
+
+  // check if user has collided with wall
+  double cur_xpos = body_get_centroid(user).x;
+  if (cur_xpos > MAX.x - 1.25 * WALL_WIDTH || cur_xpos < MIN.x + 1.25 * WALL_WIDTH) {
+    state->is_jumping = false;
+  }
 
   return game_over(state);
 }
