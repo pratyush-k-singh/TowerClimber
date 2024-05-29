@@ -25,7 +25,7 @@ const double INNER_RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
-const double USER_JUMP_HEIGHT = 100;
+const double USER_JUMP_HEIGHT = 300;
 
 // Wall constants
 const vector_t WALL_WIDTH = {50, 0};
@@ -182,10 +182,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
           }
         }
     }
-    // else if (type == KEY_RELEASED) {
-    //   new
-    // }
-  }
+  
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
