@@ -224,7 +224,7 @@ bool emscripten_main(state_t *state) {
 
   // check if user has collided with wall
   double cur_xpos = body_get_centroid(user).x;
-  if (cur_xpos > MAX.x - 1.25 * WALL_WIDTH || cur_xpos < MIN.x + 1.25 * WALL_WIDTH) {
+  if (cur_xpos > MAX.x - 1.25 * WALL_WIDTH.x || cur_xpos < MIN.x + 1.25 * WALL_WIDTH.x) {
     state->is_jumping = false;
   }
 
