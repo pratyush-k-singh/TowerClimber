@@ -141,7 +141,7 @@ void wall_init(state_t *state) {
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user_body;
   vector_t cur_v = body_get_velocity(user);
-  vector_t new_v = {resting_speed + ACCEL * held_time, 0};
+  vector_t new_v = {RESTING_SPEED + ACCEL * held_time, 0};
 
   if (type == KEY_PRESSED) {
     switch (key) {
