@@ -265,7 +265,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       }
       case UP_ARROW: {
         new_vy = USER_JUMP_HEIGHT;
-        state->is_jumping = true;
+        //state->is_jumping = true;
         break;
       }
       }
