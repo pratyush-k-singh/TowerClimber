@@ -21,6 +21,7 @@ const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
 
 const double BACKGROUND_CORNER = 150;
+const double VERTICAL_OFFSET = 100;
 
 // User constants
 const double USER_MASS = 5;
@@ -266,7 +267,7 @@ bool emscripten_main(state_t *state) {
 
   vector_t player_pos = body_get_centroid(user);
   double window_height = MAX.y - MIN.y;
-  state->vertical_offset = player_pos.y - (window_height - 100);
+  state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
