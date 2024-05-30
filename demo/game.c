@@ -23,10 +23,6 @@ const char *PLATFORM_PATH = "assets/platform.png";
 
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
-const char *WALL_PATH = "assets/wall.jpeg";
-const char *PLAtFORM_PATH = "assets/platform.png";
-
-const double BACKGROUND_CORNER = 150;
 
 // User constants
 const double USER_MASS = 5;
@@ -49,14 +45,6 @@ const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_WIDTH = {100, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
-const double WALL_ELASTICITY = 0;
-const size_t TEMP_LENGTH = 3;
-const double NORMAL_SCALING = 1;
-const double PLATFORM_SCALING = 5;
-const double PLATFORM_HEIGHT = 100;
-const vector_t PLATFORM_LENGTH = {0, 10};
-const vector_t PLATFORM_WIDTH = {100, 0};
-const double PLATFORM_ROTATION = M_PI/2;
 const double WALL_ELASTICITY = 0;
 const size_t TEMP_LENGTH = 3;
 const double NORMAL_SCALING = 1;
