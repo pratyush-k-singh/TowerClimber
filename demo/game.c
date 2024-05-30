@@ -314,11 +314,22 @@ state_t *emscripten_init() {
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
-  scene_t *scene = state -> scene;
   scene_tick(scene, dt);
-  sdl_render_scene(scene, user);
   body_add_force(user, (vector_t) {0, GRAVITY});
   body_tick(user, dt);
+
+  sdl_clear();
+  for (size_t i = 0; i < list_size(state->body_assets); i++) {
+    asset_render(list_get(state->body_assets, i));
+  }
+
+  sdl_show();
+  for (size_t i = 0; i < scene_bodies(scene); i++){
+    body_t *wall = scene_get_body(scene, i);
+    sticky_collision(state, user, wall);
+  }
+  return game_over(state);
+
 
   return game_over(state);
 }
