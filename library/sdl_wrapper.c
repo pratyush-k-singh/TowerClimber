@@ -162,7 +162,7 @@ void sdl_clear(void) {
   SDL_RenderClear(renderer);
 }
 
-void sdl_draw_polygon(polygon_t *poly, rgb_color_t *color, double vector_offset) {
+void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset) {
   list_t *points = polygon_get_points(poly);
   // Check parameters
   size_t n = list_size(points);
@@ -263,7 +263,7 @@ void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset) {
       *new_point = window_point;
     }
 
-    sdl_draw_polygon(body_get_polygon(body), body_get_color(body), vertical_offset);
+    sdl_draw_polygon(body_get_polygon(body), *body_get_color(body), vertical_offset);
     list_free(shape);
   }
   if (aux != NULL) {
