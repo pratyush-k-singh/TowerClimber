@@ -193,7 +193,7 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    create_collision(scene, right_wall, state -> user_body, (void*) sticky_collision, (char*)"v_0", WALL_ELASTICITY);
+    create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
     create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
     asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall);
     asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall);
