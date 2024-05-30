@@ -233,6 +233,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   if (state -> collided && !velocity_zero){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
+    state->is_jumping = false;
   }
 }
 
@@ -264,7 +265,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       }
       case UP_ARROW: {
         new_vy = USER_JUMP_HEIGHT;
-        //state->is_jumping = true;
+        state->is_jumping = true;
         break;
       }
       }
@@ -316,12 +317,6 @@ bool emscripten_main(state_t *state) {
   sdl_render_scene(scene, user);
   body_add_force(user, (vector_t) {0, GRAVITY});
   body_tick(user, dt);
-
-  // // check if user has collided with wall
-  // double cur_xpos = body_get_centroid(user).x;
-  // if (cur_xpos > MAX.x - 1.25 * WALL_WIDTH.x || cur_xpos < MIN.x + 1.25 * WALL_WIDTH.x) {
-  //   state->is_jumping = false;
-  // }
 
   return game_over(state);
 }
