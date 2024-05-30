@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "asset.h"
 #include "asset_cache.h"
@@ -16,6 +17,10 @@ const vector_t MAX = {700, 700};
 
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
+const char *WALL_PATH = "assets/wall.jpeg";
+const char *PLAtFORM_PATH = "assets/platform.png";
+
+const double BACKGROUND_CORNER = 150;
 
 // User constants
 const double USER_MASS = 5;
@@ -23,22 +28,30 @@ const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
 const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
-const double OUTER_RADIUS = 60;
-const double INNER_RADIUS = 15;
+const double RADIUS = 50;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 300;
 const double GAP = 10;
+const double VELOCITY_SCALE = 100;
 
 // Wall constants
-const vector_t WALL_WIDTH = {50, 0};
+const vector_t WALL_WIDTH = {100, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
-const double WALL_ELASTICITY = 0.1;
+const double WALL_ELASTICITY = 0;
+const size_t TEMP_LENGTH = 3;
+const double NORMAL_SCALING = 1;
+const double PLATFORM_SCALING = 5;
+const double PLATFORM_HEIGHT = 100;
+const vector_t PLATFORM_LENGTH = {0, 10};
+const vector_t PLATFORM_WIDTH = {100, 0};
+const double PLATFORM_ROTATION = M_PI/2;
 
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
+const char *PLATFORM_INFO = "platform";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
@@ -54,21 +67,35 @@ struct state {
   size_t ghost_counter;
   double ghost_timer;
   bool game_over;
+  bool collided;
 };
 
-list_t *make_user(double outer_radius, double inner_radius) {
-  vector_t center = {MIN.x + inner_radius + WALL_WIDTH.x + GAP, 
-                    MIN.y + outer_radius};
-  center.y += inner_radius;
+
+list_t *make_user(double radius) {
+  vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
+                    MIN.y + radius + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
     double angle = 2 * M_PI * i / USER_NUM_POINTS;
     vector_t *v = malloc(sizeof(*v));
-    *v = (vector_t){center.x + inner_radius * cos(angle),
-                    center.y + outer_radius * sin(angle)};
+    assert(v);
+    *v = (vector_t){center.x + radius * cos(angle),
+                    center.y + radius * sin(angle)};
     list_add(c, v);
+    
   }
   return c;
+}
+
+/**
+ * Sets the velocity of the user so that the user can jump from sticky walls
+ */
+void set_velocity(state_t *state, vector_t velocity){
+  body_t *user = state -> user_body;
+  body_set_velocity(user, velocity);
+  vector_t center = body_get_centroid(state -> user_body);
+  vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
+  body_set_centroid(user, vec_add(center, move));
 }
 
 /**
@@ -80,30 +107,57 @@ list_t *make_user(double outer_radius, double inner_radius) {
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
 void make_wall_points(vector_t corner, list_t *points){
-  vector_t wall_length = {0, MAX.y};
+  vector_t wall_length = {MIN.y, MAX.y};
+  vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
   vector_t *v_1 = malloc(sizeof(*v_1));
   *v_1 = corner;
-  vector_t *v_2 = malloc(sizeof(*v_2));
-  *v_2 = vec_add(*v_1, wall_length);
-  vector_t *v_3 = malloc(sizeof(*v_3));
-  *v_3 = vec_add(*v_2, WALL_WIDTH);
-  vector_t *v_4 = malloc(sizeof(*v_4));
-  *v_4 = vec_subtract(*v_3, wall_length);
   list_add(points, v_1);
-  list_add(points, v_2);
-  list_add(points, v_3);
-  list_add(points, v_4);
+  assert(v_1);
+  for (size_t i = 0; i < WALL_POINTS-1; i++){
+    vector_t *v = malloc(sizeof(*v));
+    *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
+    assert(v);
+    list_add(points, v);
+  }
+}
+
+void make_platform_points(vector_t corner, list_t *points){
+  
+  vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
+  vector_t *v_1 = malloc(sizeof(*v_1));
+  *v_1 = corner;
+  list_add(points, v_1);
+  assert(v_1);
+  for (size_t i = 0; i < WALL_POINTS-1; i++){
+    vector_t *v = malloc(sizeof(*v));
+    *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
+    assert(v);
+    list_add(points, v);
+  }
 }
 
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
-  if (strcmp(wall_info, LEFT_WALL_INFO) == 0){
+  size_t cmp_left = strcmp(wall_info, LEFT_WALL_INFO);
+  size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
+  size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
+
+  if (cmp_left == 0){
     corner = MIN;
-  } else {
-    corner = (vector_t){MAX.x - WALL_WIDTH.x, 0};
+  } 
+  if (cmp_right == 0){
+    corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
+  }
+  if (cmp_plat == 0){
+    corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
-  make_wall_points(corner, c);
+  if (cmp_left == 0 || cmp_right == 0){
+    make_wall_points(corner, c);
+  } else {
+    make_platform_points(corner, c);
+  }
+  
   return c;
 }
 
@@ -123,7 +177,7 @@ bool game_over(state_t *state) {
   return false;
 }
 
-// initialize the walls at start of game
+
 void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
@@ -194,13 +248,14 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 state_t *emscripten_init() {
-  
+  asset_cache_init();
   sdl_init(MIN, MAX);
   state_t *state = malloc(sizeof(state_t));
   assert(state);
 
   state->scene = scene_init();
-  list_t *points = make_user(OUTER_RADIUS, INNER_RADIUS);
+  state->body_assets = list_init(2, (free_func_t)asset_destroy);
+  list_t *points = make_user(RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   wall_init(state);
@@ -216,7 +271,7 @@ state_t *emscripten_init() {
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
-  scene_t *scene = state->scene;
+  scene_t *scene = state -> scene;
   scene_tick(scene, dt);
   sdl_render_scene(scene, user);
   body_add_force(user, (vector_t) {0, GRAVITY});
@@ -231,9 +286,12 @@ bool emscripten_main(state_t *state) {
   return game_over(state);
 }
 
+
 void emscripten_free(state_t *state) {
   TTF_Quit();
   scene_free(state->scene);
+  list_free(state->body_assets);
   body_free(state->user_body);
+  asset_cache_destroy();
   free(state);
 }
