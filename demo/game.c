@@ -330,9 +330,6 @@ bool emscripten_main(state_t *state) {
     sticky_collision(state, user, wall);
   }
   return game_over(state);
-
-
-  return game_over(state);
 }
 
 
