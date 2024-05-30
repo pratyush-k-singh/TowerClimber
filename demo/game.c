@@ -156,7 +156,6 @@ list_t *make_wall(void *wall_info) {
   return c;
 }
 
-
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
  * (loss), the user falls off the map (loss)
@@ -167,7 +166,6 @@ list_t *make_wall(void *wall_info) {
 bool game_over(state_t *state) {
   return false;
 }
-
 
 void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
@@ -238,6 +236,9 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
+
+  vector_t initial_velocity = {20, 20};
+  set_velocity(state, initial_velocity);
 
   // Create and save the asset for the background image
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
