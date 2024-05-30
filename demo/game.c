@@ -301,10 +301,22 @@ state_t *emscripten_init() {
   list_t *points = make_user(RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
-  wall_init(state);
-  body_set_rotation(state->user_body, USER_ROTATION);
-  state->game_over = false;
+  
+  body_t* body = state->user_body;
+  
+  // Create and save the asset for the background image
+  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
+  asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
+  list_add(state->body_assets, background_asset);
 
+  // Create and save the asset for the user image
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body);
+  list_add(state->body_assets, user_asset);
+
+  wall_init(state);
+
+  state->game_over = false;
+  state->collided = false;
   sdl_on_key((key_handler_t)on_key);
   state->is_jumping = false;
 
