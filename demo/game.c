@@ -184,8 +184,8 @@ void wall_init(state_t *state) {
     scene_add_body(scene, right_wall);
     create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
     create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall);
-    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall);
+    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, state->vertical_offset);
+    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, state->vertical_offset);
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
@@ -268,7 +268,7 @@ bool emscripten_main(state_t *state) {
   state->vertical_offset = player_pos.y - (window_height - 100);
 
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
-    asset_render(list_get(state->body_assets, i));
+    asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
 
   sdl_show(state->vertical_offset);

@@ -81,13 +81,13 @@ asset_t *asset_make_image(const char *filepath, SDL_Rect bounding_box) {
   return (asset_t *)asset;
 }
 
-asset_t *asset_make_image_with_body(const char *filepath, body_t *body) {
+asset_t *asset_make_image_with_body(const char *filepath, body_t *body, double vertical_offset) {
   assert(filepath != NULL);
   assert(body != NULL);
 
   // Get the bounding box from the body
   SDL_Rect bounding_box;
-  get_body_bounding_box(body, &bounding_box);
+  get_body_bounding_box(body, &bounding_box, vertical_offset);
 
   // Initialize the image asset with the bounding box
   image_asset_t *asset = (image_asset_t *)asset_init(ASSET_IMAGE, bounding_box);
@@ -147,7 +147,7 @@ void asset_on_button_click(asset_t *asset, state_t *state, double x, double y) {
   button->is_rendered = false;
 }
 
-void asset_render(asset_t *asset) {
+void asset_render(asset_t *asset, double vertical_offset) {
   SDL_Rect box = asset->bounding_box;
   double x = box.x;
   double y = box.y;
@@ -159,7 +159,7 @@ void asset_render(asset_t *asset) {
     SDL_Texture *texture = image->texture;
 
     if (image->body != NULL) {
-      get_body_bounding_box(image->body, &image->base.bounding_box);
+      get_body_bounding_box(image->body, &image->base.bounding_box, vertical_offset);
     }
 
     SDL_Rect box = image->base.bounding_box;
