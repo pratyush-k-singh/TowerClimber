@@ -18,7 +18,7 @@ const vector_t MAX = {1000, 500};
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
-const char *PLAtFORM_PATH = "assets/platform.png";
+const char *PLATFORM_PATH = "assets/platform.png";
 
 const double BACKGROUND_CORNER = 150;
 
@@ -53,7 +53,6 @@ const char *PLATFORM_INFO = "platform";
 // Game constants
 const size_t NUM_LEVELS = 1;
 
-
 struct state {
   scene_t *scene;
   list_t *body_assets;
@@ -62,10 +61,10 @@ struct state {
   size_t user_health;
   size_t ghost_counter;
   double ghost_timer;
+  double vertical_offset;
   bool game_over;
   bool collided;
 };
-
 
 list_t *make_user(double radius) {
   vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
@@ -239,7 +238,7 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
-  
+
   // Create and save the asset for the background image
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
   asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
@@ -252,6 +251,7 @@ state_t *emscripten_init() {
   wall_init(state);
   state->game_over = false;
   state->collided = false;
+  state->vertical_offset = 0;
   return state;
 }
 
@@ -262,6 +262,11 @@ bool emscripten_main(state_t *state) {
   scene_tick(scene, dt);
   body_tick(user, dt);
   sdl_clear();
+
+  vector_t player_pos = body_get_centroid(user);
+  double window_height = MAX.y - MIN.y;
+  state->vertical_offset = player_pos.y - (window_height - 100);
+
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i));
   }
@@ -273,7 +278,6 @@ bool emscripten_main(state_t *state) {
   }
   return game_over(state);
 }
-
 
 void emscripten_free(state_t *state) {
   scene_free(state->scene);
