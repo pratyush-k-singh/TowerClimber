@@ -205,7 +205,7 @@ void wall_init(state_t *state) {
                                             USER_COLOR, (void *)PLATFORM_INFO, 
                                             NULL);
   scene_add_body(scene, platform);
-  create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+  //create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   asset_t *wall_asset_platform = asset_make_image_with_body(PLAtFORM_PATH, platform);
   list_add(state->body_assets, wall_asset_platform);
 }
