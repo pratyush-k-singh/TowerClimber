@@ -172,6 +172,6 @@ void sdl_render_image(SDL_Texture *image_texture, vector_t corner_loc,
  * @param bounding_box a pointer to an SDL_Rect where the bounding box will be
  * stored
  */
-void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box);
+void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box, double vertical_offset);
 
 #endif // #ifndef __SDL_WRAPPER_H__

@@ -252,13 +252,15 @@ void sdl_show(double vector_offset) {
 void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset) {
   sdl_clear();
   size_t body_count = scene_bodies(scene);
+  vector_t window_center = get_window_center();
+
   for (size_t i = 0; i < body_count; i++) {
     body_t *body = scene_get_body(scene, i);
     list_t *shape = body_get_shape(body);
 
     for (size_t j = 0; j < list_size(shape); j++) {
       vector_t *point = list_get(shape, j);
-      vector_t window_point = get_window_position(*point, vertical_offset);
+      vector_t window_point = get_window_position(*point, window_center, vertical_offset);
       vector_t *new_point = malloc(sizeof(*new_point));
       *new_point = window_point;
     }
