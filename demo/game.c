@@ -57,6 +57,8 @@ const char *PLATFORM_INFO = "platform";
 const size_t NUM_LEVELS = 1;
 const double GRAVITY = -980;
 
+void sticky_collision(state_t *state, body_t *body1, body_t *body2);
+
 struct state {
   scene_t *scene;
   list_t *body_assets;
