@@ -68,11 +68,12 @@ double get_scene_scale(vector_t window_center) {
 }
 
 /** Maps a scene coordinate to a window coordinate */
-vector_t get_window_position(vector_t scene_pos, vector_t window_center) {
+vector_t get_window_position(vector_t scene_pos, vector_t window_center, double vertical_offset) {
   // Scale scene coordinates by the scaling factor
   // and map the center of the scene to the center of the window
-  vector_t scene_center_offset = vec_subtract(scene_pos, center);
   double scale = get_scene_scale(window_center);
+  vector_t scene_center_offset = vec_subtract(scene_pos, center);
+  scene_center_offset.y -= vertical_offset;
   vector_t pixel_center_offset = vec_multiply(scale, scene_center_offset);
   vector_t pixel = {.x = round(window_center.x + pixel_center_offset.x),
                     // Flip y axis since positive y is down on the screen
@@ -161,7 +162,7 @@ void sdl_clear(void) {
   SDL_RenderClear(renderer);
 }
 
-void sdl_draw_polygon(polygon_t *poly, rgb_color_t color) {
+void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset) {
   list_t *points = polygon_get_points(poly);
   // Check parameters
   size_t n = list_size(points);
@@ -176,7 +177,7 @@ void sdl_draw_polygon(polygon_t *poly, rgb_color_t color) {
   assert(y_points != NULL);
   for (size_t i = 0; i < n; i++) {
     vector_t *vertex = list_get(points, i);
-    vector_t pixel = get_window_position(*vertex, window_center);
+    vector_t pixel = get_window_position(*vertex, window_center, vector_offset);
     x_points[i] = pixel.x;
     y_points[i] = pixel.y;
   }
@@ -229,13 +230,13 @@ TTF_Font *sdl_load_font(const char *font_path, int8_t font_size) {
   return font;
 }
 
-void sdl_show(void) {
+void sdl_show(double vector_offset) {
   // Draw boundary lines
   vector_t window_center = get_window_center();
   vector_t max = vec_add(center, max_diff),
            min = vec_subtract(center, max_diff);
-  vector_t max_pixel = get_window_position(max, window_center),
-           min_pixel = get_window_position(min, window_center);
+  vector_t max_pixel = get_window_position(max, window_center, vector_offset),
+           min_pixel = get_window_position(min, window_center, vector_offset);
   SDL_Rect *boundary = malloc(sizeof(*boundary));
   boundary->x = min_pixel.x;
   boundary->y = max_pixel.y;
@@ -248,21 +249,30 @@ void sdl_show(void) {
   SDL_RenderPresent(renderer);
 }
 
-void sdl_render_scene(scene_t *scene, void *aux) {
+void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset) {
   sdl_clear();
   size_t body_count = scene_bodies(scene);
+  vector_t window_center = get_window_center();
+
   for (size_t i = 0; i < body_count; i++) {
     body_t *body = scene_get_body(scene, i);
     list_t *shape = body_get_shape(body);
-    polygon_t *poly = polygon_init(shape, (vector_t){0, 0}, 0, 0, 0, 0);
-    sdl_draw_polygon(poly, *body_get_color(body));
+
+    for (size_t j = 0; j < list_size(shape); j++) {
+      vector_t *point = list_get(shape, j);
+      vector_t window_point = get_window_position(*point, window_center, vertical_offset);
+      vector_t *new_point = malloc(sizeof(*new_point));
+      *new_point = window_point;
+    }
+
+    sdl_draw_polygon(body_get_polygon(body), *body_get_color(body), vertical_offset);
     list_free(shape);
   }
   if (aux != NULL) {
-    body_t *body = aux;
-    sdl_draw_polygon(body_get_polygon(body), *body_get_color(body));
+  body_t *body = aux;
+    sdl_draw_polygon(body_get_polygon(body), *body_get_color(body), vertical_offset);
   }
-  sdl_show();
+  sdl_show(vertical_offset);
 }
 
 void sdl_on_key(key_handler_t handler) { key_handler = handler; }
@@ -276,7 +286,7 @@ double time_since_last_tick(void) {
   return difference;
 }
 
-void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box) {
+void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box, double vertical_offset) {
   list_t *points = body_get_shape(body);
   vector_t window_center = get_window_center();
 
@@ -285,7 +295,7 @@ void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box) {
 
   for (size_t i = 0; i < list_size(points); i++) {
     vector_t *point = list_get(points, i);
-    vector_t sdl_point = get_window_position(*point, window_center);
+    vector_t sdl_point = get_window_position(*point, window_center, vertical_offset);
 
     if (sdl_point.x < min_x)
       min_x = sdl_point.x;

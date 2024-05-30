@@ -36,7 +36,7 @@ asset_t *asset_make_image(const char *filepath, SDL_Rect bounding_box);
  * @param body the body to render the image on top of
  * @return a pointer to the newly allocated image asset
  */
-asset_t *asset_make_image_with_body(const char *filepath, body_t *body);
+asset_t *asset_make_image_with_body(const char *filepath, body_t *body, double vertical_offset);
 
 /**
  * Allocates memory for a text asset with the given parameters.
@@ -92,7 +92,7 @@ bool asset_on_button_click(asset_t *button, state_t *state, double x, double y);
  * Renders the asset to the screen.
  * @param asset the asset to render
  */
-void asset_render(asset_t *asset);
+void asset_render(asset_t *asset, double vertical_offset);
 
 /**
  * Frees the memory allocated for the asset.

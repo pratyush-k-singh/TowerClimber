@@ -72,13 +72,13 @@ void sdl_clear(void);
  * @param poly a struct representing the polygon
  * @param color the color used to fill in the polygon
  */
-void sdl_draw_polygon(polygon_t *poly, rgb_color_t color);
+void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset);
 
 /**
  * Displays the rendered frame on the SDL window.
  * Must be called after drawing the polygons in order to show them.
  */
-void sdl_show(void);
+void sdl_show(double vector_offset);
 
 /**
  * Draws all bodies in a scene.
@@ -88,7 +88,7 @@ void sdl_show(void);
  * @param scene the scene to draw
  * @param aux an additional body to draw (can be NULL if no additional bodies)
  */
-void sdl_render_scene(scene_t *scene, void *aux);
+void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset);
 
 /**
  * Registers a function to be called every time a key is pressed.
@@ -174,6 +174,6 @@ void sdl_render_image(SDL_Texture *image_texture, vector_t corner_loc,
  * @param bounding_box a pointer to an SDL_Rect where the bounding box will be
  * stored
  */
-void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box);
+void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box, double vertical_offset);
 
 #endif // #ifndef __SDL_WRAPPER_H__
