@@ -304,14 +304,11 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 
 state_t *emscripten_init() {
   asset_cache_init();
-  asset_cache_init();
   sdl_init(MIN, MAX);
   state_t *state = malloc(sizeof(state_t));
   assert(state);
 
   state->scene = scene_init();
-  state->body_assets = list_init(2, (free_func_t)asset_destroy);
-  list_t *points = make_user(RADIUS);
   state->body_assets = list_init(2, (free_func_t)asset_destroy);
   list_t *points = make_user(RADIUS);
   state->user_body =
@@ -335,7 +332,6 @@ state_t *emscripten_init() {
   state->game_over = false;
   state->collided = false;
   state->vertical_offset = 0;
-  state->collided = false;
   sdl_on_key((key_handler_t)on_key);
   state->is_jumping = false;
 
@@ -370,9 +366,7 @@ void emscripten_free(state_t *state) {
   TTF_Quit();
   scene_free(state->scene);
   list_free(state->body_assets);
-  list_free(state->body_assets);
   body_free(state->user_body);
-  asset_cache_destroy();
   asset_cache_destroy();
   free(state);
 }
