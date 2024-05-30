@@ -6,12 +6,13 @@
 
 const size_t INITIAL_SIZE = 10;
 const double INITIAL_ROT = 0;
+const double INITIAL_TIME = 0;
 
 struct body {
   polygon_t *poly;
 
   double mass;
-
+  double timer;
   vector_t force;
   vector_t impulse;
   bool removed;
@@ -38,6 +39,7 @@ body_t *body_init_with_info(list_t *shape, double mass, rgb_color_t color,
   body->removed = false;
   body->info = info;
   body->info_freer = info_freer;
+  body->timer = INITIAL_TIME;
 
   return body;
 }
