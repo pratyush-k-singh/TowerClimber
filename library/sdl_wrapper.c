@@ -162,7 +162,7 @@ void sdl_clear(void) {
   SDL_RenderClear(renderer);
 }
 
-void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset) {
+void sdl_draw_polygon(polygon_t *poly, rgb_color_t *color, double vector_offset) {
   list_t *points = polygon_get_points(poly);
   // Check parameters
   size_t n = list_size(points);
@@ -284,7 +284,7 @@ double time_since_last_tick(void) {
   return difference;
 }
 
-void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box) {
+void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box, double vertical_offset) {
   list_t *points = body_get_shape(body);
   vector_t window_center = get_window_center();
 
@@ -293,7 +293,7 @@ void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box) {
 
   for (size_t i = 0; i < list_size(points); i++) {
     vector_t *point = list_get(points, i);
-    vector_t sdl_point = get_window_position(*point, window_center);
+    vector_t sdl_point = get_window_position(*point, window_center, vertical_offset);
 
     if (sdl_point.x < min_x)
       min_x = sdl_point.x;

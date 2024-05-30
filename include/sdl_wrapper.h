@@ -70,7 +70,7 @@ void sdl_clear(void);
  * @param poly a struct representing the polygon
  * @param color the color used to fill in the polygon
  */
-void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset);
+void sdl_draw_polygon(polygon_t *poly, rgb_color_t *color, double vector_offset);
 
 /**
  * Displays the rendered frame on the SDL window.
