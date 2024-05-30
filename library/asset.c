@@ -184,9 +184,9 @@ void asset_render(asset_t *asset, double vertical_offset) {
 
   case ASSET_BUTTON: {
     button_asset_t *button = (button_asset_t *)asset;
-    asset_render((asset_t *)button->image_asset);
+    asset_render((asset_t *)button->image_asset, vertical_offset);
     if (button->text_asset != NULL) {
-      asset_render((asset_t *)button->text_asset);
+      asset_render((asset_t *)button->text_asset, vertical_offset);
     }
     button->is_rendered = true;
     break;
