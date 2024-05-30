@@ -13,7 +13,7 @@
 #include "sdl_wrapper.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {700, 700};
+const vector_t MAX = {1000, 500};
 
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
@@ -191,8 +191,39 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    create_physics_collision(scene, right_wall, state -> user_body, 0);
-    create_physics_collision(scene, left_wall, state -> user_body, 0);
+    create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+    create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall);
+    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall);
+    list_add(state->body_assets, wall_asset_l);
+    list_add(state->body_assets, wall_asset_r);
+  }
+  list_t *platform_points = make_wall((void *)PLATFORM_INFO);
+  body_t *platform = body_init_with_info(platform_points, INFINITY, 
+                                            USER_COLOR, (void *)PLATFORM_INFO, 
+                                            NULL);
+  scene_add_body(scene, platform);
+  create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+  asset_t *wall_asset_platform = asset_make_image_with_body(PLAtFORM_PATH, platform);
+  list_add(state->body_assets, wall_asset_platform);
+}
+
+/**
+ * Check whether two bodies are colliding and applies a sticky collision between them
+ * and to be called every tick
+ *
+ * @param body1
+ * @param body2 the two bodies two check for a collision between, and if they are colliding
+ * sets both velocities to be 0
+ */
+void sticky_collision(state_t *state, body_t *body1, body_t *body2){
+  vector_t v1 = body_get_velocity(body1);
+  vector_t v2 = body_get_velocity(body2);
+  state -> collided = find_collision(body1, body2).collided;
+  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO));
+  if (state -> collided && !velocity_zero){
+    body_set_velocity(body1, VEC_ZERO);
+    body_set_velocity(body2, VEC_ZERO);
   }
 }
 
