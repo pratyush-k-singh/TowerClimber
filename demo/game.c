@@ -271,7 +271,7 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i));
   }
 
-  sdl_show();
+  sdl_show(state->vertical_offset);
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *wall = scene_get_body(scene, i);
     sticky_collision(state, user, wall);

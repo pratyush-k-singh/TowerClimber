@@ -230,13 +230,13 @@ TTF_Font *sdl_load_font(const char *font_path, int8_t font_size) {
   return font;
 }
 
-void sdl_show(void) {
+void sdl_show(double vector_offset) {
   // Draw boundary lines
   vector_t window_center = get_window_center();
   vector_t max = vec_add(center, max_diff),
            min = vec_subtract(center, max_diff);
-  vector_t max_pixel = get_window_position(max, window_center),
-           min_pixel = get_window_position(min, window_center);
+  vector_t max_pixel = get_window_position(max, window_center, vector_offset),
+           min_pixel = get_window_position(min, window_center, vector_offset);
   SDL_Rect *boundary = malloc(sizeof(*boundary));
   boundary->x = min_pixel.x;
   boundary->y = max_pixel.y;
@@ -255,19 +255,16 @@ void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset) {
   for (size_t i = 0; i < body_count; i++) {
     body_t *body = scene_get_body(scene, i);
     list_t *shape = body_get_shape(body);
-    list_t *window_shape = list_init(list_size(shape), (free_func_t)vec_free);
 
     for (size_t j = 0; j < list_size(shape); j++) {
       vector_t *point = list_get(shape, j);
       vector_t window_point = get_window_position(*point, vertical_offset);
       vector_t *new_point = malloc(sizeof(*new_point));
       *new_point = window_point;
-      list_add(window_shape, new_point);
     }
 
-    sdl_draw_polygon(window_shape, body_get_color(body), vertical_offset);
+    sdl_draw_polygon(body_get_polygon(body), body_get_color(body), vertical_offset);
     list_free(shape);
-    list_free(window_shape);
   }
   if (aux != NULL) {
   body_t *body = aux;

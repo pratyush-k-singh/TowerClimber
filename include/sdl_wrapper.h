@@ -70,7 +70,7 @@ void sdl_clear(void);
  * @param poly a struct representing the polygon
  * @param color the color used to fill in the polygon
  */
-void sdl_draw_polygon(polygon_t *poly, rgb_color_t color);
+void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset);
 
 /**
  * Displays the rendered frame on the SDL window.
@@ -86,7 +86,7 @@ void sdl_show(void);
  * @param scene the scene to draw
  * @param aux an additional body to draw (can be NULL if no additional bodies)
  */
-void sdl_render_scene(scene_t *scene, void *aux);
+void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset);
 
 /**
  * Registers a function to be called every time a key is pressed.
