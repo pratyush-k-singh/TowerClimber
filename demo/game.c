@@ -266,7 +266,6 @@ bool emscripten_main(state_t *state) {
   sdl_clear();
 
   vector_t player_pos = body_get_centroid(user);
-  double window_height = MAX.y - MIN.y;
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
