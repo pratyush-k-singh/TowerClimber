@@ -251,7 +251,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user_body;
   vector_t cur_v = body_get_velocity(user);
-  double new_vx = cur_v.x;//RESTING_SPEED + ACCEL * held_time;
+  double new_vx = cur_v.x;
   double new_vy = cur_v.y;
 
   if (!state->is_jumping) {
