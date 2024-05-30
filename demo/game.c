@@ -106,17 +106,6 @@ void set_velocity(state_t *state, vector_t velocity){
 }
 
 /**
- * Sets the velocity of the user so that the user can jump from sticky walls
- */
-void set_velocity(state_t *state, vector_t velocity){
-  body_t *user = state -> user_body;
-  body_set_velocity(user, velocity);
-  vector_t center = body_get_centroid(state -> user_body);
-  vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
-  body_set_centroid(user, vec_add(center, move));
-}
-
-/**
  * Generates the list of points for a Wall shape given the vector of the bottom left
  * corner
  *
@@ -125,23 +114,6 @@ void set_velocity(state_t *state, vector_t velocity){
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
 void make_wall_points(vector_t corner, list_t *points){
-  vector_t wall_length = {MIN.y, MAX.y};
-  vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
-  vector_t *v_1 = malloc(sizeof(*v_1));
-  *v_1 = corner;
-  list_add(points, v_1);
-  assert(v_1);
-  for (size_t i = 0; i < WALL_POINTS-1; i++){
-    vector_t *v = malloc(sizeof(*v));
-    *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
-    assert(v);
-    list_add(points, v);
-  }
-}
-
-void make_platform_points(vector_t corner, list_t *points){
-  
-  vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
   vector_t wall_length = {MIN.y, MAX.y};
   vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
   vector_t *v_1 = malloc(sizeof(*v_1));
