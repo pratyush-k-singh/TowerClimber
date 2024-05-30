@@ -82,9 +82,6 @@ struct state {
 list_t *make_user(double radius) {
   vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
                     MIN.y + radius + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
-list_t *make_user(double radius) {
-  vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
-                    MIN.y + radius + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
     double angle = 2 * M_PI * i / USER_NUM_POINTS;
@@ -96,8 +93,6 @@ list_t *make_user(double radius) {
     *v = (vector_t){center.x + radius * cos(angle),
                     center.y + radius * sin(angle)};
     list_add(c, v);
-    
-    
   }
   return c;
 }
