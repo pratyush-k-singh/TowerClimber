@@ -76,7 +76,7 @@ void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset);
  * Displays the rendered frame on the SDL window.
  * Must be called after drawing the polygons in order to show them.
  */
-void sdl_show(void);
+void sdl_show(double vector_offset);
 
 /**
  * Draws all bodies in a scene.

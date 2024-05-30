@@ -270,7 +270,7 @@ void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset) {
   body_t *body = aux;
     sdl_draw_polygon(body_get_polygon(body), *body_get_color(body), vertical_offset);
   }
-  sdl_show();
+  sdl_show(vertical_offset);
 }
 
 void sdl_on_key(key_handler_t handler) { key_handler = handler; }
