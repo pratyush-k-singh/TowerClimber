@@ -195,7 +195,7 @@ void wall_init(state_t *state) {
                                             NULL);
   scene_add_body(scene, platform);
   create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform);
+  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, state->vertical_offset);
   list_add(state->body_assets, wall_asset_platform);
 
 }
@@ -245,7 +245,7 @@ state_t *emscripten_init() {
   list_add(state->body_assets, background_asset);
 
   // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
   wall_init(state);
