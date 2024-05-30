@@ -31,17 +31,14 @@ const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
 const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double RADIUS = 50;
-const double RADIUS = 50;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 500;
 const double GAP = 10;
 const double VELOCITY_SCALE = 100;
-const double VELOCITY_SCALE = 100;
 
 // Wall constants
-const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_WIDTH = {100, 0};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
@@ -188,18 +185,7 @@ list_t *make_wall(void *wall_info) {
   size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
   if (cmp_left == 0){
-  size_t cmp_left = strcmp(wall_info, LEFT_WALL_INFO);
-  size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
-  size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
-
-  if (cmp_left == 0){
     corner = MIN;
-  } 
-  if (cmp_right == 0){
-    corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
-  }
-  if (cmp_plat == 0){
-    corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   } 
   if (cmp_right == 0){
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
@@ -208,12 +194,6 @@ list_t *make_wall(void *wall_info) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
-  if (cmp_left == 0 || cmp_right == 0){
-    make_wall_points(corner, c);
-  } else {
-    make_platform_points(corner, c);
-  }
-  
   if (cmp_left == 0 || cmp_right == 0){
     make_wall_points(corner, c);
   } else {
