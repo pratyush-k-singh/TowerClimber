@@ -314,6 +314,7 @@ state_t *emscripten_init() {
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
+  scene_t *scene = state -> scene;
   scene_tick(scene, dt);
   body_add_force(user, (vector_t) {0, GRAVITY});
   body_tick(user, dt);
