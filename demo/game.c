@@ -193,8 +193,8 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-    create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+    //create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+    //create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
     asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall);
     asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall);
     list_add(state->body_assets, wall_asset_l);
@@ -331,12 +331,12 @@ bool emscripten_main(state_t *state) {
   // sdl_render_scene(scene, user);
   body_add_force(user, (vector_t) {0, GRAVITY});
   body_tick(user, dt);
-  // sdl_clear();
+  sdl_clear();
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i));
   }
 
-  // sdl_show();
+  sdl_show();
   sdl_render_scene(scene, user);
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *wall = scene_get_body(scene, i);
