@@ -209,6 +209,15 @@ void wall_init(state_t *state) {
 }
 
 /**
+ * @return the boolean value of the comparison between @param v1 and @param v2, returns true
+ * if they are equal and false if they are not
+ */
+bool vec_cmp(vector_t v1, vector_t v2){
+  return((v1.x == v2.x) && (v1.y == v2.y));
+}
+
+
+/**
  * Check whether two bodies are colliding and applies a sticky collision between them
  * and to be called every tick
  *
