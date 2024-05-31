@@ -238,6 +238,8 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->is_jumping = false;
+    } else {
+      body_set_velocity(body1, (vector_t) {v1.x, 0});
     }
   }
 }
