@@ -206,7 +206,7 @@ void wall_init(state_t *state) {
                                             USER_COLOR, (void *)PLATFORM_INFO, 
                                             NULL);
   scene_add_body(scene, platform);
-  //create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+  create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
   list_add(state->body_assets, wall_asset_platform);
 }
@@ -239,14 +239,6 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     body_set_velocity(body2, VEC_ZERO);
     state->is_jumping = false;
     }
-  }
-  // } else {
-  //   if (strcmp(body_get_info(body2), PLATFORM_INFO)) {
-  //     body_set_velocity(body1, (vector_t) {v1.x, 0});
-  //   } else if (strcmp(body_get_info(body2), PLATFORM_INFO)) {
-  //     body_set_velocity(body1, (vector_t) {0, v1.y});
-  //   }
-  // }
 }
 
 /**
@@ -293,39 +285,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
     }
   }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
-  // if (!state->is_jumping) {
-  //   if (type == KEY_PRESSED) {
-  //     switch (key) {
-  //     case LEFT_ARROW: {
-  //       new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
-  //       break;
-  //     }
-  //     case RIGHT_ARROW: {
-  //       new_vx = RESTING_SPEED + ACCEL * held_time;
-  //       break;
-  //     }
-  //     case UP_ARROW: {
-  //       new_vy = USER_JUMP_HEIGHT;
-  //       state->is_jumping = true;
-  //       break;
-  //     }
-  //     }
-  //   }
-  // }
-  // else {
-  //       if (type == KEY_PRESSED) {
-  //         switch (key) {
-  //           case LEFT_ARROW: {
-  //             new_vx = -1 * cur_v.x;
-  //             break;
-  //           }
-  //           case RIGHT_ARROW: {
-  //             new_vx = fabs(cur_v.x);
-  //             break;
-  //           }
-  //         }
-  //       }
-  //   }
 }
 
 state_t *emscripten_init() {
@@ -334,6 +293,7 @@ state_t *emscripten_init() {
   state_t *state = malloc(sizeof(state_t));
   assert(state);
 
+  // intialize scene and user
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user(RADIUS);
@@ -358,6 +318,8 @@ state_t *emscripten_init() {
   state->game_over = false;
   state->collided = false;
   state->vertical_offset = 0;
+
+  // initalize key handler
   sdl_on_key((key_handler_t)on_key);
   state->is_jumping = false;
 
@@ -367,7 +329,7 @@ state_t *emscripten_init() {
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
-  scene_t *scene = state -> scene;
+  scene_t *scene = state->scene;
   scene_tick(scene, dt);
   body_tick(user, dt);
   sdl_clear();
@@ -384,7 +346,9 @@ bool emscripten_main(state_t *state) {
     body_t *wall = scene_get_body(scene, i);
     sticky_collision(state, user, wall);
   }
-  body_add_force(state -> user_body, (vector_t){0, -980});
+
+  // include gravity
+  body_add_force(state -> user_body, GRAVITY);
 
   return game_over(state);
 }
