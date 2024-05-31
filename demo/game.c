@@ -262,11 +262,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       case LEFT_ARROW: {
         if (!state->is_jumping) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        }
         break;
       }
       case RIGHT_ARROW: {
         if (!state->is_jumping) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
+        }
         break;
       }
       case UP_ARROW: {
@@ -277,7 +279,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
     }
-  }
   }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
