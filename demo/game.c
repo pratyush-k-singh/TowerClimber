@@ -240,6 +240,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     state->is_jumping = false;
     } else if (strcmp(body_get_info(body2), PLATFORM_INFO)) {
       body_set_velocity(body1, (vector_t) {v1.x, 0});
+      printf("yay");
     }
   }
 }
