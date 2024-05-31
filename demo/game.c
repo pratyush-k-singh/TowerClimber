@@ -34,7 +34,7 @@ const double RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
-const double USER_JUMP_HEIGHT = 500;
+const double USER_JUMP_HEIGHT = 300;
 const double GAP = 10;
 const double VELOCITY_SCALE = 100;
 
