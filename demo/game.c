@@ -194,8 +194,6 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    //create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-    //create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
     asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
     asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_l);
@@ -264,18 +262,11 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       case LEFT_ARROW: {
         if (!state->is_jumping) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
-        } else {
-          new_vx = -1 * cur_v.x;
-        }
-        
         break;
       }
       case RIGHT_ARROW: {
         if (!state->is_jumping) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
-        } else {
-          new_vx = fabs(cur_v.x);
-        }
         break;
       }
       case UP_ARROW: {
