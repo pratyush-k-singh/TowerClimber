@@ -145,13 +145,13 @@ list_t *make_wall(void *wall_info) {
   size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
   size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
-  if (cmp_left == 0){
+  if (cmp_left == 0) {
     corner = MIN;
   } 
-  if (cmp_right == 0){
+  if (cmp_right == 0) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
   }
-  if (cmp_plat == 0){
+  if (cmp_plat == 0) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
