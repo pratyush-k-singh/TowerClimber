@@ -5,6 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <unistd.h>
 
 #include "asset.h"
 #include "asset_cache.h"
@@ -13,7 +14,7 @@
 #include "sdl_wrapper.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {1000, 500};
+const vector_t MAX = {1000, 1000};
 
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
@@ -31,6 +32,9 @@ const double USER_ROTATION = 0;
 const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double RADIUS = 50;
 const size_t USER_NUM_POINTS = 20;
+const double RESTING_SPEED = 200;
+const double ACCEL = 100;
+const double USER_JUMP_HEIGHT = 500;
 const double GAP = 10;
 const double VELOCITY_SCALE = 100;
 
@@ -53,10 +57,13 @@ const char *PLATFORM_INFO = "platform";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
+const vector_t GRAVITY = {0, -980};
+const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
 struct state {
   scene_t *scene;
   list_t *body_assets;
+  bool is_jumping;
   asset_t *user_sprite;
   body_t *user_body;
   size_t user_health;
@@ -66,6 +73,7 @@ struct state {
   bool game_over;
   bool collided;
 };
+
 
 list_t *make_user(double radius) {
   vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
@@ -78,7 +86,6 @@ list_t *make_user(double radius) {
     *v = (vector_t){center.x + radius * cos(angle),
                     center.y + radius * sin(angle)};
     list_add(c, v);
-    
   }
   return c;
 }
@@ -165,8 +172,14 @@ list_t *make_wall(void *wall_info) {
  * @param state a pointer to a state object representing the current demo state
  */
 bool game_over(state_t *state) {
+  // ends the game, we will need in future but I wrote it by accident sorry ;)
+  // vector_t user_pos = body_get_centroid(state->user_body);
+  // if (user_pos.y + OUTER_RADIUS <= 0) {
+  //   return true;
+  // }
   return false;
 }
+
 
 void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
@@ -181,10 +194,10 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-    create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, state->vertical_offset);
-    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, state->vertical_offset);
+    //create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+    //create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
+    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
@@ -194,9 +207,8 @@ void wall_init(state_t *state) {
                                             NULL);
   scene_add_body(scene, platform);
   create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, state->vertical_offset);
+  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
   list_add(state->body_assets, wall_asset_platform);
-
 }
 
 /**
@@ -206,6 +218,7 @@ void wall_init(state_t *state) {
 bool vec_cmp(vector_t v1, vector_t v2){
   return((v1.x == v2.x) && (v1.y == v2.y));
 }
+
 
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
@@ -221,18 +234,71 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   state -> collided = find_collision(body1, body2).collided;
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO));
   if (state -> collided && !velocity_zero){
+    if (state->is_jumping) {
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
+    state->is_jumping = false;
+    } else if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
+      body_set_velocity(body1, (vector_t) {v1.x, 0});
+    }
   }
 }
 
+/**
+ * Move player on display screen based on key pressed.
+ *
+ * @param key the character of the key pressed
+ * @param type event type connected to key
+ * @param held_time double value representing the amount of time the key is held
+ * down
+ * @param state the state representing the current demo
+ */
+void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
+  body_t *user = state->user_body;
+  vector_t cur_v = body_get_velocity(user);
+  double new_vx = cur_v.x;
+  double new_vy = cur_v.y;
+
+  if (type == KEY_PRESSED) {
+      switch (key) {
+      case LEFT_ARROW: {
+        if (!state->is_jumping) {
+          new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        } else {
+          new_vx = -1 * cur_v.x;
+        }
+        
+        break;
+      }
+      case RIGHT_ARROW: {
+        if (!state->is_jumping) {
+          new_vx = RESTING_SPEED + ACCEL * held_time;
+        } else {
+          new_vx = fabs(cur_v.x);
+        }
+        break;
+      }
+      case UP_ARROW: {
+        if (!state->is_jumping) {
+          new_vy = USER_JUMP_HEIGHT;
+          state->is_jumping = true;
+        }
+        break;
+      }
+    }
+  }
+  body_set_velocity(user, (vector_t) {new_vx, new_vy});
+}
+
 state_t *emscripten_init() {
-  asset_cache_init();
   sdl_init(MIN, MAX);
+  asset_cache_init();
   state_t *state = malloc(sizeof(state_t));
   assert(state);
+
+  // intialize scene and user
   state->scene = scene_init();
-  state->body_assets = list_init(2, (free_func_t)asset_destroy);
+  state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user(RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
@@ -251,16 +317,22 @@ state_t *emscripten_init() {
   list_add(state->body_assets, user_asset);
 
   wall_init(state);
+
   state->game_over = false;
   state->collided = false;
   state->vertical_offset = 0;
+
+  // initalize key handler
+  sdl_on_key((key_handler_t)on_key);
+  state->is_jumping = false;
+
   return state;
 }
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
-  scene_t *scene = state -> scene;
+  scene_t *scene = state->scene;
   scene_tick(scene, dt);
   body_tick(user, dt);
   sdl_clear();
@@ -277,10 +349,16 @@ bool emscripten_main(state_t *state) {
     body_t *wall = scene_get_body(scene, i);
     sticky_collision(state, user, wall);
   }
+
+  // include gravity
+  body_add_force(state -> user_body, GRAVITY);
+
   return game_over(state);
 }
 
+
 void emscripten_free(state_t *state) {
+  TTF_Quit();
   scene_free(state->scene);
   list_free(state->body_assets);
   body_free(state->user_body);

@@ -11,6 +11,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
 
+
+
 // Values passed to a key handler when the given arrow key is pressed
 typedef enum {
   LEFT_ARROW = 1,

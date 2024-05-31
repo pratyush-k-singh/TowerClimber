@@ -86,7 +86,7 @@ asset_t *asset_make_button(SDL_Rect bounding_box, asset_t *image_asset,
  * @param x the x position of the mouse click
  * @param y the y position of the mouse click
  */
-void asset_on_button_click(asset_t *button, state_t *state, double x, double y);
+bool asset_on_button_click(asset_t *button, state_t *state, double x, double y);
 
 /**
  * Renders the asset to the screen.

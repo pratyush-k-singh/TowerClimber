@@ -133,26 +133,25 @@ asset_t *asset_make_button(SDL_Rect bounding_box, asset_t *image_asset,
   return (asset_t *)button;
 }
 
-void asset_on_button_click(asset_t *asset, state_t *state, double x, double y) {
+bool asset_on_button_click(asset_t *asset, state_t *state, double x, double y) {
   button_asset_t *button = (button_asset_t *)asset;
+  bool is_clicked = false;
 
-  if (!button->is_rendered) {
-    return;
-  }
-
-  SDL_Rect box = button->base.bounding_box;
-  if ((box.x < x && x < box.x + box.w) && (box.y + box.h > y && y > box.y)) {
-    button->handler(state);
-  }
+  if (button->is_rendered) {
+    SDL_Rect box = button->base.bounding_box;
+    if ((box.x < x && x < box.x + box.w) && (box.y + box.h > y && y > box.y)) {
+      button->handler(state);
+      is_clicked = true;
+    }
   button->is_rendered = false;
+  }
+  return is_clicked;
 }
 
 void asset_render(asset_t *asset, double vertical_offset) {
   SDL_Rect box = asset->bounding_box;
-  double x = box.x;
-  double y = box.y;
-  vector_t loc = {x, y};
-
+  vector_t loc = {box.x, box.y};
+  
   switch (asset->type) {
   case ASSET_IMAGE: {
     image_asset_t *image = (image_asset_t *)asset;

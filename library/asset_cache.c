@@ -109,11 +109,15 @@ void asset_cache_register_button(asset_t *button) {
   list_add(ASSET_CACHE, new_button);
 }
 
-void asset_cache_handle_buttons(state_t *state, double x, double y) {
+bool asset_cache_handle_buttons(state_t *state, double x, double y) {
   for (size_t i = 0; i < list_size(ASSET_CACHE); i++) {
     entry_t *cur_asset = list_get(ASSET_CACHE, i);
     if (cur_asset->type == ASSET_BUTTON) {
-      asset_on_button_click((asset_t *)cur_asset->obj, state, x, y);
+      bool clicked = asset_on_button_click((asset_t *)cur_asset->obj, state, x, y);
+      if (clicked) {
+        return true;
+      }
     }
   }
+  return false;
 }
