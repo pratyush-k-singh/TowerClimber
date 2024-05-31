@@ -358,6 +358,8 @@ bool emscripten_main(state_t *state) {
     body_t *wall = scene_get_body(scene, i);
     sticky_collision(state, user, wall);
   }
+  body_add_force(state -> user_body, (vector_t){0, -980});
+  
   return game_over(state);
 }
 
