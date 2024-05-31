@@ -14,7 +14,7 @@
 #include "sdl_wrapper.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {1000, 1000};
+const vector_t MAX = {750, 1000};
 
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
@@ -30,11 +30,11 @@ const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
 const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
-const double RADIUS = 50;
+const double RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
-const double USER_JUMP_HEIGHT = 500;
+const double USER_JUMP_HEIGHT = 400;
 const double GAP = 10;
 const double VELOCITY_SCALE = 100;
 
@@ -145,13 +145,13 @@ list_t *make_wall(void *wall_info) {
   size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
   size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
-  if (cmp_left == 0){
+  if (cmp_left == 0) {
     corner = MIN;
   } 
-  if (cmp_right == 0){
+  if (cmp_right == 0) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
   }
-  if (cmp_plat == 0){
+  if (cmp_plat == 0) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
@@ -194,8 +194,6 @@ void wall_init(state_t *state) {
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
-    //create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-    //create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
     asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
     asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_l);
@@ -262,16 +260,15 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        if (!state->is_jumping) {
+        if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         } else {
           new_vx = -1 * cur_v.x;
         }
-        
         break;
       }
       case RIGHT_ARROW: {
-        if (!state->is_jumping) {
+        if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         } else {
           new_vx = fabs(cur_v.x);
