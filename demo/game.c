@@ -84,9 +84,6 @@ list_t *make_user(double radius) {
     assert(v);
     *v = (vector_t){center.x + radius * cos(angle),
                     center.y + radius * sin(angle)};
-    assert(v);
-    *v = (vector_t){center.x + radius * cos(angle),
-                    center.y + radius * sin(angle)};
     list_add(c, v);
   }
   return c;
@@ -132,13 +129,6 @@ void make_platform_points(vector_t corner, list_t *points){
   vector_t *v_1 = malloc(sizeof(*v_1));
   *v_1 = corner;
   list_add(points, v_1);
-  assert(v_1);
-  for (size_t i = 0; i < WALL_POINTS-1; i++){
-    vector_t *v = malloc(sizeof(*v));
-    *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
-    assert(v);
-    list_add(points, v);
-  }
   assert(v_1);
   for (size_t i = 0; i < WALL_POINTS-1; i++){
     vector_t *v = malloc(sizeof(*v));
@@ -273,45 +263,73 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
 
-  if (!state->is_jumping) {
-    if (type == KEY_PRESSED) {
+  if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        if (!state->is_jumping) {
+          new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        } else {
+          new_vx = -1 * cur_v.x;
+        }
+        
         break;
       }
       case RIGHT_ARROW: {
-        new_vx = RESTING_SPEED + ACCEL * held_time;
+        if (!state->is_jumping) {
+          new_vx = RESTING_SPEED + ACCEL * held_time;
+        } else {
+          new_vx = fabs(cur_v.x);
+        }
         break;
       }
       case UP_ARROW: {
-        new_vy = USER_JUMP_HEIGHT;
-        state->is_jumping = true;
+        if (!state->is_jumping) {
+          new_vy = USER_JUMP_HEIGHT;
+          state->is_jumping = true;
+        }
         break;
-      }
       }
     }
   }
-  else {
-        if (type == KEY_PRESSED) {
-          switch (key) {
-            case LEFT_ARROW: {
-              new_vx = -1 * cur_v.x;
-              break;
-            }
-            case RIGHT_ARROW: {
-              new_vx = fabs(cur_v.x);
-              break;
-            }
-          }
-        }
-    }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
+  // if (!state->is_jumping) {
+  //   if (type == KEY_PRESSED) {
+  //     switch (key) {
+  //     case LEFT_ARROW: {
+  //       new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+  //       break;
+  //     }
+  //     case RIGHT_ARROW: {
+  //       new_vx = RESTING_SPEED + ACCEL * held_time;
+  //       break;
+  //     }
+  //     case UP_ARROW: {
+  //       new_vy = USER_JUMP_HEIGHT;
+  //       state->is_jumping = true;
+  //       break;
+  //     }
+  //     }
+  //   }
+  // }
+  // else {
+  //       if (type == KEY_PRESSED) {
+  //         switch (key) {
+  //           case LEFT_ARROW: {
+  //             new_vx = -1 * cur_v.x;
+  //             break;
+  //           }
+  //           case RIGHT_ARROW: {
+  //             new_vx = fabs(cur_v.x);
+  //             break;
+  //           }
+  //         }
+  //       }
+  //   }
 }
 
 state_t *emscripten_init() {
-  asset_cache_init();
   sdl_init(MIN, MAX);
+  asset_cache_init();
   state_t *state = malloc(sizeof(state_t));
   assert(state);
 
