@@ -14,7 +14,7 @@
 #include "sdl_wrapper.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {1000, 1000};
+const vector_t MAX = {750, 1000};
 
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
@@ -34,7 +34,7 @@ const double RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double ACCEL = 100;
-const double USER_JUMP_HEIGHT = 300;
+const double USER_JUMP_HEIGHT = 400;
 const double GAP = 10;
 const double VELOCITY_SCALE = 100;
 
