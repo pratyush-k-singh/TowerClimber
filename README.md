@@ -52,8 +52,8 @@ Priority 4 Features:
 - Character/Level Creation/Body Sprites (Tommaso): 
     - Implement basic inelastic collisions of the user with the walls
     - The bodies (walls, user, enemy AI) created and initialized by the person who works on this as they will know how to implement the collisions of those said created bodies with each other 
-- Mouse handler/Path angle (Karen): 
-    - Development of the mouse handler to determine the trajectory of the jump based on click and drag 
+- Key handler (Karen): 
+    - Development of the key handler to determine the movement of the user
     - Implementation of the physics of the jump applied to the body (we can assume that the user body has already been implemented)
 - Implement Verical Scrolling (Pratyush):
     - Implementation of vertical scrolling where the user’s screen moves along with the user
