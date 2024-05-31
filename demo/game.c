@@ -345,10 +345,14 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *wall = scene_get_body(scene, i);
     sticky_collision(state, user, wall);
+
+    // include gravity
+    size_t compare = strcmp(body_get_info(wall), PLATFORM_INFO);
+    if (!find_collision(state -> user_body, wall).collided && compare == 0){
+      body_add_force(state -> user_body, GRAVITY);
+    }
   }
 
-  // include gravity
-  body_add_force(state -> user_body, GRAVITY);
 
   return game_over(state);
 }
