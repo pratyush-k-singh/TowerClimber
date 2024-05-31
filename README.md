@@ -5,7 +5,7 @@ Title: Tower Hopper
 
 Team Members: Tommaso Colombo, Pratysuh Singh, Karen Zhou
 
-Concept Statement: The player will use click and drag action to hop their way up a tower of platforms while chased by ghosts.
+Concept Statement: The player will use keyboard action to hop their way up a tower of platforms while chased by ghosts.
 
 ## Section 1: Gameplay
 The primary game loop will be centered around a treasure hunter jumping from wall to wall to ascend a tall tower. Along the way, it will encounter various obstacles and enemies (specifically ghosts that will chase it whilst the treasure hunter is within a certain radius of the ghost), which will deal one damage to the treasure hunter. Afterwards, the treasure hunter will gain immunity frames, giving them a chance to jump away from the obstacles, or in the case of the ghosts, the damage source will disappear. Taking three points of damage will result in a game over, as the treasure hunter tragically falls to their death.
@@ -14,10 +14,10 @@ Beyond the enemies and obstacles the treasure hunter will face, the nature of th
 
 The game will feel like a constant sprint forward, as the gravity pulling the hunter down, and the enemies chasing them, both serve as motivation to quickly leap from wall to wall, and to create plans of action on the fly. If the player manages to reach the top of the tower, they will reach the goal they have been seeking the entire time, the massive pile of treasure the hunter is seeking.
 
-The game will utilize the mouse to click and drag to aim and jump. The collisions in the physics engine, as well as the force of gravity, will be used to make the game work. Finally, we will use sprites for the player and ghosts and use polygons to design the level.
+The game will utilize the up, left, and right arrow keys to navigate. The collisions in the physics engine, as well as the force of gravity, will be used to make the game work. Finally, we will use sprites for the player and ghosts and use polygons to design the level.
 
 ## Section 2: Feature Set
-Our priority 1 features include character and level creation, mouse handler, and scene changes. First, we need to actually create the level and the sprite character of the user and the walls in the game, which is the foundation in which the game is built upon. We also need to aim and jump somehow, so we will be implementing a mouse handler to determine the trajectory of the jump based on where the click and drag motion occurs. Lastly, we will need the game to progress as the user plays so that it gives the illusion of the player traveling up a tower. This is where 2D parallax comes into play.
+Our priority 1 features include character and level creation, key handler, and scene changes. First, we need to actually create the level and the sprite character of the user and the walls in the game, which is the foundation in which the game is built upon. We also need to move and jump somehow, which is why we must implement a key handler. Lastly, we will need the game to progress as the user plays so that it gives the illusion of the player traveling up a tower. This is where 2D parallax comes into play.
 
 Next, our priority 2 features include applying forces to the same such as gravity to the trajectory of jumps, incorporating enemy AIs and the collision that occurs between the user and an enemy AI, and adding more realistic elements to the game. For the trajectory of jumps, we will make them arcs so that the game is more realistic. Then, we will also implement the ghost(s) as the enemy AI, which will follow the player up the tower and attack should they fail to progress swiftly enough. Lastly, we will implement UI elements.
 
@@ -27,7 +27,7 @@ Lastly, our priority 4 features are music, sound effects, and a health bar. Musi
 
 Priority 1 Features:
 - Character/Level Creation/Body Sprites (Tommaso)
-- Mouse Handler/Path Angle (Karen)
+- Key handler (Karen)
 - Implement Verical Scrolling (Pratyush)
 
 Priority 2 Features
