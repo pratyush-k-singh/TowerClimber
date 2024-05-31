@@ -263,7 +263,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         } else {
-          new_vx = -1 * cur_v.x;
+          new_vx = -1 * fabs(cur_v.x);
         }
         break;
       }
