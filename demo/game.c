@@ -57,7 +57,7 @@ const char *PLATFORM_INFO = "platform";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
-const double GRAVITY = -980;
+const vector_t GRAVITY = {0, -980};
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
 struct state {
