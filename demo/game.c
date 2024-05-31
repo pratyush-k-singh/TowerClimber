@@ -58,6 +58,7 @@ const char *PLATFORM_INFO = "platform";
 // Game constants
 const size_t NUM_LEVELS = 1;
 const double GRAVITY = -980;
+const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
 struct state {
   scene_t *scene;
@@ -334,7 +335,7 @@ state_t *emscripten_init() {
   assert(state);
 
   state->scene = scene_init();
-  state->body_assets = list_init(2, (free_func_t)asset_destroy);
+  state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user(RADIUS);
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
