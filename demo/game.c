@@ -261,7 +261,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       switch (key) {
       case LEFT_ARROW: {
         if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
-          new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+          new_vx = -1 * ((RESTING_SPEED + ACCEL) * held_time);
         } else {
           new_vx = -1 * cur_v.x;
         }
@@ -269,7 +269,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       }
       case RIGHT_ARROW: {
         if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
-          new_vx = RESTING_SPEED + ACCEL * held_time;
+          new_vx = (RESTING_SPEED + ACCEL) * held_time;
         } else {
           new_vx = fabs(cur_v.x);
         }
