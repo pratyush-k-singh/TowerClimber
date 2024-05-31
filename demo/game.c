@@ -244,10 +244,17 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   vector_t v2 = body_get_velocity(body2);
   state -> collided = find_collision(body1, body2).collided;
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO));
-  if (state -> collided && !velocity_zero){
+  if (state -> collided){
+    if (!velocity_zero && state->is_jumping)
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->is_jumping = false;
+  } else if (!velocity_zero) {
+    if (strcmp(body_get_info(body2), PLATFORM_INFO)) {
+      body_set_velocity((vector_t) {v1.x, 0});
+    } else if (strcmp(body_get_info(body2), PLATFORM_INFO)) {
+      body_set_velocity((vector_t) {0, v1.y})
+    }
   }
 }
 
@@ -359,7 +366,7 @@ bool emscripten_main(state_t *state) {
     sticky_collision(state, user, wall);
   }
   body_add_force(state -> user_body, (vector_t){0, -980});
-  
+
   return game_over(state);
 }
 
