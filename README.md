@@ -67,6 +67,7 @@ Priority 4 Features:
 - Forces (Karen): 
     - Apply gravity to the jumps and making them arcs for realism
     - Apply speed independent friction to walls 
+    - Apply friction to platforms
 - UI Elements (Pratyush):
     - Incorporate menu/title screens that allows the user to start the game
 
