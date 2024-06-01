@@ -20,6 +20,7 @@ const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
+const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
 
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
@@ -27,16 +28,15 @@ const double VERTICAL_OFFSET = 100;
 // User constants
 const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
-const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
-const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
+const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 400;
+const size_t WALL_JUMP_BUFFER = 15;
 const double GAP = 10;
-const double VELOCITY_SCALE = 100;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -50,7 +50,10 @@ const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 10};
 const vector_t PLATFORM_WIDTH = {100, 0};
 const double PLATFORM_ROTATION = M_PI/2;
+const double PLATFORM_FRICTION = .95;
 
+// info constants
+const char *USER_INFO = "user";
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 const char *PLATFORM_INFO = "platform";
@@ -63,17 +66,19 @@ const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 struct state {
   scene_t *scene;
   list_t *body_assets;
-  bool is_jumping;
   asset_t *user_sprite;
   body_t *user_body;
   size_t user_health;
+
   size_t ghost_counter;
   double ghost_timer;
   double vertical_offset;
   bool game_over;
+  
   bool collided;
+  bool jumping;
+  size_t can_jump;
 };
-
 
 list_t *make_user(double radius) {
   vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
@@ -92,6 +97,9 @@ list_t *make_user(double radius) {
 
 /**
  * Sets the velocity of the user so that the user can jump from sticky walls
+ * 
+ * @param state state object representing the current demo state
+ * @param velocity velocity to set the user to 
  */
 void set_velocity(state_t *state, vector_t velocity){
   body_t *user = state -> user_body;
@@ -230,14 +238,15 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   vector_t v1 = body_get_velocity(body1);
   vector_t v2 = body_get_velocity(body2);
   state -> collided = find_collision(body1, body2).collided;
-  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO));
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! HELLO READ ME PLEASE :D !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); // What does this line do lol :D Could you add a comment please? :(
   if (state -> collided && !velocity_zero){
-    if (state->is_jumping) {
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
-    state->is_jumping = false;
-    } else if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
-      body_set_velocity(body1, (vector_t) {v1.x, 0});
+    state->jumping = false;
+    state->can_jump = 0;
+    if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
+      body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
     }
   }
 }
@@ -260,31 +269,35 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
-          new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
-        } else {
-          new_vx = -1 * fabs(cur_v.x);
-        }
+        new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         break;
       }
       case RIGHT_ARROW: {
-        if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
-          new_vx = RESTING_SPEED + ACCEL * held_time;
-        } else {
-          new_vx = fabs(cur_v.x);
-        }
+        new_vx = RESTING_SPEED + ACCEL * held_time;
         break;
       }
       case UP_ARROW: {
-        if (!state->is_jumping) {
+        if (!state->jumping) {
           new_vy = USER_JUMP_HEIGHT;
-          state->is_jumping = true;
         }
         break;
       }
     }
   }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
+}
+
+/**
+ * Implements a buffer for the user's jumps off the platform and wall
+ * 
+ * @param state the state representing the current demo
+*/
+void check_jump_off(state_t *state) {
+  if (state->can_jump < WALL_JUMP_BUFFER) {
+    state->can_jump++;
+  } else {
+    state->jumping = true;
+  }
 }
 
 state_t *emscripten_init() {
@@ -300,7 +313,9 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
+  body_add_force(state -> user_body, GRAVITY);
 
+  // initialize scrolling velocity
   vector_t initial_velocity = {20, 20};
   set_velocity(state, initial_velocity);
 
@@ -313,15 +328,21 @@ state_t *emscripten_init() {
   asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
+  // // create and save asset for powerup image
+  // asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
+  // list_add(state->body_assets, user_asset);
+
   wall_init(state);
 
+  // initialize miscellaneous state values
   state->game_over = false;
   state->collided = false;
   state->vertical_offset = 0;
+  state->can_jump = 0;
 
   // initalize key handler
   sdl_on_key((key_handler_t)on_key);
-  state->is_jumping = false;
+  state->jumping = false;
 
   return state;
 }
@@ -334,6 +355,11 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
+  // implement buffer for user's jumps off walls and platform
+  if (!state->collided) {
+    check_jump_off(state);
+  } 
+
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
@@ -341,6 +367,7 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
 
+  // collisions between wall and user
   sdl_show(state->vertical_offset);
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *wall = scene_get_body(scene, i);
@@ -353,10 +380,8 @@ bool emscripten_main(state_t *state) {
     }
   }
 
-
   return game_over(state);
 }
-
 
 void emscripten_free(state_t *state) {
   TTF_Quit();
