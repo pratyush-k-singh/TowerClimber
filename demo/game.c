@@ -264,16 +264,10 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       switch (key) {
       case LEFT_ARROW: {
         new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
-        // if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
-        //   new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
-        // }
         break;
       }
       case RIGHT_ARROW: {
         new_vx = RESTING_SPEED + ACCEL * held_time;
-        // if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
-        //   new_vx = RESTING_SPEED + ACCEL * held_time;
-        // }
         break;
       }
       case UP_ARROW: {
@@ -341,6 +335,10 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
+  if (!state->collided) {
+    state->is_jumping == true;
+  }
+
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
@@ -360,7 +358,6 @@ bool emscripten_main(state_t *state) {
       body_add_force(state -> user_body, GRAVITY);
     }
   }
-
 
   return game_over(state);
 }
