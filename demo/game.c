@@ -315,9 +315,9 @@ state_t *emscripten_init() {
   asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
-  // create and save asset for powerup image
-  asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
-  list_add(state->body_assets, user_asset);
+  // // create and save asset for powerup image
+  // asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
+  // list_add(state->body_assets, user_asset);
 
 
   wall_init(state);
