@@ -285,7 +285,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 void jump_off_wall(state_t *state) {
-  if (state->can_jump_off_wall < 5) {
+  if (state->can_jump_off_wall < 10) {
     state->can_jump_off_wall++;
   } else {
     state->is_jumping = true;
