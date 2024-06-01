@@ -28,16 +28,15 @@ const double VERTICAL_OFFSET = 100;
 // User constants
 const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
-const char *USER_INFO = "user";
 const double USER_ROTATION = 0;
-const vector_t USER_CENTER = {500, 60}; //(HERE JUST IN CASE NEED TO USE)
 const double RADIUS = 15;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
+const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 400;
+const size_t WALL_JUMP_BUFFER = 10;
 const double GAP = 10;
-const double VELOCITY_SCALE = 100;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -51,7 +50,10 @@ const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 10};
 const vector_t PLATFORM_WIDTH = {100, 0};
 const double PLATFORM_ROTATION = M_PI/2;
+const double PLATFORM_FRICTION = .95;
 
+// info constants
+const char *USER_INFO = "user";
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 const char *PLATFORM_INFO = "platform";
@@ -59,24 +61,32 @@ const char *PLATFORM_INFO = "platform";
 // Game constants
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
-const double FRICTION = .95;
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
 struct state {
   scene_t *scene;
   list_t *body_assets;
-  bool is_jumping;
   asset_t *user_sprite;
   body_t *user_body;
-  size_t can_jump_off_wall;
   size_t user_health;
+
   size_t ghost_counter;
   double ghost_timer;
   double vertical_offset;
   bool game_over;
   bool collided;
+
+  jump_info_t *jump_info;
 };
 
+/**
+ * jumping: true if user is currently not touching any surface
+ * can_jump: buffer so that user can jump off the wall
+*/
+struct jump_info {
+  bool jumping;
+  size_t can_jump;
+} jump_info_t;
 
 list_t *make_user(double radius) {
   vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
@@ -241,7 +251,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     state->is_jumping = false;
     state->can_jump_off_wall = 0;
     if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
-      body_set_velocity(body1, (vector_t) {v1.x * FRICTION, 0});
+      body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
     //     //body_set_velocity(body1, (vector_t) {v1.x, 0});
 
     }
@@ -285,7 +295,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 void jump_off_wall(state_t *state) {
-  if (state->can_jump_off_wall < 10) {
+  if (state->can_jump_off_wall < WALL_JUMP_BUFFER) {
     state->can_jump_off_wall++;
   } else {
     state->is_jumping = true;
@@ -323,7 +333,6 @@ state_t *emscripten_init() {
   // // create and save asset for powerup image
   // asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
   // list_add(state->body_assets, user_asset);
-
 
   wall_init(state);
 
