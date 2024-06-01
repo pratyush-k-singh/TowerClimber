@@ -97,6 +97,9 @@ list_t *make_user(double radius) {
 
 /**
  * Sets the velocity of the user so that the user can jump from sticky walls
+ * 
+ * @param state state object representing the current demo state
+ * @param velocity velocity to set the user to 
  */
 void set_velocity(state_t *state, vector_t velocity){
   body_t *user = state -> user_body;
@@ -236,7 +239,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   vector_t v2 = body_get_velocity(body2);
   state -> collided = find_collision(body1, body2).collided;
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! HELLO READ ME PLEASE :D !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); // What does this line do lol :D
+  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); // What does this line do lol :D Could you add a comment please? :(
   if (state -> collided && !velocity_zero){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
@@ -244,8 +247,6 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     state->can_jump = 0;
     if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-    //     //body_set_velocity(body1, (vector_t) {v1.x, 0});
-
     }
   }
 }
@@ -286,7 +287,12 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
-void jump_off_wall(state_t *state) {
+/**
+ * Implements a buffer for the user's jumps off the platform and wall
+ * 
+ * @param state the state representing the current demo
+*/
+void check_jump_off(state_t *state) {
   if (state->can_jump < WALL_JUMP_BUFFER) {
     state->can_jump++;
   } else {
@@ -328,6 +334,7 @@ state_t *emscripten_init() {
 
   wall_init(state);
 
+  // initialize miscellaneous state values
   state->game_over = false;
   state->collided = false;
   state->vertical_offset = 0;
@@ -348,8 +355,9 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
+  // implement buffer for user's jumps off walls and platform
   if (!state->collided) {
-    jump_off_wall(state);
+    check_jump_off(state);
   } 
 
   vector_t player_pos = body_get_centroid(user);
