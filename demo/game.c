@@ -63,18 +63,6 @@ const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
-typedef jump_info jump_info_t;
-
-/**
- * jumping: true if user is currently not touching any surface
- * can_jump: buffer so that user can jump off the wall
-*/
-struct jump_info {
-  bool jumping;
-  size_t can_jump;
-} jump_info_t;
-
-
 struct state {
   scene_t *scene;
   list_t *body_assets;
@@ -86,9 +74,10 @@ struct state {
   double ghost_timer;
   double vertical_offset;
   bool game_over;
+  
   bool collided;
-
-  jump_info_t *jump_info;
+  bool jumping;
+  size_t can_jump;
 };
 
 list_t *make_user(double radius) {
@@ -251,8 +240,8 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   if (state -> collided && !velocity_zero){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
-    state->is_jumping = false;
-    state->can_jump_off_wall = 0;
+    state->jumping = false;
+    state->can_jump = 0;
     if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
     //     //body_set_velocity(body1, (vector_t) {v1.x, 0});
@@ -287,7 +276,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case UP_ARROW: {
-        if (!state->is_jumping) {
+        if (!state->jumping) {
           new_vy = USER_JUMP_HEIGHT;
         }
         break;
@@ -298,10 +287,10 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 void jump_off_wall(state_t *state) {
-  if (state->can_jump_off_wall < WALL_JUMP_BUFFER) {
-    state->can_jump_off_wall++;
+  if (state->can_jump < WALL_JUMP_BUFFER) {
+    state->can_jump++;
   } else {
-    state->is_jumping = true;
+    state->jumping = true;
   }
 }
 
@@ -342,11 +331,11 @@ state_t *emscripten_init() {
   state->game_over = false;
   state->collided = false;
   state->vertical_offset = 0;
-  state->can_jump_off_wall = 0;
+  state->can_jump = 0;
 
   // initalize key handler
   sdl_on_key((key_handler_t)on_key);
-  state->is_jumping = false;
+  state->jumping = false;
 
   return state;
 }
