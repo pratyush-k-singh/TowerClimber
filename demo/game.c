@@ -238,11 +238,11 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->is_jumping = false;
-    // if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
-    //     //body_set_velocity(body1, (vector_t) {v1.x * FRICTION, 0});
+    if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
+      body_set_velocity(body1, (vector_t) {v1.x * FRICTION, 0});
     //     //body_set_velocity(body1, (vector_t) {v1.x, 0});
 
-    // }
+    }
   }
 }
 
@@ -335,10 +335,6 @@ bool emscripten_main(state_t *state) {
   scene_tick(scene, dt);
   body_tick(user, dt);
   sdl_clear();
-
-  if (!state->collided) {
-    state->is_jumping = true;
-  }
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
