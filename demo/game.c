@@ -282,7 +282,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         if (!state->is_jumping) {
           new_vy = USER_JUMP_HEIGHT;
           state->is_jumping = true;
-          body_reset(state->user);
+          body_reset(state->user_body);
         }
         break;
       }
