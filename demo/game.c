@@ -68,6 +68,7 @@ struct state {
   bool is_jumping;
   asset_t *user_sprite;
   body_t *user_body;
+  size_t can_jump_off_wall;
   size_t user_health;
   size_t ghost_counter;
   double ghost_timer;
@@ -238,6 +239,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->is_jumping = false;
+    state->can_jump_off_wall = 0;
     if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
       body_set_velocity(body1, (vector_t) {v1.x * FRICTION, 0});
     //     //body_set_velocity(body1, (vector_t) {v1.x, 0});
@@ -282,6 +284,14 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
+void jump_off_wall(state_t *state) {
+  if (state->can_jump_off_wall < 5) {
+    state->can_jump_off_wall++;
+  } else {
+    state->is_jumping = true;
+  }
+}
+
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   asset_cache_init();
@@ -320,6 +330,7 @@ state_t *emscripten_init() {
   state->game_over = false;
   state->collided = false;
   state->vertical_offset = 0;
+  state->can_jump_off_wall = 0;
 
   // initalize key handler
   sdl_on_key((key_handler_t)on_key);
@@ -335,6 +346,10 @@ bool emscripten_main(state_t *state) {
   scene_tick(scene, dt);
   body_tick(user, dt);
   sdl_clear();
+
+  if (!state->collided) {
+    jump_off_wall(state);
+  } 
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
