@@ -295,6 +295,7 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
+  body_add_force(state -> user_body, GRAVITY);
 
   // initialize scrolling velocity
   vector_t initial_velocity = {20, 20};
