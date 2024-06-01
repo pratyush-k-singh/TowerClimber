@@ -59,6 +59,7 @@ const char *PLATFORM_INFO = "platform";
 // Game constants
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
+const vector_t FRICTION = {-1000, 0};
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
 struct state {
@@ -239,6 +240,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     state->is_jumping = false;
     } else if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
       body_set_velocity(body1, (vector_t) {v1.x, 0});
+      body_add_force(body1, FRICTION);
     }
   }
 }
@@ -280,6 +282,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         if (!state->is_jumping) {
           new_vy = USER_JUMP_HEIGHT;
           state->is_jumping = true;
+          body_reset(state->user);
         }
         break;
       }
@@ -301,6 +304,7 @@ state_t *emscripten_init() {
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
+  body_add_force(body, FRICTION); // ASSUMES THE USER STARTS ON THE PLATFORM
 
   // initialize scrolling velocity
   vector_t initial_velocity = {20, 20};
