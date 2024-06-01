@@ -35,7 +35,7 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 400;
-const size_t WALL_JUMP_BUFFER = 10;
+const size_t WALL_JUMP_BUFFER = 15;
 const double GAP = 10;
 
 // Wall constants
