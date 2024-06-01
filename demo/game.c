@@ -63,6 +63,8 @@ const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
+typedef jump_info jump_info_t;
+
 /**
  * jumping: true if user is currently not touching any surface
  * can_jump: buffer so that user can jump off the wall
