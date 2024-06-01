@@ -63,6 +63,16 @@ const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
+/**
+ * jumping: true if user is currently not touching any surface
+ * can_jump: buffer so that user can jump off the wall
+*/
+struct jump_info {
+  bool jumping;
+  size_t can_jump;
+} jump_info_t;
+
+
 struct state {
   scene_t *scene;
   list_t *body_assets;
@@ -78,15 +88,6 @@ struct state {
 
   jump_info_t *jump_info;
 };
-
-/**
- * jumping: true if user is currently not touching any surface
- * can_jump: buffer so that user can jump off the wall
-*/
-struct jump_info {
-  bool jumping;
-  size_t can_jump;
-} jump_info_t;
 
 list_t *make_user(double radius) {
   vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
