@@ -240,8 +240,8 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   state -> collided = find_collision(body1, body2).collided;
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! HELLO READ ME PLEASE :D !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); // What does this line do lol :D Could you add a comment please? :(
-  // Checks if either velocity is not 0 so that the code doesn't run every single tick
-  
+  // Checks if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
+
   if (state -> collided && !velocity_zero){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
