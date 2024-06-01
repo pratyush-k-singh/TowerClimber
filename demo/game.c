@@ -336,7 +336,7 @@ bool emscripten_main(state_t *state) {
   sdl_clear();
 
   if (!state->collided) {
-    state->is_jumping == true;
+    state->is_jumping = true;
   }
 
   vector_t player_pos = body_get_centroid(user);
