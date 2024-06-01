@@ -266,7 +266,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         if (!state->is_jumping || (state->is_jumping && cur_v.x == 0)) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         } else {
-          new_vx = -1 * cur_v.x;
+          new_vx = -1 * fabs(cur_v.x);
         }
         break;
       }
@@ -357,10 +357,14 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *wall = scene_get_body(scene, i);
     sticky_collision(state, user, wall);
+
+    // include gravity
+    size_t compare = strcmp(body_get_info(wall), PLATFORM_INFO);
+    if (!find_collision(state -> user_body, wall).collided && compare == 0){
+      body_add_force(state -> user_body, GRAVITY);
+    }
   }
 
-  // include gravity
-  body_add_force(state -> user_body, GRAVITY);
 
   return game_over(state);
 }
