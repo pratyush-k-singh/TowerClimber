@@ -20,6 +20,7 @@ const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
+const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
 
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
@@ -301,6 +302,7 @@ state_t *emscripten_init() {
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
 
+  // initialize scrolling velocity
   vector_t initial_velocity = {20, 20};
   set_velocity(state, initial_velocity);
 
@@ -312,6 +314,11 @@ state_t *emscripten_init() {
   // Create and save the asset for the user image
   asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
   list_add(state->body_assets, user_asset);
+
+  // create and save asset for powerup image
+  asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
+  list_add(state->body_assets, user_asset);
+
 
   wall_init(state);
 
@@ -341,6 +348,7 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
 
+  // collisions between wall and user
   sdl_show(state->vertical_offset);
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *wall = scene_get_body(scene, i);
@@ -352,7 +360,6 @@ bool emscripten_main(state_t *state) {
 
   return game_over(state);
 }
-
 
 void emscripten_free(state_t *state) {
   TTF_Quit();
