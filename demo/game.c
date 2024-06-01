@@ -59,7 +59,7 @@ const char *PLATFORM_INFO = "platform";
 // Game constants
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
-const double FRICTION = .75;
+const double FRICTION = .9;
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
 
 struct state {
@@ -239,8 +239,8 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     body_set_velocity(body2, VEC_ZERO);
     state->is_jumping = false;
     } else if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0 && !state->is_jumping) {
-        //body_set_velocity(body1, (vector_t) {v1.x * FRICTION, 0});
-        body_set_velocity(body1, (vector_t) {v1.x, 0});
+        body_set_velocity(body1, (vector_t) {v1.x * FRICTION, 0});
+        //body_set_velocity(body1, (vector_t) {v1.x, 0});
     }
   }
 }
