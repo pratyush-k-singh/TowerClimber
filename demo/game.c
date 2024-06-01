@@ -238,7 +238,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->is_jumping = false;
-    } else if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
+    } else if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0 && !state->is_jumping) {
         body_set_velocity(body1, (vector_t) {v1.x * FRICTION, 0});
     }
   }
