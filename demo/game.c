@@ -33,7 +33,7 @@ const double VERTICAL_OFFSET = 100;
 const double USER_MASS = 5;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const double USER_ROTATION = 0;
-const double RADIUS = 15;
+const double RADIUS = 25;
 const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
@@ -62,7 +62,8 @@ const char *USER_INFO = "user";
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 const char *PLATFORM_INFO = "platform";
-const char *POWERUP_INFO = "powerup";
+const char *JUMP_POWERUP_INFO = "jump_powerup";
+const char *HEALTH_POWERUP_INFO = "health_powerup";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
@@ -273,6 +274,14 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     state->can_jump = 0;
     if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+    } else if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
+      state->jump_powerup = true;
+    } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
+      body_remove(body2);
+      if (state->user_health < 3) {
+        state->user_health++;
+        health_bar_process(state);
+      }
     }
   }
 }
@@ -467,17 +476,15 @@ bool emscripten_main(state_t *state) {
     check_jump_off(state);
   } 
 
-  // // power ups
-  // if (state->jump_powerup) {
-  //   if (state->powerup_time < POWERUP_TIME) {
-  //     state->powerup_time += dt;
-  //   } else {
-  //     state->jump_powerup = false;
-  //     state->powerup_time = 0;
-  //   }
-  // } else if (state->powerup != NULL) {
-  //   asset_render(state->powerup, state->vertical_offset);
-  // } else if ()
+  // power ups
+  if (state->jump_powerup) {
+    if (state->powerup_time < POWERUP_TIME) {
+      state->powerup_time += dt;
+    } else {
+      state->jump_powerup = false;
+      state->powerup_time = 0;
+    }
+  }
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
