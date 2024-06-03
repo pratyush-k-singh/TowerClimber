@@ -66,7 +66,7 @@ const char *POWERUP_INFO = "powerup";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
-const vector_t GRAVITY = {0, -1800};
+const vector_t GRAVITY = {0, -1500};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 
 // health bar location
