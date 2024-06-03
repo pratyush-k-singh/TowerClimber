@@ -69,7 +69,7 @@ const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
-const vector_t HEALTH_BAR_MAX = {85, 30};
+const vector_t HEALTH_BAR_MAX = {90, 30};
 SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                            .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
