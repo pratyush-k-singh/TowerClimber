@@ -322,7 +322,7 @@ void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
 /**
  * TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 */
-void *health_powerup_collision(state_t *state, body_t *body1, body_t *body_2, vector_t VEC_ZERO, void *aux, double force_const) {
+void health_powerup_collision(state_t *state, body_t *body1, body_t *body_2, vector_t VEC_ZERO, void *aux, double force_const) {
   body_remove(body_2);
       
       if (state->user_health < 3) {
@@ -419,7 +419,7 @@ void create_health_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        (void *) HEALTH_POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
-  create_collision(state->scene, powerup, state->user_body, health_powerup_collision, 
+  create_collision(state->scene, powerup, state->user_body, (void *) health_powerup_collision, 
                   (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
 }
