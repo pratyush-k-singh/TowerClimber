@@ -66,7 +66,7 @@ const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
-const vector_t HEALTH_BAR_MAX = {75, 30};
+const vector_t HEALTH_BAR_MAX = {80, 30};
 
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const double POWERUP_TIME = 7; // how long jump powerup lasts
@@ -77,6 +77,7 @@ struct state {
   asset_t *user_sprite;
   body_t *user_body;
   size_t user_health;
+  asset_t *health_bar;
 
   size_t ghost_counter;
   double ghost_timer;
@@ -361,7 +362,7 @@ state_t *emscripten_init() {
   SDL_Rect health_bar_box = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                              .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, health_bar_box);
-  list_add(state->body_assets, health_bar_asset);
+  state->health_bar = health_bar_asset;
 
   wall_init(state);
 
@@ -410,6 +411,8 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
+
+  asset_render(state->health_bar, state->vertical_offset);
 
   // collisions between walls, platforms, powerups and user
   sdl_show(state->vertical_offset);
