@@ -378,7 +378,7 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
 
-  asset_render(state->health_bar);
+  asset_render(state->health_bar, 0);
 
   // collisions between wall and user
   sdl_show(state->vertical_offset);
