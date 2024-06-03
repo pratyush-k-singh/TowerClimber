@@ -22,6 +22,8 @@ const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
 const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
+const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
+const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
@@ -38,6 +40,7 @@ const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 400;
 const size_t WALL_JUMP_BUFFER = 20; // how many pixels away from wall can user jump
 const double GAP = 10;
+const size_t FULL_HEALTH = 3;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -66,7 +69,9 @@ const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
-const vector_t HEALTH_BAR_MAX = {80, 30};
+const vector_t HEALTH_BAR_MAX = {85, 30};
+SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
+                           .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const double POWERUP_TIME = 7; // how long jump powerup lasts
@@ -313,6 +318,19 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
+void health_bar_process(state_t *state) {
+  char *health_bar_path = FULL_HEALTH_BAR_PATH;
+  
+  if (state->user_health == 1) {
+    health_bar_path = HEALTH_BAR_1_PATH;
+  } else if (state->user_health == 2) {
+    health_bar_path = HEALTH_BAR_2_PATH;
+  }
+
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  state->health_bar = health_bar_asset;
+}
+
 /**
  * Implements a buffer for the user's jumps off the platform and wall
  * 
@@ -340,6 +358,7 @@ state_t *emscripten_init() {
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
   body_add_force(state -> user_body, GRAVITY);
+  state->user_health = FULL_HEALTH;
 
   // initialize scrolling velocity
   vector_t initial_velocity = {20, 20};
@@ -359,9 +378,7 @@ state_t *emscripten_init() {
   // list_add(state->body_assets, user_asset);
 
   // create health bar
-  SDL_Rect health_bar_box = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
-                             .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, health_bar_box);
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 
   wall_init(state);
