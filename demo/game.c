@@ -358,10 +358,11 @@ list_t *make_power_up_shape(double length) {
  * @param state
  * @param powerup_path
 */
-void create_power_up(state_t *state, char* powerup_path) {
-  asset_t *health_bar_asset = asset_make_image(powerup_path, HEALTH_BAR_BOX);
+void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH);
-  state->powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, POWERUP_INFO, NULL);
+  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) POWERUP_INFO, NULL);
+  asset_t *user_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
+  state->powerup = powerup
 }
 
 void health_bar_process(state_t *state) {
