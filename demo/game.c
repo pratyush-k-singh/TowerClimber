@@ -289,7 +289,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
       return;
     } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
       body_remove(body2);
-      print("yay");
+      printf("yay");
       if (state->user_health < 3) {
         state->user_health++;
         health_bar_process(state);
