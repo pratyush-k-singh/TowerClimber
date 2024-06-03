@@ -38,7 +38,7 @@ const size_t USER_NUM_POINTS = 20;
 const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
-const double USER_JUMP_HEIGHT = 400;
+const double USER_JUMP_HEIGHT = 500;
 const size_t WALL_JUMP_BUFFER = 20; // how many pixels away from wall can user jump
 const double GAP = 10;
 const size_t FULL_HEALTH = 3;
@@ -66,7 +66,7 @@ const char *POWERUP_INFO = "powerup";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
-const vector_t GRAVITY = {0, -1200};
+const vector_t GRAVITY = {0, -1500};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 
 // health bar location
