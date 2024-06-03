@@ -72,7 +72,6 @@ struct state {
   asset_t *user_sprite;
   body_t *user_body;
   size_t user_health;
-  asset_t *health_bar;
 
   size_t ghost_counter;
   double ghost_timer;
@@ -341,7 +340,8 @@ state_t *emscripten_init() {
   // create health bar
   SDL_Rect health_bar_box = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                              .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
-  state->health_bar = asset_make_image(FULL_HEALTH_BAR_PATH, health_bar_box);
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, health_bar_box);
+  list_add(state->body_assets, health_bar_asset);
 
   wall_init(state);
 
@@ -377,8 +377,6 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
-
-  asset_render(state->health_bar, 0);
 
   // collisions between wall and user
   sdl_show(state->vertical_offset);
