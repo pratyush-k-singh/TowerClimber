@@ -342,6 +342,7 @@ state_t *emscripten_init() {
   SDL_Rect health_bar_box = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                              .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
   state->health_bar = asset_make_image(FULL_HEALTH_BAR_PATH, health_bar_box);
+  list_add(state->body_assets, state->health_bar);
 
   wall_init(state);
 
