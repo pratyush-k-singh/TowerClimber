@@ -65,8 +65,8 @@ const vector_t GRAVITY = {0, -980};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 
 // health bar location
-const vector_t HEALTH_BAR_MIN = {100, 100};
-const vector_t HEALTH_BAR_MAX = {400, 200};
+const vector_t HEALTH_BAR_MIN = {15, 15};
+const vector_t HEALTH_BAR_MAX = {75, 30};
 
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const double POWERUP_TIME = 7; // how long jump powerup lasts
