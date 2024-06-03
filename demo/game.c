@@ -83,6 +83,7 @@ const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
 const double POWERUP_TIME = 7; // how long jump powerup lasts
 const double POWERUP_LENGTH = 15;
 const double POWERUP_MASS = .0001;
+const double POWERUP_ELASTICITY = 1;
 
 struct state {
   scene_t *scene;
@@ -386,7 +387,7 @@ void create_jump_power_up(state_t *state) {
                                        (void *) JUMP_POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
-                  (char*)"v_0", WALL_ELASTICITY);
+                  (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
 }
 
@@ -401,7 +402,7 @@ void create_health_power_up(state_t *state) {
                                        (void *) HEALTH_POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
   create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
-                  (char*)"v_0", WALL_ELASTICITY);
+                  (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
 }
 
