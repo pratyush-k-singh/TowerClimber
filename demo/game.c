@@ -66,7 +66,7 @@ const char *POWERUP_INFO = "powerup";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
-const vector_t GRAVITY = {0, -980};
+const vector_t GRAVITY = {0, -1200};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 
 // health bar location
@@ -100,7 +100,6 @@ struct state {
   
   bool jump_powerup;
   double powerup_time;
-  body_t *powerup;
 };
 
 list_t *make_user(double radius) {
@@ -361,8 +360,8 @@ list_t *make_power_up_shape(double length) {
 void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) POWERUP_INFO, NULL);
-  asset_t *user_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
-  state->powerup = powerup;
+  asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
+  list_add(state->body_assets, powerup_asset);
 }
 
 void health_bar_process(state_t *state) {
