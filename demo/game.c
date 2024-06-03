@@ -79,7 +79,7 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const double POWERUP_TIME = 7; // how long jump powerup lasts
 const double POWERUP_LENGTH = 15;
-const double POWERUP_MASS = 1 * 10 ** -3;
+const double POWERUP_MASS = .0001;
 
 struct state {
   scene_t *scene;
