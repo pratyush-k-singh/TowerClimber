@@ -250,6 +250,20 @@ bool vec_cmp(vector_t v1, vector_t v2){
   return((v1.x == v2.x) && (v1.y == v2.y));
 }
 
+/**
+ * TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
+void health_bar_process(state_t *state) {
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  
+  if (state->user_health == 1) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
+  } else if (state->user_health == 2) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
+  }
+  state->health_bar = health_bar_asset;
+}
+
 
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
@@ -368,7 +382,7 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 */
 void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
-  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) POWERUP_INFO, NULL);
+  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) JUMP_POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   list_add(state->body_assets, powerup_asset);
 }
@@ -380,20 +394,9 @@ void create_jump_power_up(state_t *state) {
 */
 void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
-  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) POWERUP_INFO, NULL);
+  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) HEALTH_POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
   list_add(state->body_assets, powerup_asset);
-}
-
-void health_bar_process(state_t *state) {
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
-  
-  if (state->user_health == 1) {
-    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
-  } else if (state->user_health == 2) {
-    health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
-  }
-  state->health_bar = health_bar_asset;
 }
 
 /**
