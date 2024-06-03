@@ -334,7 +334,7 @@ list_t *make_power_up_shape(double length) {
   if (loc_x > POWERUP_LOC) {
     loc_x -= POWERUP_LOC;
   }
-  double loc_y = (double) (rand() % (MAX.y));
+  double loc_y = (double) (rand() % ((size_t) MAX.y));
   if (loc_y > POWERUP_LOC) {
     loc_y -= POWERUP_LOC;
   }
@@ -358,9 +358,9 @@ list_t *make_power_up_shape(double length) {
  * @param state
  * @param powerup_path
 */
-void create_power_up(state_t state, char* powerup_path) {
+void create_power_up(state_t *state, char* powerup_path) {
   asset_t *health_bar_asset = asset_make_image(powerup_path, HEALTH_BAR_BOX);
-  list_t points = make_power_up_shape(POWERUP_LENGTH);
+  list_t *points = make_power_up_shape(POWERUP_LENGTH);
   state->powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, POWERUP_INFO, NULL);
 }
 
