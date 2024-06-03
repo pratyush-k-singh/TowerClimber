@@ -21,6 +21,7 @@ const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
 const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
+const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
@@ -35,7 +36,7 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 400;
-const size_t WALL_JUMP_BUFFER = 15;
+const size_t WALL_JUMP_BUFFER = 20;
 const double GAP = 10;
 
 // Wall constants
@@ -62,6 +63,8 @@ const char *PLATFORM_INFO = "platform";
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
+const vector_t HEALTH_BAR_MIN = {10, 10};
+const vector_t HEALTH_BAR_MAX = {100, 55};
 
 struct state {
   scene_t *scene;
@@ -69,6 +72,7 @@ struct state {
   asset_t *user_sprite;
   body_t *user_body;
   size_t user_health;
+  asset_t *health_bar;
 
   size_t ghost_counter;
   double ghost_timer;
@@ -333,6 +337,11 @@ state_t *emscripten_init() {
   // // create and save asset for powerup image
   // asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
   // list_add(state->body_assets, user_asset);
+
+  // create health bar
+  SDL_Rect health_bar_box = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
+                             .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
+  state->health_bar = asset_make_image(FULL_HEALTH_BAR_PATH, health_bar_box);
 
   wall_init(state);
 
