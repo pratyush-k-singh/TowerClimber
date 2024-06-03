@@ -20,7 +20,8 @@ const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
-const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
+//const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
+const char *HEALTH_POWERUP_PATH = "assets/jump_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
@@ -61,6 +62,7 @@ const char *USER_INFO = "user";
 const char *LEFT_WALL_INFO = "left_wall";
 const char *RIGHT_WALL_INFO = "right_wall";
 const char *PLATFORM_INFO = "platform";
+const char *POWERUP_INFO = "powerup";
 
 // Game constants
 const size_t NUM_LEVELS = 1;
@@ -73,8 +75,11 @@ const vector_t HEALTH_BAR_MAX = {90, 30};
 SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                            .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
+// powerup infomation
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const double POWERUP_TIME = 7; // how long jump powerup lasts
+const double POWERUP_LENGTH = 15;
+const double POWERUP_MASS = 0;
 
 struct state {
   scene_t *scene;
@@ -95,6 +100,7 @@ struct state {
   
   bool jump_powerup;
   double powerup_time;
+  body_t *powerup;
 };
 
 list_t *make_user(double radius) {
@@ -318,6 +324,46 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
+/**
+ * 
+ * @param
+*/
+list_t *make_power_up_shape(double length) {
+  // get random location between walls
+  double loc_x = (double) (rand() % (POWERUP_LOC * 2));
+  if (loc_x > POWERUP_LOC) {
+    loc_x -= POWERUP_LOC;
+  }
+  double loc_y = (double) (rand() % (MAX.y));
+  if (loc_y > POWERUP_LOC) {
+    loc_y -= POWERUP_LOC;
+  }
+
+  vector_t center = {loc_x + ((MAX.x / 2) - POWERUP_LOC), loc_y + ((MAX.y / 2) - POWERUP_LOC)};
+
+  list_t *c = list_init(USER_NUM_POINTS, free);
+  for (size_t i = 0; i < USER_NUM_POINTS; i++) {
+    double angle = 2 * M_PI * i / USER_NUM_POINTS;
+    vector_t *v = malloc(sizeof(*v));
+    assert(v);
+    *v = (vector_t){center.x + length * cos(angle),
+                    center.y + length * sin(angle)};
+    list_add(c, v);
+  }
+  return c;
+}
+
+/**
+ * Creates a power up and adds to state
+ * @param state
+ * @param powerup_path
+*/
+void create_power_up(state_t state, char* powerup_path) {
+  asset_t *health_bar_asset = asset_make_image(powerup_path, HEALTH_BAR_BOX);
+  list_t points = make_power_up_shape(POWERUP_LENGTH);
+  state->powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, POWERUP_INFO, NULL);
+}
+
 void health_bar_process(state_t *state) {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   
@@ -371,10 +417,6 @@ state_t *emscripten_init() {
   asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
-  // // create and save asset for powerup image
-  // asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
-  // list_add(state->body_assets, user_asset);
-
   // create health bar
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
@@ -393,6 +435,7 @@ state_t *emscripten_init() {
   state->jumping = false;
   state->jump_powerup = false;
   state->powerup_time = 0;
+  state->powerup = NULL;
 
   return state;
 }
@@ -410,15 +453,17 @@ bool emscripten_main(state_t *state) {
     check_jump_off(state);
   } 
 
-  // check if powerup is deactivated
-  if (state->jump_powerup) {
-    if (state->powerup_time < POWERUP_TIME) {
-      state->powerup_time += dt;
-    } else {
-      state->jump_powerup = false;
-      state->powerup_time = 0;
-    }
-  }
+  // // power ups
+  // if (state->jump_powerup) {
+  //   if (state->powerup_time < POWERUP_TIME) {
+  //     state->powerup_time += dt;
+  //   } else {
+  //     state->jump_powerup = false;
+  //     state->powerup_time = 0;
+  //   }
+  // } else if (state->powerup != NULL) {
+  //   asset_render(state->powerup, state->vertical_offset);
+  // } else if ()
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
@@ -427,6 +472,7 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
 
+  // render health bar
   asset_render(state->health_bar, state->vertical_offset);
 
   // collisions between walls, platforms, powerups and user
