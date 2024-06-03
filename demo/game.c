@@ -420,7 +420,7 @@ bool emscripten_main(state_t *state) {
 
     // include gravity
     size_t compare = strcmp(body_get_info(body), PLATFORM_INFO);
-    if (!find_collision(state -> user_body, wall).collided && compare == 0){
+    if (!find_collision(state -> user_body, body).collided && compare == 0){
       body_add_force(state -> user_body, GRAVITY);
     }
   }
