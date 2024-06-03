@@ -154,19 +154,17 @@ void asset_render(asset_t *asset, double vertical_offset) {
   
   switch (asset->type) {
   case ASSET_IMAGE: {
-    if (image != NULL) {
-      image_asset_t *image = (image_asset_t *)asset;
-      SDL_Texture *texture = image->texture;
+    image_asset_t *image = (image_asset_t *)asset;
+    SDL_Texture *texture = image->texture;
 
-      if (image->body != NULL) {
-        get_body_bounding_box(image->body, &image->base.bounding_box, vertical_offset);
-      }
-
-      SDL_Rect box = image->base.bounding_box;
-      vector_t loc = {box.x, box.y};
-      vector_t size = {box.w, box.h};
-      sdl_render_image(texture, loc, size);
+    if (image->body != NULL) {
+      get_body_bounding_box(image->body, &image->base.bounding_box, vertical_offset);
     }
+
+    SDL_Rect box = image->base.bounding_box;
+    vector_t loc = {box.x, box.y};
+    vector_t size = {box.w, box.h};
+    sdl_render_image(texture, loc, size);
     break;
   }
 

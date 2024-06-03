@@ -319,15 +319,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 void health_bar_process(state_t *state) {
-  char *health_bar_path = FULL_HEALTH_BAR_PATH;
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   
   if (state->user_health == 1) {
-    health_bar_path = HEALTH_BAR_1_PATH;
+    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
   } else if (state->user_health == 2) {
-    health_bar_path = HEALTH_BAR_2_PATH;
+    health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
   }
-
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 }
 
