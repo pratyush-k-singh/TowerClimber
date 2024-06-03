@@ -63,8 +63,8 @@ const char *PLATFORM_INFO = "platform";
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
 const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
-const vector_t HEALTH_BAR_MIN = {10, 10};
-const vector_t HEALTH_BAR_MAX = {100, 55};
+const vector_t HEALTH_BAR_MIN = {100, 100};
+const vector_t HEALTH_BAR_MAX = {400, 200};
 
 struct state {
   scene_t *scene;
