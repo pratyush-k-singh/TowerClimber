@@ -21,6 +21,9 @@ const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
 const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
+const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
+const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
+const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
@@ -35,8 +38,9 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 400;
-const size_t WALL_JUMP_BUFFER = 15;
+const size_t WALL_JUMP_BUFFER = 20; // how many pixels away from wall can user jump
 const double GAP = 10;
+const size_t FULL_HEALTH = 3;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -61,7 +65,16 @@ const char *PLATFORM_INFO = "platform";
 // Game constants
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
-const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
+const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
+
+// health bar location
+const vector_t HEALTH_BAR_MIN = {15, 15};
+const vector_t HEALTH_BAR_MAX = {90, 30};
+SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
+                           .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
+
+const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
+const double POWERUP_TIME = 7; // how long jump powerup lasts
 
 struct state {
   scene_t *scene;
@@ -69,6 +82,7 @@ struct state {
   asset_t *user_sprite;
   body_t *user_body;
   size_t user_health;
+  asset_t *health_bar;
 
   size_t ghost_counter;
   double ghost_timer;
@@ -78,6 +92,9 @@ struct state {
   bool collided;
   bool jumping;
   size_t can_jump;
+  
+  bool jump_powerup;
+  double powerup_time;
 };
 
 list_t *make_user(double radius) {
@@ -254,6 +271,18 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
 }
 
 /**
+ * Check whether user has collected powerup and activates powerup
+ *
+ * @param body1 the user
+ * @param body2 the powerup
+ * 
+ */
+void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
+  body_remove(body_2); // remove powerup
+  state->jump_powerup = true;
+}
+
+/**
  * Move player on display screen based on key pressed.
  *
  * @param key the character of the key pressed
@@ -279,7 +308,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case UP_ARROW: {
-        if (!state->jumping) {
+        if (!state->jumping || state->jump_powerup) {
           new_vy = USER_JUMP_HEIGHT;
         }
         break;
@@ -287,6 +316,17 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
     }
   }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
+}
+
+void health_bar_process(state_t *state) {
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  
+  if (state->user_health == 1) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
+  } else if (state->user_health == 2) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
+  }
+  state->health_bar = health_bar_asset;
 }
 
 /**
@@ -316,6 +356,7 @@ state_t *emscripten_init() {
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
   body_add_force(state -> user_body, GRAVITY);
+  state->user_health = FULL_HEALTH;
 
   // initialize scrolling velocity
   vector_t initial_velocity = {20, 20};
@@ -334,6 +375,10 @@ state_t *emscripten_init() {
   // asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, body, state->vertical_offset);
   // list_add(state->body_assets, user_asset);
 
+  // create health bar
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  state->health_bar = health_bar_asset;
+
   wall_init(state);
 
   // initialize miscellaneous state values
@@ -344,7 +389,10 @@ state_t *emscripten_init() {
 
   // initalize key handler
   sdl_on_key((key_handler_t)on_key);
+  
   state->jumping = false;
+  state->jump_powerup = false;
+  state->powerup_time = 0;
 
   return state;
 }
@@ -362,6 +410,16 @@ bool emscripten_main(state_t *state) {
     check_jump_off(state);
   } 
 
+  // check if powerup is deactivated
+  if (state->jump_powerup) {
+    if (state->powerup_time < POWERUP_TIME) {
+      state->powerup_time += dt;
+    } else {
+      state->jump_powerup = false;
+      state->powerup_time = 0;
+    }
+  }
+
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
@@ -369,19 +427,21 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
 
-  // collisions between wall and user
+  asset_render(state->health_bar, state->vertical_offset);
+
+  // collisions between walls, platforms, powerups and user
   sdl_show(state->vertical_offset);
   for (size_t i = 0; i < scene_bodies(scene); i++){
-    body_t *wall = scene_get_body(scene, i);
-    sticky_collision(state, user, wall);
+    body_t *body = scene_get_body(scene, i);
+
+    sticky_collision(state, user, body);
 
     // include gravity
-    size_t compare = strcmp(body_get_info(wall), PLATFORM_INFO);
-    if (!find_collision(state -> user_body, wall).collided && compare == 0){
+    size_t compare = strcmp(body_get_info(body), PLATFORM_INFO);
+    if (!find_collision(state -> user_body, body).collided && compare == 0){
       body_add_force(state -> user_body, GRAVITY);
     }
   }
-
   return game_over(state);
 }
 
