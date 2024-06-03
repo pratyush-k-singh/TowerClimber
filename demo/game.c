@@ -20,8 +20,8 @@ const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
 const char *PLATFORM_PATH = "assets/platform.png";
-//const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
-const char *HEALTH_POWERUP_PATH = "assets/jump_powerup.png";
+const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
+const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
@@ -353,7 +353,19 @@ list_t *make_power_up_shape(double length) {
 }
 
 /**
- * Creates a power up and adds to state
+ * Creates a jump power up and adds to state
+ * @param state
+ * @param powerup_path
+*/
+void create_jump_power_up(state_t *state) {
+  list_t *points = make_power_up_shape(POWERUP_LENGTH);
+  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) POWERUP_INFO, NULL);
+  asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
+  list_add(state->body_assets, powerup_asset);
+}
+
+/**
+ * Creates a health power up and adds to state
  * @param state
  * @param powerup_path
 */
@@ -437,6 +449,7 @@ state_t *emscripten_init() {
   state->powerup_time = 0;
 
   create_health_power_up(state);
+  create_jump_power_up(state);
 
   return state;
 }
