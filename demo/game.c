@@ -283,20 +283,23 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   // Checks if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
 
   if (state -> collided && !velocity_zero){
+    if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
+      state->jump_powerup = true;
+      break;
+    } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
+      body_remove(body2);
+      if (state->user_health < 3) {
+        state->user_health++;
+        health_bar_process(state);
+      break;
+    }
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->jumping = false;
     state->can_jump = 0;
     if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-    } else if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
-      state->jump_powerup = true;
-    } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
-      body_remove(body2);
-      if (state->user_health < 3) {
-        state->user_health++;
-        health_bar_process(state);
-      }
+    } else
     }
   }
 }
