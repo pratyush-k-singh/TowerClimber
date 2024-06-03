@@ -435,7 +435,6 @@ state_t *emscripten_init() {
   state->jumping = false;
   state->jump_powerup = false;
   state->powerup_time = 0;
-  state->powerup = NULL;
 
   return state;
 }
