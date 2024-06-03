@@ -278,18 +278,19 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   vector_t v1 = body_get_velocity(body1);
   vector_t v2 = body_get_velocity(body2);
   state -> collided = find_collision(body1, body2).collided;
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! HELLO READ ME PLEASE :D !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); // What does this line do lol :D Could you add a comment please? :(
+
   // Checks if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
+  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
   if (state -> collided && !velocity_zero){
+    printf("yay");
     if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
       body_remove(body2);
       state->jump_powerup = true;
       return;
     } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
       body_remove(body2);
-      printf("yay");
+      
       if (state->user_health < 3) {
         state->user_health++;
         health_bar_process(state);
