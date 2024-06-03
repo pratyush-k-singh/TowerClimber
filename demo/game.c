@@ -283,7 +283,6 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
   if (state -> collided && !velocity_zero){
-    printf("yay");
     if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
       body_remove(body2);
       state->jump_powerup = true;
@@ -318,6 +317,18 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
 void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
   body_remove(body_2); // remove powerup
   state->jump_powerup = true;
+}
+
+/**
+ * TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
+void health_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
+  body_remove(body2);
+      
+      if (state->user_health < 3) {
+        state->user_health++;
+        health_bar_process(state);
+      } 
 }
 
 /**
@@ -408,7 +419,7 @@ void create_health_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        (void *) HEALTH_POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
-  create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
+  create_collision(state->scene, powerup, state->user_body, health_powerup_collision, 
                   (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
 }
