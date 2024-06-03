@@ -77,6 +77,8 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 
 // powerup infomation
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
+const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
+const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
 const double POWERUP_TIME = 7; // how long jump powerup lasts
 const double POWERUP_LENGTH = 15;
 const double POWERUP_MASS = .0001;
@@ -327,16 +329,14 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
  * 
  * @param
 */
-list_t *make_power_up_shape(double length) {
+list_t *make_power_up_shape(double length, double power_up_y_loc) {
   // get random location between walls
   double loc_x = (double) (rand() % (POWERUP_LOC * 2));
   if (loc_x > POWERUP_LOC) {
     loc_x -= POWERUP_LOC;
   }
-  double loc_y = (double) (rand() % ((size_t) MAX.y));
-  if (loc_y > POWERUP_LOC) {
-    loc_y -= POWERUP_LOC;
-  }
+  double loc_y = (double) (rand() % ((size_t) POWERUP_LOC));
+  loc_y += power_up_y_loc;
 
   vector_t center = {loc_x + ((MAX.x / 2) - POWERUP_LOC), loc_y + ((MAX.y / 2) - POWERUP_LOC)};
 
@@ -358,7 +358,7 @@ list_t *make_power_up_shape(double length) {
  * @param powerup_path
 */
 void create_jump_power_up(state_t *state) {
-  list_t *points = make_power_up_shape(POWERUP_LENGTH);
+  list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   list_add(state->body_assets, powerup_asset);
@@ -370,7 +370,7 @@ void create_jump_power_up(state_t *state) {
  * @param powerup_path
 */
 void create_health_power_up(state_t *state) {
-  list_t *points = make_power_up_shape(POWERUP_LENGTH);
+  list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, (void *) POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
   list_add(state->body_assets, powerup_asset);
@@ -449,7 +449,7 @@ state_t *emscripten_init() {
   state->powerup_time = 0;
 
   create_health_power_up(state);
-  //create_jump_power_up(state);
+  create_jump_power_up(state);
 
   return state;
 }
