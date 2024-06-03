@@ -54,7 +54,8 @@ Priority 4 Features:
     - The bodies (walls, user, enemy AI) created and initialized by the person who works on this as they will know how to implement the collisions of those said created bodies with each other 
 - Key handler (Karen): 
     - Development of the key handler to determine the movement of the user
-    - Implementation of the physics of the jump applied to the body (we can assume that the user body has already been implemented)
+    - Left and right arrow keys to move, up to jump
+    - User should still be able to change direction during the jump
 - Implement Verical Scrolling (Pratyush):
     - Implementation of vertical scrolling where the user’s screen moves along with the user
 
@@ -65,8 +66,8 @@ Priority 4 Features:
     - Destructive collision with enemy AI
     - Initialization of damaging obstacles that have a destructive collision with the user randomly/more as the user progressed through each scene
 - Forces (Karen): 
-    - Apply gravity to the jumps and making them arcs for realism
-    - Apply speed independent friction to walls 
+    - Apply gravity to the jumps and make them arcs for realism
+    - Apply speed independent friction to walls
     - Apply friction to platforms
 - UI Elements (Pratyush):
     - Incorporate menu/title screens that allows the user to start the game
