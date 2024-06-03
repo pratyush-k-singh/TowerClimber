@@ -36,7 +36,7 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const double USER_JUMP_HEIGHT = 400;
-const size_t WALL_JUMP_BUFFER = 20;
+const size_t WALL_JUMP_BUFFER = 20; // how many pixels away from wall can user jump
 const double GAP = 10;
 
 // Wall constants
@@ -62,9 +62,14 @@ const char *PLATFORM_INFO = "platform";
 // Game constants
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -980};
-const size_t BODY_ASSETS = 3; // 2 walls and 1 platform
+const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
+
+// health bar location
 const vector_t HEALTH_BAR_MIN = {100, 100};
 const vector_t HEALTH_BAR_MAX = {400, 200};
+
+const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
+const double POWERUP_TIME = 7; // how long jump powerup lasts
 
 struct state {
   scene_t *scene;
@@ -81,6 +86,9 @@ struct state {
   bool collided;
   bool jumping;
   size_t can_jump;
+  
+  bool jump_powerup;
+  double powerup_time;
 };
 
 list_t *make_user(double radius) {
@@ -257,6 +265,18 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
 }
 
 /**
+ * Check whether user has collected powerup and activates powerup
+ *
+ * @param body1 the user
+ * @param body2 the powerup
+ * 
+ */
+void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
+  body_remove(body_2); // remove powerup
+  state->jump_powerup = true;
+}
+
+/**
  * Move player on display screen based on key pressed.
  *
  * @param key the character of the key pressed
@@ -282,7 +302,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case UP_ARROW: {
-        if (!state->jumping) {
+        if (!state->jumping || state->jump_powerup) {
           new_vy = USER_JUMP_HEIGHT;
         }
         break;
@@ -353,7 +373,10 @@ state_t *emscripten_init() {
 
   // initalize key handler
   sdl_on_key((key_handler_t)on_key);
+  
   state->jumping = false;
+  state->jump_powerup = false;
+  state->powerup_time = 0;
 
   return state;
 }
@@ -371,6 +394,16 @@ bool emscripten_main(state_t *state) {
     check_jump_off(state);
   } 
 
+  // check if powerup is deactivated
+  if (state->jump_powerup) {
+    if (state->powerup_time < POWERUP_TIME) {
+      state->powerup_time += dt;
+    } else {
+      state->jump_powerup = false;
+      state->powerup_time = 0;
+    }
+  }
+
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
@@ -378,19 +411,19 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
 
-  // collisions between wall and user
+  // collisions between walls, platforms, powerups and user
   sdl_show(state->vertical_offset);
   for (size_t i = 0; i < scene_bodies(scene); i++){
-    body_t *wall = scene_get_body(scene, i);
-    sticky_collision(state, user, wall);
+    body_t *body = scene_get_body(scene, i);
+
+    sticky_collision(state, user, body);
 
     // include gravity
-    size_t compare = strcmp(body_get_info(wall), PLATFORM_INFO);
+    size_t compare = strcmp(body_get_info(body), PLATFORM_INFO);
     if (!find_collision(state -> user_body, wall).collided && compare == 0){
       body_add_force(state -> user_body, GRAVITY);
     }
   }
-
   return game_over(state);
 }
 
