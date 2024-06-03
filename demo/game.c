@@ -436,6 +436,8 @@ state_t *emscripten_init() {
   state->jump_powerup = false;
   state->powerup_time = 0;
 
+  create_health_power_up(state);
+
   return state;
 }
 
