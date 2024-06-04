@@ -202,17 +202,17 @@ list_t *make_wall(void *wall_info) {
   // size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
   // size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
-  if (LEFT_WALL) {
+  if (*wall_info = LEFT_WALL) {
     corner = MIN;
   } 
-  if (RIGHT_WALL) {
+  if (*wall_info = RIGHT_WALL) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
   }
-  if (PLATFORM) {
+  if (*wall_info = PLATFORM) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
-  if (LEFT_WALL || RIGHT_WALL){
+  if (*wall_info = LEFT_WALL || *wall_info = RIGHT_WALL){
     make_wall_points(corner, c);
   } else {
     make_platform_points(corner, c);
