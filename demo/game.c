@@ -362,6 +362,13 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
   if (state -> collided && !velocity_zero){
+    if (get_type(body2) == HEALTH_POWER) {
+      body_remove(body2);
+      if (state->user_health < 3) {
+        state->user_health++;
+        health_bar_process(state);
+      }
+    }
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->jumping = false;
