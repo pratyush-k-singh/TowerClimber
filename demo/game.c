@@ -372,30 +372,30 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   }
 }
 
-/**
- * Adds collision handler force creators between appropriate bodies.
- *
- * @param state the current state of the demo
- */
-void add_force_creators(state_t *state) { 
-  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-    body_t *body = scene_get_body(state->scene, i);
-    switch (get_type(body)) {
-    case BRICK:
-      create_breakout_collision(state->scene, state->ball, body, ELASTICITY);
-      break;
-    case WALL:
-      create_physics_collision(state->scene, state->ball, body, ELASTICITY);
-      break;
-    case GROUND:
-      create_collision(state->scene, state->ball, body,
-                       (collision_handler_t)reset_game, state, 0);
-      break;
-    default:
-      break;
-    }
-  }
-}
+// /**
+//  * Adds collision handler force creators between appropriate bodies.
+//  *
+//  * @param state the current state of the demo
+//  */
+// void add_force_creators(state_t *state) { 
+//   for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+//     body_t *body = scene_get_body(state->scene, i);
+//     switch (get_type(body)) {
+//     case BRICK:
+//       create_breakout_collision(state->scene, state->ball, body, ELASTICITY);
+//       break;
+//     case WALL:
+//       create_physics_collision(state->scene, state->ball, body, ELASTICITY);
+//       break;
+//     case GROUND:
+//       create_collision(state->scene, state->ball, body,
+//                        (collision_handler_t)reset_game, state, 0);
+//       break;
+//     default:
+//       break;
+//     }
+//   }
+// }
 
 /**
  * Move player on display screen based on key pressed.
