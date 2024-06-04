@@ -500,9 +500,6 @@ state_t *emscripten_init() {
   state->collided = false;
   state->vertical_offset = 0;
   state->can_jump = 0;
-
-  // initalize key handler
-  sdl_on_key((key_handler_t)on_key);
   
   state->jumping = false;
   state->jump_powerup = false;
@@ -513,29 +510,35 @@ state_t *emscripten_init() {
 
   add_force_creators(state);
 
+  sdl_on_key((key_handler_t)on_key);
+
   return state;
 }
 
 bool emscripten_main(state_t *state) {
+  sdl_render_scene(state->scene, NULL);
+
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
   body_tick(user, dt);
-  sdl_clear();
+  //sdl_clear();
 
   // implement buffer for user's jumps off walls and platform
   if (!state->collided) {
     check_jump_off(state);
   } 
 
+  
+
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
-  // render assets
-  for (size_t i = 0; i < list_size(state->body_assets); i++) {
-    asset_render(list_get(state->body_assets, i), state->vertical_offset);
-  }
+  // // render assets
+  // for (size_t i = 0; i < list_size(state->body_assets); i++) {
+  //   asset_render(list_get(state->body_assets, i), state->vertical_offset);
+  // }
 
   // render health bar
   asset_render(state->health_bar, state->vertical_offset);
