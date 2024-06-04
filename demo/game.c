@@ -51,8 +51,8 @@ const size_t TEMP_LENGTH = 3;
 const double NORMAL_SCALING = 1;
 const double PLATFORM_SCALING = 5;
 const double PLATFORM_HEIGHT = 100;
-const vector_t PLATFORM_LENGTH = {0, 10};
-const vector_t PLATFORM_WIDTH = {100, 0};
+const vector_t PLATFORM_LENGTH = {0, 15};
+const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_ROTATION = M_PI/2;
 const double PLATFORM_FRICTION = .95;
 
