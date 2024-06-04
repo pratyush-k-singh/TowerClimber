@@ -251,7 +251,7 @@ void wall_init(state_t *state) {
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
   scene_add_body(scene, platform);
-  create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+  //create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
   list_add(state->body_assets, wall_asset_platform);
 }
@@ -294,7 +294,7 @@ void create_jump_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
-  create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
+  //create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
                   (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
@@ -310,7 +310,7 @@ void create_health_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(HEALTH_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
-  create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
+  //create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
                   (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
@@ -418,15 +418,15 @@ void add_force_creators(state_t *state) {
     body_t *body = scene_get_body(state->scene, i);
     switch (get_type(body)) {
     case LEFT_WALL:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state_t *state, state->scene, state->user_body, body,
                        (collision_handler_t)sticky_collision, state, 0);
       break;
     case RIGHT_WALL:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state_t *state, state->scene, state->user_body, body,
                        (collision_handler_t)sticky_collision, state, 0);
       break;
     case PLATFORM:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state_t *state, state->scene, state->user_body, body,
                        (collision_handler_t)sticky_collision, state, 0);
       break;
     case JUMP_POWER:
@@ -579,7 +579,7 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
-    sticky_collision(state, user, body); // determine if user is collided with body
+    //sticky_collision(state, user, body); // determine if user is collided with body
 
     // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
