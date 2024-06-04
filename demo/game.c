@@ -354,7 +354,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
-  print("above statemetn\n");
+  printf("above statemetn\n");
   if (state -> collided && !velocity_zero){
     if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
         body_remove(body2);
