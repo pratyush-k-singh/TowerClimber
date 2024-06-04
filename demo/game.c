@@ -101,11 +101,14 @@ struct state {
   double powerup_time;
 };
 
-/**
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-*/
 body_type_t get_type(body_t *body) {
   return *(body_type_t *)body_get_info(body);
+}
+
+body_type_t *make_type_info(body_type_t type) {
+  body_type_t *info = malloc(sizeof(body_type_t));
+  *info = type;
+  return info;
 }
 
 /**
@@ -209,7 +212,7 @@ list_t *make_wall(void *wall_info) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
-  if (cmp_left == 0 || cmp_right == 0){
+  if (LEFT_WALL || RIGHT_WALL){
     make_wall_points(corner, c);
   } else {
     make_platform_points(corner, c);
@@ -230,10 +233,10 @@ void wall_init(state_t *state) {
     list_t *left_points = make_wall(LEFT_WALL);
     list_t *right_points = make_wall(RIGHT_WALL);
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
-                                            USER_COLOR, LEFT_WALL, 
+                                            USER_COLOR, make_type_info(LEFT_WALL), 
                                             NULL);
     body_t *right_wall = body_init_with_info(right_points, INFINITY, 
-                                            USER_COLOR, RIGHT_WALL, 
+                                            USER_COLOR, make_type_info(RIGHT_WALL), 
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
@@ -244,7 +247,7 @@ void wall_init(state_t *state) {
   }
   list_t *platform_points = make_wall(PLATFORM);
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
-                                            USER_COLOR, PLATFORM, 
+                                            USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
   scene_add_body(scene, platform);
   create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
