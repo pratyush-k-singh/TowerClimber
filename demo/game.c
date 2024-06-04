@@ -13,7 +13,6 @@
 #include "forces.h"
 #include "sdl_wrapper.h"
 #include "vector.h"
-#include "make_shape.h"
 
 const vector_t MIN = {0, 0};
 const vector_t MAX = {750, 1000};
