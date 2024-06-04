@@ -17,6 +17,7 @@
 const vector_t MIN = {0, 0};
 const vector_t MAX = {750, 1000};
 
+// File paths
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.jpeg";
@@ -26,9 +27,6 @@ const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
-
-const double BACKGROUND_CORNER = 150;
-const double VERTICAL_OFFSET = 100;
 
 // User constants
 const double USER_MASS = 5;
@@ -58,6 +56,21 @@ const vector_t PLATFORM_WIDTH = {100, 0};
 const double PLATFORM_ROTATION = M_PI/2;
 const double PLATFORM_FRICTION = .95;
 
+// health bar location
+const vector_t HEALTH_BAR_MIN = {15, 15};
+const vector_t HEALTH_BAR_MAX = {90, 30};
+SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
+                           .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
+
+// powerup constants
+const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
+const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
+const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
+const double POWERUP_TIME = 7; // how long jump powerup lasts
+const double POWERUP_LENGTH = 15;
+const double POWERUP_MASS = .0001;
+const double POWERUP_ELASTICITY = 1;
+
 // info constants
 const char *USER_INFO = "user";
 const char *LEFT_WALL_INFO = "left_wall";
@@ -70,21 +83,8 @@ const char *HEALTH_POWERUP_INFO = "health_powerup";
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -1200};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
-
-// health bar location
-const vector_t HEALTH_BAR_MIN = {15, 15};
-const vector_t HEALTH_BAR_MAX = {90, 30};
-SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
-                           .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
-
-// powerup infomation
-const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
-const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
-const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
-const double POWERUP_TIME = 7; // how long jump powerup lasts
-const double POWERUP_LENGTH = 15;
-const double POWERUP_MASS = .0001;
-const double POWERUP_ELASTICITY = 1;
+const double BACKGROUND_CORNER = 150;
+const double VERTICAL_OFFSET = 100;
 
 struct state {
   scene_t *scene;
@@ -250,14 +250,14 @@ void wall_init(state_t *state) {
 */
 list_t *make_power_up_shape(double length, double power_up_y_loc) {
   // get random location between walls
-  double loc_x = (double) (rand() % (POWERUP_LOC * 2));
-  if (loc_x > POWERUP_LOC) {
-    loc_x -= POWERUP_LOC;
-  }
+  // double loc_x = (double) (rand() % (POWERUP_LOC * 2));
+  // if (loc_x > POWERUP_LOC) {
+  //   loc_x -= POWERUP_LOC;
+  // }
   double loc_y = (double) (rand() % ((size_t) POWERUP_LOC));
   loc_y += power_up_y_loc;
 
-  vector_t center = {loc_x + ((MAX.x / 2) - POWERUP_LOC), loc_y + ((MAX.y / 2) - POWERUP_LOC)};
+  vector_t center = {loc_x + ((MAX.x / 2) - POWERUP_LOC) + VERTICAL_OFFSET, loc_y + ((MAX.y / 2) - POWERUP_LOC)};
 
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
@@ -302,7 +302,7 @@ void create_health_power_up(state_t *state) {
 }
 
 /**
- * Changes
+ * Called whenever the user health changes so that the health bar asset can be updated
  * 
  * @param state state object representing the current demo state
 */
@@ -335,9 +335,8 @@ void check_jump_off(state_t *state) {
  * and to be called every tick
  *
  * @param state state object representing the current demo state
- * @param body1
- * @param body2 the two bodies two check for a collision between, and if they are colliding
- * sets both velocities to be 0
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
  */
 void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   vector_t v1 = body_get_velocity(body1);
@@ -410,8 +409,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
- * (loss), the user falls off the map (loss)
- * or the user reaches the top of the map (win).
+ * (loss), the user falls off the map (loss), or the user reaches the top of the map (win).
  *
  * @param state a pointer to a state object representing the current demo state
  */
