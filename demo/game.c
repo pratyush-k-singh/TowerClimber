@@ -375,6 +375,26 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 }
 
 /**
+ * Check whether two bodies are colliding and applies a sticky collision between them
+ * and to be called every tick
+ *
+ * @param state state object representing the current demo state
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ */
+void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  if (get_type(body2) == HEALTH_POWER) {
+    body_remove(body2);
+    if (state->user_health < 3) {
+      state->user_health++;
+      health_bar_process(state);
+    }
+  }
+}
+
+/**
  * Adds collision handler force creators between appropriate bodies.
  *
  * @param state the current state of the demo
@@ -397,11 +417,11 @@ void add_force_creators(state_t *state) {
       break;
     case JUMP_POWER:
       create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+                       (collision_handler_t)powerup_collision, state, 0);
       break;
     case HEALTH_POWER:
       create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+                       (collision_handler_t)powerup_collision, state, 0);
       break;
     default:
       break;
@@ -545,7 +565,7 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
-    sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY); // determine if user is collided with body
+    sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY);
 
     // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
