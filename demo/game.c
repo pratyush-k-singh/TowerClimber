@@ -245,19 +245,15 @@ void wall_init(state_t *state) {
 }
 
 /**
- * 
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * @param
 */
 list_t *make_power_up_shape(double length, double power_up_y_loc) {
-  // get random location between walls
-  // double loc_x = (double) (rand() % (POWERUP_LOC * 2));
-  // if (loc_x > POWERUP_LOC) {
-  //   loc_x -= POWERUP_LOC;
-  // }
   double loc_y = (double) (rand() % ((size_t) POWERUP_LOC));
   loc_y += power_up_y_loc;
 
-  vector_t center = {((MAX.x / 2) - POWERUP_LOC) + VERTICAL_OFFSET, loc_y + ((MAX.y / 2) - POWERUP_LOC)};
+  vector_t center = {((MAX.x / 2) - 2 * POWERUP_LOC) + VERTICAL_OFFSET, 
+                     loc_y + ((MAX.y / 2) - POWERUP_LOC)};
 
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
