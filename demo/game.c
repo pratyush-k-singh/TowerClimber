@@ -408,8 +408,8 @@ void add_force_creators(state_t *state) {
     body_t *body = scene_get_body(state->scene, i);
     switch (get_type(body)) {
     case LEFT_WALL:
-      //create_collision(state->scene, state->user_body, body,
-                       //(collision_handler_t)sticky_collision, state, 0);
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)sticky_collision, state, 0);
       break;
     case RIGHT_WALL:
       //create_collision(state->scene, state->user_body, body,
@@ -569,7 +569,7 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
-    sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY);
+    //sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY);
 
     // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
