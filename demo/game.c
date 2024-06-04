@@ -388,7 +388,7 @@ void breakout_collision_handler(state_t *state, body_t *body1, body_t *body2, ve
   body_remove(body2); // Make brick disappear
   if (state->user_health < 3) {
     state->user_health++;
-    health_bar_process;
+    health_bar_process(state);
   }
 }
 
