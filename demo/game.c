@@ -71,20 +71,14 @@ const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
 
-// info constants
-const char *USER_INFO = "user";
-const char *LEFT_WALL_INFO = "left_wall";
-const char *RIGHT_WALL_INFO = "right_wall";
-const char *PLATFORM_INFO = "platform";
-const char *JUMP_POWERUP_INFO = "jump_powerup";
-const char *HEALTH_POWERUP_INFO = "health_powerup";
-
 // Game constants
 const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -1200};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
+
+typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER } body_type_t;
 
 struct state {
   scene_t *scene;
@@ -106,6 +100,13 @@ struct state {
   bool jump_powerup;
   double powerup_time;
 };
+
+/**
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
+body_type_t get_type(body_t *body) {
+  return *(body_type_t *)body_get_info(body);
+}
 
 /**
  * Sets the velocity of the user so that the user can jump from sticky walls
@@ -194,17 +195,17 @@ void make_platform_points(vector_t corner, list_t *points){
 */
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
-  size_t cmp_left = strcmp(wall_info, LEFT_WALL_INFO);
-  size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
-  size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
+  // size_t cmp_left = strcmp(wall_info, LEFT_WALL_INFO);
+  // size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
+  // size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
-  if (cmp_left == 0) {
+  if (LEFT_WALL) {
     corner = MIN;
   } 
-  if (cmp_right == 0) {
+  if (RIGHT_WALL) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
   }
-  if (cmp_plat == 0) {
+  if (PLATFORM) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
@@ -226,13 +227,13 @@ list_t *make_wall(void *wall_info) {
 void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_wall((void *)LEFT_WALL_INFO);
-    list_t *right_points = make_wall((void *)RIGHT_WALL_INFO);
+    list_t *left_points = make_wall(LEFT_WALL);
+    list_t *right_points = make_wall(RIGHT_WALL);
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
-                                            USER_COLOR, (void *)LEFT_WALL_INFO, 
+                                            USER_COLOR, LEFT_WALL, 
                                             NULL);
     body_t *right_wall = body_init_with_info(right_points, INFINITY, 
-                                            USER_COLOR, (void *)RIGHT_WALL_INFO, 
+                                            USER_COLOR, RIGHT_WALL, 
                                             NULL);
     scene_add_body(scene, left_wall);
     scene_add_body(scene, right_wall);
@@ -241,9 +242,9 @@ void wall_init(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_wall((void *)PLATFORM_INFO);
+  list_t *platform_points = make_wall(PLATFORM);
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
-                                            USER_COLOR, (void *)PLATFORM_INFO, 
+                                            USER_COLOR, PLATFORM, 
                                             NULL);
   scene_add_body(scene, platform);
   create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
@@ -287,7 +288,7 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                       (void *) JUMP_POWERUP_INFO, NULL);
+                                       JUMP_POWER, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
                   (char*)"v_0", POWERUP_ELASTICITY);
@@ -302,7 +303,7 @@ void create_jump_power_up(state_t *state) {
 void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                       (void *) HEALTH_POWERUP_INFO, NULL);
+                                       HEALTH_POWER, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
   create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
                   (char*)"v_0", POWERUP_ELASTICITY);
@@ -359,9 +360,34 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     body_set_velocity(body2, VEC_ZERO);
     state->jumping = false;
     state->can_jump = 0;
-    if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
+    if (get_type(body2) == PLATFORM) {
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
   }
+  }
+}
+
+/**
+ * Adds collision handler force creators between appropriate bodies.
+ *
+ * @param state the current state of the demo
+ */
+void add_force_creators(state_t *state) { 
+  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+    body_t *body = scene_get_body(state->scene, i);
+    switch (get_type(body)) {
+    case BRICK:
+      create_breakout_collision(state->scene, state->ball, body, ELASTICITY);
+      break;
+    case WALL:
+      create_physics_collision(state->scene, state->ball, body, ELASTICITY);
+      break;
+    case GROUND:
+      create_collision(state->scene, state->ball, body,
+                       (collision_handler_t)reset_game, state, 0);
+      break;
+    default:
+      break;
+    }
   }
 }
 
@@ -427,7 +453,7 @@ state_t *emscripten_init() {
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user();
   state->user_body =
-      body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
+      body_init_with_info(points, USER_MASS, USER_COLOR, USER, NULL);
   body_t* body = state->user_body;
   body_add_force(state -> user_body, GRAVITY);
   state->user_health = FULL_HEALTH;
@@ -504,8 +530,7 @@ bool emscripten_main(state_t *state) {
     sticky_collision(state, user, body); // determine if user is collided with body
 
     // include gravity
-    size_t compare = strcmp(body_get_info(body), PLATFORM_INFO);
-    if (!find_collision(state -> user_body, body).collided && compare == 0){
+    if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
       body_add_force(state -> user_body, GRAVITY);
     }
   }
