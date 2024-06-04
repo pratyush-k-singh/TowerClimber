@@ -54,7 +54,7 @@ const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_ROTATION = M_PI/2;
-const double PLATFORM_FRICTION = .90;
+const double PLATFORM_FRICTION = .85;
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -73,7 +73,7 @@ const double POWERUP_ELASTICITY = 1;
 
 // Game constants
 const size_t NUM_LEVELS = 1;
-const vector_t GRAVITY = {0, -1200};
+const vector_t GRAVITY = {0, -1000};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
