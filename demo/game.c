@@ -20,7 +20,7 @@ const vector_t MAX = {750, 1000};
 // File paths
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
-const char *WALL_PATH = "assets/wall.jpeg";
+const char *WALL_PATH = "assets/wall.png";
 const char *PLATFORM_PATH = "assets/platform.png";
 const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
 const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
