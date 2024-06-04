@@ -322,13 +322,13 @@ void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
 /**
  * TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 */
-void health_powerup_collision(body_t *body1, body_t *body_2, vector_t VEC_ZERO, void *aux, double force_const) {
+void health_powerup_collision(state_t *state, body_t *body1, body_t *body_2, vector_t VEC_ZERO, void *aux, double force_const) {
   body_remove(body_2);
       
-      // if (state->user_health < 3) {
-      //   state->user_health++;
-      //   health_bar_process(state);
-      // } 
+      if (state->user_health < 3) {
+        state->user_health++;
+        health_bar_process(state);
+      } 
 }
 
 
