@@ -418,15 +418,15 @@ void add_force_creators(state_t *state) {
     body_t *body = scene_get_body(state->scene, i);
     switch (get_type(body)) {
     case LEFT_WALL:
-      create_collision(state_t *state, state->scene, state->user_body, body,
+      create_collision(state, state->scene, state->user_body, body,
                        (collision_handler_t)sticky_collision, state, 0);
       break;
     case RIGHT_WALL:
-      create_collision(state_t *state, state->scene, state->user_body, body,
+      create_collision(state, state->scene, state->user_body, body,
                        (collision_handler_t)sticky_collision, state, 0);
       break;
     case PLATFORM:
-      create_collision(state_t *state, state->scene, state->user_body, body,
+      create_collision(state, state->scene, state->user_body, body,
                        (collision_handler_t)sticky_collision, state, 0);
       break;
     case JUMP_POWER:
