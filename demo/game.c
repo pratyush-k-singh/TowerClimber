@@ -353,7 +353,8 @@ void check_jump_off(state_t *state) {
  * @param body1 the user
  * @param body2 the body with which the user is colliding
  */
-void sticky_collision(state_t *state, body_t *body1, body_t *body2){
+void sticky_collision(state_t *state, body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const){
   vector_t v1 = body_get_velocity(body1);
   vector_t v2 = body_get_velocity(body2);
   state -> collided = find_collision(body1, body2).collided;
@@ -362,13 +363,6 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
   if (state -> collided && !velocity_zero){
-    if (get_type(body2) == HEALTH_POWER) {
-      scene_remove_body(state->scene, scene_bodies(state->scene) - 2);
-      if (state->user_health < 3) {
-        state->user_health++;
-        health_bar_process(state);
-      }
-    }
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->jumping = false;
@@ -379,30 +373,73 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   }
 }
 
-// /**
-//  * Adds collision handler force creators between appropriate bodies.
-//  *
-//  * @param state the current state of the demo
-//  */
-// void add_force_creators(state_t *state) { 
-//   for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-//     body_t *body = scene_get_body(state->scene, i);
-//     switch (get_type(body)) {
-//     case BRICK:
-//       create_breakout_collision(state->scene, state->ball, body, ELASTICITY);
-//       break;
-//     case WALL:
-//       create_physics_collision(state->scene, state->ball, body, ELASTICITY);
-//       break;
-//     case GROUND:
-//       create_collision(state->scene, state->ball, body,
-//                        (collision_handler_t)reset_game, state, 0);
-//       break;
-//     default:
-//       break;
-//     }
-//   }
-// }
+/**
+ * The collision handler for collisions between the ball and the brick.
+ *
+ * @param body1 the body for the ball
+ * @param body2 the body for the brick
+ * @param axis the axis of collision
+ * @param aux the aux passed in from `create_breakout_collision`
+ * @param elasticity the elasticity of the collision between the ball and the
+ * brick
+ */
+void breakout_collision_handler(state_t *state, body_t *body1, body_t *body2, vector_t axis,
+                                void *aux, double force_const) {
+  body_remove(body2); // Make brick disappear
+  if (state->user_health < 3) {
+    state->user_health++;
+    health_bar_process;
+  }
+}
+
+/**
+ * The breakout collision creator for `breakout_collision_handler`.
+ *
+ * @param scene the scene of the game
+ * @param body1 the body for the ball
+ * @param body2 the body for the brick
+ * @param elasticity the elasticity of the collision between the ball and the
+ * brick
+ */
+void create_breakout_collision(state_t *state, scene_t *scene, body_t *body1, body_t *body2,
+                               double elasticity) {
+  create_collision(state, scene, body1, body2,
+                   (collision_handler_t)breakout_collision_handler, NULL,
+                   elasticity);
+}
+
+/**
+ * Adds collision handler force creators between appropriate bodies.
+ *
+ * @param state the current state of the demo
+ */
+void add_force_creators(state_t *state) { 
+  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+    body_t *body = scene_get_body(state->scene, i);
+    switch (get_type(body)) {
+    case LEFT_WALL:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)sticky_collision, state, 0);
+      break;
+    case RIGHT_WALL:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)sticky_collision, state, 0);
+      break;
+    case PLATFORM:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)sticky_collision, state, 0);
+      break;
+    case JUMP_POWER:
+      create_breakout_collision(state, state->scene, state->user_body, body, POWERUP_ELASTICITY);
+      break;
+    case HEALTH_POWER:
+      create_breakout_collision(state, state->scene, state->user_body, body, POWERUP_ELASTICITY);
+      break;
+    default:
+      break;
+    }
+  }
+}
 
 /**
  * Move player on display screen based on key pressed.
@@ -505,6 +542,8 @@ state_t *emscripten_init() {
 
   create_health_power_up(state);
   create_jump_power_up(state);
+
+  add_force_creators(state);
 
   return state;
 }

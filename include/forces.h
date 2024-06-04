@@ -3,9 +3,11 @@
 
 #include "collision.h"
 #include "scene.h"
+#include "state.h"
 
 /**
  * A function called when a collision occurs.
+ * @param state the current state of the demo
  * @param body1 the first body passed to create_collision()
  * @param body2 the second body passed to create_collision()
  * @param axis a unit vector pointing from body1 towards body2
@@ -13,7 +15,7 @@
  * @param aux the auxiliary value passed to create_collision()
  * @param force_const the force constant passed to create_collision()
  */
-typedef void (*collision_handler_t)(body_t *body1, body_t *body2, vector_t axis,
+typedef void (*collision_handler_t)(state_t *state, body_t *body1, body_t *body2, vector_t axis,
                                     void *aux, double force_const);
 
 /**
@@ -93,7 +95,7 @@ void create_drag(scene_t *scene, double gamma, body_t *body);
  * @param aux an auxiliary value to pass to the handler
  * @param force_const a constant to pass to the handler
  */
-void create_collision(scene_t *scene, body_t *body1, body_t *body2,
+void create_collision(state_t *state, scene_t *scene, body_t *body1, body_t *body2,
                       collision_handler_t handler, void *aux,
                       double force_const);
 

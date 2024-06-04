@@ -1,6 +1,9 @@
 {
     "files.associations": {
         "asset.h": "c",
-        "sdl_wrapper.h": "c"
+        "sdl_wrapper.h": "c",
+        "state.h": "c",
+        "stdlib.h": "c",
+        "math.h": "c"
     }
 }
