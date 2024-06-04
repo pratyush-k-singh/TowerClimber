@@ -295,7 +295,7 @@ void create_jump_power_up(state_t *state) {
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   //create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
-                  (char*)"v_0", POWERUP_ELASTICITY);
+                  //(char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -311,7 +311,7 @@ void create_health_power_up(state_t *state) {
                                        make_type_info(HEALTH_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
   //create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
-                  (char*)"v_0", POWERUP_ELASTICITY);
+                  //(char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
