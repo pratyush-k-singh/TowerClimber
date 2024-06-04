@@ -343,6 +343,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
   if (state -> collided && !velocity_zero){
+    body_remove(body2);
     if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
       body_remove(body2);
       state->jump_powerup = true;
