@@ -20,7 +20,7 @@ const vector_t MAX = {750, 1000};
 // File paths
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *USER_PATH = "assets/body.png";
-const char *WALL_PATH = "assets/wall.jpeg";
+const char *WALL_PATH = "assets/wall.png";
 const char *PLATFORM_PATH = "assets/platform.png";
 const char *JUMP_POWERUP_PATH = "assets/jump_powerup.png";
 const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
@@ -51,10 +51,10 @@ const size_t TEMP_LENGTH = 3;
 const double NORMAL_SCALING = 1;
 const double PLATFORM_SCALING = 5;
 const double PLATFORM_HEIGHT = 100;
-const vector_t PLATFORM_LENGTH = {0, 10};
-const vector_t PLATFORM_WIDTH = {100, 0};
+const vector_t PLATFORM_LENGTH = {0, 15};
+const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_ROTATION = M_PI/2;
-const double PLATFORM_FRICTION = .95;
+const double PLATFORM_FRICTION = .85;
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -73,7 +73,7 @@ const double POWERUP_ELASTICITY = 1;
 
 // Game constants
 const size_t NUM_LEVELS = 1;
-const vector_t GRAVITY = {0, -1200};
+const vector_t GRAVITY = {0, -1000};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
@@ -408,16 +408,16 @@ void add_force_creators(state_t *state) {
     body_t *body = scene_get_body(state->scene, i);
     switch (get_type(body)) {
     case LEFT_WALL:
-      create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+      //create_collision(state->scene, state->user_body, body,
+                       //(collision_handler_t)sticky_collision, state, 0);
       break;
     case RIGHT_WALL:
-      create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+      //create_collision(state->scene, state->user_body, body,
+                       //(collision_handler_t)sticky_collision, state, 0);
       break;
     case PLATFORM:
-      create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+      //create_collision(state->scene, state->user_body, body,
+                       //(collision_handler_t)sticky_collision, state, 0);
       break;
     case JUMP_POWER:
       create_collision(state->scene, state->user_body, body,
