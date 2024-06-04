@@ -516,7 +516,7 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  sdl_render_scene(state->scene, NULL);
+  sdl_render_scene(state->scene, NULL, VERTICAL_OFFSET);
 
   double dt = time_since_last_tick();
   body_t *user = state->user_body;
