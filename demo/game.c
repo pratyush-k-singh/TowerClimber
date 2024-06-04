@@ -539,7 +539,6 @@ bool emscripten_main(state_t *state) {
   // render health bar
   asset_render(state->health_bar, state->vertical_offset);
 
-  // show all rendered objects
   sdl_show(state->vertical_offset);
 
   // collisions between walls, platforms, powerups and user
