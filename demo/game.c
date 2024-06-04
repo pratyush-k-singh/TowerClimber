@@ -363,7 +363,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
-  if (get_type(body2) == JUMP_POWER && get_type(body2) == HEALTH_POWER) {
+  if (get_type(body2) != JUMP_POWER && get_type(body2) != HEALTH_POWER) {
     if (state -> collided && !velocity_zero){
       body_set_velocity(body1, VEC_ZERO);
       body_set_velocity(body2, VEC_ZERO);
