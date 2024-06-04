@@ -203,7 +203,7 @@ list_t *make_wall(void *wall_info) {
   // size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
   // size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
-  if (*info = LEFT_WALL) {
+  if (*info == LEFT_WALL) {
     corner = MIN;
   } 
   if (*wall_info = RIGHT_WALL) {
