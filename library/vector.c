@@ -39,3 +39,7 @@ vector_t vec_rotate(vector_t v, double angle) {
 }
 
 double vec_get_length(vector_t v) { return sqrt(pow(v.x, 2) + pow(v.y, 2)); }
+
+bool vec_cmp(vector_t v1, vector_t v2){
+  return((v1.x == v2.x) && (v1.y == v2.y));
+}

@@ -12,6 +12,7 @@
 #include "collision.h"
 #include "forces.h"
 #include "sdl_wrapper.h"
+#include "vector.h"
 
 const vector_t MIN = {0, 0};
 const vector_t MAX = {750, 1000};
@@ -106,6 +107,23 @@ struct state {
   double powerup_time;
 };
 
+/**
+ * Sets the velocity of the user so that the user can jump from sticky walls
+ * 
+ * @param state state object representing the current demo state
+ * @param velocity velocity to set the user to 
+ */
+void set_velocity(state_t *state, vector_t velocity){
+  body_t *user = state -> user_body;
+  body_set_velocity(user, velocity);
+  vector_t center = body_get_centroid(state -> user_body);
+  vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
+  body_set_centroid(user, vec_add(center, move));
+}
+
+/**
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
 list_t *make_user(double radius) {
   vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
                     MIN.y + radius + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
@@ -119,20 +137,6 @@ list_t *make_user(double radius) {
     list_add(c, v);
   }
   return c;
-}
-
-/**
- * Sets the velocity of the user so that the user can jump from sticky walls
- * 
- * @param state state object representing the current demo state
- * @param velocity velocity to set the user to 
- */
-void set_velocity(state_t *state, vector_t velocity){
-  body_t *user = state -> user_body;
-  body_set_velocity(user, velocity);
-  vector_t center = body_get_centroid(state -> user_body);
-  vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
-  body_set_centroid(user, vec_add(center, move));
 }
 
 /**
@@ -158,6 +162,14 @@ void make_wall_points(vector_t corner, list_t *points){
   }
 }
 
+/**
+ * Generates the list of points for a platform shape given the vector of the bottom left
+ * corner of the platform
+ *
+ * @param corner a vector that contains the coordinates of the bottom left corner of
+ * the platform
+ * @param points an empty list to add the points to, the points are pointers to vectors
+ */
 void make_platform_points(vector_t corner, list_t *points){
   
   vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
@@ -173,6 +185,9 @@ void make_platform_points(vector_t corner, list_t *points){
   }
 }
 
+/**
+ * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
   size_t cmp_left = strcmp(wall_info, LEFT_WALL_INFO);
@@ -199,22 +214,8 @@ list_t *make_wall(void *wall_info) {
 }
 
 /**
- * Check conditions to see if game is over. Game is over if the user has no more health
- * (loss), the user falls off the map (loss)
- * or the user reaches the top of the map (win).
- *
- * @param state a pointer to a state object representing the current demo state
- */
-bool game_over(state_t *state) {
-  // ends the game, we will need in future but I wrote it by accident sorry ;)
-  // vector_t user_pos = body_get_centroid(state->user_body);
-  // if (user_pos.y + OUTER_RADIUS <= 0) {
-  //   return true;
-  // }
-  return false;
-}
-
-
+ * !!!!!!!!!!!!!!!!!!!!!!
+*/
 void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
@@ -241,131 +242,6 @@ void wall_init(state_t *state) {
   create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
   list_add(state->body_assets, wall_asset_platform);
-}
-
-/**
- * @return the boolean value of the comparison between @param v1 and @param v2, returns true
- * if they are equal and false if they are not
- */
-bool vec_cmp(vector_t v1, vector_t v2){
-  return((v1.x == v2.x) && (v1.y == v2.y));
-}
-
-/**
- * TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-*/
-void health_bar_process(state_t *state) {
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
-  
-  if (state->user_health == 1) {
-    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
-  } else if (state->user_health == 2) {
-    health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
-  }
-  state->health_bar = health_bar_asset;
-}
-
-
-/**
- * Check whether two bodies are colliding and applies a sticky collision between them
- * and to be called every tick
- *
- * @param body1
- * @param body2 the two bodies two check for a collision between, and if they are colliding
- * sets both velocities to be 0
- */
-void sticky_collision(state_t *state, body_t *body1, body_t *body2){
-  vector_t v1 = body_get_velocity(body1);
-  vector_t v2 = body_get_velocity(body2);
-  state -> collided = find_collision(body1, body2).collided;
-
-  // Checks if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
-  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
-
-  if (state -> collided && !velocity_zero){
-    if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
-      body_remove(body2);
-      state->jump_powerup = true;
-      return;
-    } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
-      body_remove(body2);
-      
-      if (state->user_health < 3) {
-        state->user_health++;
-        health_bar_process(state);
-      } 
-      return;
-    } else {
-      body_set_velocity(body1, VEC_ZERO);
-      body_set_velocity(body2, VEC_ZERO);
-      state->jumping = false;
-      state->can_jump = 0;
-      if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
-        body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-    }
-    }
-  }
-}
-
-/**
- * Check whether user has collected powerup and activates powerup
- *
- * @param body1 the user
- * @param body2 the powerup
- * 
- */
-void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
-  body_remove(body_2); // remove powerup
-  state->jump_powerup = true;
-}
-
-/**
- * TO DO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-*/
-void health_powerup_collision(state_t *state, body_t *body1, body_t *body_2, vector_t VEC_ZERO, void *aux, double force_const) {
-  body_remove(body_2);
-      
-      if (state->user_health < 3) {
-        state->user_health++;
-        health_bar_process(state);
-      } 
-}
-
-
-/**
- * Move player on display screen based on key pressed.
- *
- * @param key the character of the key pressed
- * @param type event type connected to key
- * @param held_time double value representing the amount of time the key is held
- * down
- * @param state the state representing the current demo
- */
-void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
-  body_t *user = state->user_body;
-  vector_t cur_v = body_get_velocity(user);
-  double new_vx = cur_v.x;
-  double new_vy = cur_v.y;
-
-  if (type == KEY_PRESSED) {
-      switch (key) {
-      case LEFT_ARROW: {
-        new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
-        break;
-      }
-      case RIGHT_ARROW: {
-        new_vx = RESTING_SPEED + ACCEL * held_time;
-        break;
-      }
-      case UP_ARROW: {
-        if (!state->jumping || state->jump_powerup) {
-          new_vy = USER_JUMP_HEIGHT;
-        }
-        break;
-      }
-    }
-  }
-  body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
 /**
@@ -426,6 +302,97 @@ void create_health_power_up(state_t *state) {
 }
 
 /**
+ * TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/
+void health_bar_process(state_t *state) {
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  
+  if (state->user_health == 1) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
+  } else if (state->user_health == 2) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
+  }
+  state->health_bar = health_bar_asset;
+}
+
+/**
+ * Check whether two bodies are colliding and applies a sticky collision between them
+ * and to be called every tick
+ *
+ * @param body1
+ * @param body2 the two bodies two check for a collision between, and if they are colliding
+ * sets both velocities to be 0
+ */
+void sticky_collision(state_t *state, body_t *body1, body_t *body2){
+  vector_t v1 = body_get_velocity(body1);
+  vector_t v2 = body_get_velocity(body2);
+  state -> collided = find_collision(body1, body2).collided;
+
+  // Checks if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
+  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
+
+  if (state -> collided && !velocity_zero){
+    if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
+      body_remove(body2);
+      state->jump_powerup = true;
+      return;
+    } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
+      body_remove(body2);
+      
+      if (state->user_health < 3) {
+        state->user_health++;
+        health_bar_process(state);
+      } 
+      return;
+    } else {
+      body_set_velocity(body1, VEC_ZERO);
+      body_set_velocity(body2, VEC_ZERO);
+      state->jumping = false;
+      state->can_jump = 0;
+      if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
+        body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+    }
+    }
+  }
+}
+
+/**
+ * Move player on display screen based on key pressed.
+ *
+ * @param key the character of the key pressed
+ * @param type event type connected to key
+ * @param held_time double value representing the amount of time the key is held
+ * down
+ * @param state the state representing the current demo
+ */
+void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
+  body_t *user = state->user_body;
+  vector_t cur_v = body_get_velocity(user);
+  double new_vx = cur_v.x;
+  double new_vy = cur_v.y;
+
+  if (type == KEY_PRESSED) {
+      switch (key) {
+      case LEFT_ARROW: {
+        new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        break;
+      }
+      case RIGHT_ARROW: {
+        new_vx = RESTING_SPEED + ACCEL * held_time;
+        break;
+      }
+      case UP_ARROW: {
+        if (!state->jumping || state->jump_powerup) {
+          new_vy = USER_JUMP_HEIGHT;
+        }
+        break;
+      }
+    }
+  }
+  body_set_velocity(user, (vector_t) {new_vx, new_vy});
+}
+
+/**
  * Implements a buffer for the user's jumps off the platform and wall
  * 
  * @param state the state representing the current demo
@@ -436,6 +403,22 @@ void check_jump_off(state_t *state) {
   } else {
     state->jumping = true;
   }
+}
+
+/**
+ * Check conditions to see if game is over. Game is over if the user has no more health
+ * (loss), the user falls off the map (loss)
+ * or the user reaches the top of the map (win).
+ *
+ * @param state a pointer to a state object representing the current demo state
+ */
+bool game_over(state_t *state) {
+  // ends the game, we will need in future but I wrote it by accident sorry ;)
+  // vector_t user_pos = body_get_centroid(state->user_body);
+  // if (user_pos.y + OUTER_RADIUS <= 0) {
+  //   return true;
+  // }
+  return false;
 }
 
 state_t *emscripten_init() {

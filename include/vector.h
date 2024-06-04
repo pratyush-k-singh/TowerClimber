@@ -1,6 +1,8 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
+#include <stdbool.h>
+
 /**
  * A real-valued 2-dimensional vector.
  * Positive x is towards the right; positive y is towards the top.
@@ -99,5 +101,11 @@ vector_t vec_rotate(vector_t v, double angle);
  * @return a double representing the vector's magnitude
  */
 double vec_get_length(vector_t v);
+
+/**
+ * @return the boolean value of the comparison between @param v1 and @param v2, returns true
+ * if they are equal and false if they are not
+ */
+bool vec_cmp(vector_t v1, vector_t v2);
 
 #endif // #ifndef __VECTOR_H__
