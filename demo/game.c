@@ -281,8 +281,8 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 
 /**
  * Creates a jump power up and adds to state
- * @param state
- * @param powerup_path
+ * @param state the current state of the demo
+ * @param powerup_path the path to the powerup file
 */
 void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
@@ -296,8 +296,8 @@ void create_jump_power_up(state_t *state) {
 
 /**
  * Creates a health power up and adds to state
- * @param state
- * @param powerup_path
+ * @param state the current state of the demo
+ * @param powerup_path the path to the powerup file
 */
 void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
