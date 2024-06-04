@@ -30,14 +30,14 @@ const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 
 // User constants
 const double USER_MASS = 5;
-const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const double USER_ROTATION = 0;
-const double RADIUS = 25;
 const size_t USER_NUM_POINTS = 20;
+const double USER_JUMP_HEIGHT = 400;
+const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
+const double RADIUS = 25;
 const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
-const double USER_JUMP_HEIGHT = 400;
 const size_t WALL_JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const double GAP = 10;
 const size_t FULL_HEALTH = 3;
@@ -67,7 +67,7 @@ const size_t POWERUP_LOC = 50; // radius from tower center where powerups genera
 const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
 const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
 const double POWERUP_TIME = 7; // how long jump powerup lasts
-const double POWERUP_LENGTH = 15;
+const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
 
