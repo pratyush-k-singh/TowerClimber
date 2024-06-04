@@ -189,7 +189,7 @@ list_t *get_bodies_from_aux(void *aux) {
   return typed_aux->bodies;
 }
 
-void create_collision(state_t *state, scene_t *scene, body_t *body1, body_t *body2,
+void create_collision(scene_t *scene, body_t *body1, body_t *body2,
                       collision_handler_t handler, void *aux,
                       double force_const) {
   list_t *bodies = list_init(2, NULL);
