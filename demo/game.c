@@ -231,8 +231,8 @@ list_t *make_wall(void *wall_info) {
 void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_wall(LEFT_WALL);
-    list_t *right_points = make_wall(RIGHT_WALL);
+    list_t *left_points = make_wall(make_type_info(LEFT_WALL));
+    list_t *right_points = make_wall(make_type_info(RIGHT_WALL));
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(LEFT_WALL), 
                                             NULL);
