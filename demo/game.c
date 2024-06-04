@@ -206,14 +206,14 @@ list_t *make_wall(void *wall_info) {
   if (*info == LEFT_WALL) {
     corner = MIN;
   } 
-  if (*info = RIGHT_WALL) {
+  if (*info == RIGHT_WALL) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
   }
-  if (*info = PLATFORM) {
+  if (*info == PLATFORM) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
-  if (*info = LEFT_WALL || *info = RIGHT_WALL){
+  if (*info == LEFT_WALL || *info == RIGHT_WALL){
     make_wall_points(corner, c);
   } else {
     make_platform_points(corner, c);
