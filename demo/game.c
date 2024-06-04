@@ -253,34 +253,6 @@ void wall_init(state_t *state) {
 }
 
 /**
- * Generates the list of points for a powerup shape given the size of the powerup and
- * the relative location in the vertical direction.
- *
- * @param length corresponds to the length/width of the generated powerup
- * @param power_up_y_loc the relative location of the powerup in the y direction
- * @return list_t containing points of the powerup
-*/
-list_t *make_power_up_shape(double length, double power_up_y_loc) {
-  // randomize location in y direction
-  double loc_y = (double) (rand() % ((size_t) POWERUP_LOC));
-  loc_y += power_up_y_loc;
-
-  vector_t center = {((MAX.x / 2) - 2 * POWERUP_LOC) + VERTICAL_OFFSET, 
-                     loc_y + ((MAX.y / 2) - POWERUP_LOC)};
-
-  list_t *c = list_init(USER_NUM_POINTS, free);
-  for (size_t i = 0; i < USER_NUM_POINTS; i++) {
-    double angle = 2 * M_PI * i / USER_NUM_POINTS;
-    vector_t *v = malloc(sizeof(*v));
-    assert(v);
-    *v = (vector_t){center.x + length * cos(angle),
-                    center.y + length * sin(angle)};
-    list_add(c, v);
-  }
-  return c;
-}
-
-/**
  * Creates a jump power up and adds to state
  * @param state
  * @param powerup_path
