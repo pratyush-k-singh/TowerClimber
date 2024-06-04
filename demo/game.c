@@ -534,6 +534,8 @@ state_t *emscripten_init() {
   create_health_power_up(state);
   create_jump_power_up(state);
 
+  printf("%zu\n", scene_bodies(state->scene));
+
   add_force_creators(state);
 
   sdl_on_key((key_handler_t)on_key);
