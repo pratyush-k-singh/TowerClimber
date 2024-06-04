@@ -292,7 +292,7 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                       JUMP_POWER, NULL);
+                                       make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
                   (char*)"v_0", POWERUP_ELASTICITY);
@@ -307,7 +307,7 @@ void create_jump_power_up(state_t *state) {
 void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                       HEALTH_POWER, NULL);
+                                       make_type_info(HEALTH_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
   create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
                   (char*)"v_0", POWERUP_ELASTICITY);
@@ -370,30 +370,30 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   }
 }
 
-/**
- * Adds collision handler force creators between appropriate bodies.
- *
- * @param state the current state of the demo
- */
-void add_force_creators(state_t *state) { 
-  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-    body_t *body = scene_get_body(state->scene, i);
-    switch (get_type(body)) {
-    case BRICK:
-      create_breakout_collision(state->scene, state->ball, body, ELASTICITY);
-      break;
-    case WALL:
-      create_physics_collision(state->scene, state->ball, body, ELASTICITY);
-      break;
-    case GROUND:
-      create_collision(state->scene, state->ball, body,
-                       (collision_handler_t)reset_game, state, 0);
-      break;
-    default:
-      break;
-    }
-  }
-}
+// /**
+//  * Adds collision handler force creators between appropriate bodies.
+//  *
+//  * @param state the current state of the demo
+//  */
+// void add_force_creators(state_t *state) { 
+//   for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+//     body_t *body = scene_get_body(state->scene, i);
+//     switch (get_type(body)) {
+//     case BRICK:
+//       create_breakout_collision(state->scene, state->ball, body, ELASTICITY);
+//       break;
+//     case WALL:
+//       create_physics_collision(state->scene, state->ball, body, ELASTICITY);
+//       break;
+//     case GROUND:
+//       create_collision(state->scene, state->ball, body,
+//                        (collision_handler_t)reset_game, state, 0);
+//       break;
+//     default:
+//       break;
+//     }
+//   }
+// }
 
 /**
  * Move player on display screen based on key pressed.
@@ -457,7 +457,7 @@ state_t *emscripten_init() {
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user();
   state->user_body =
-      body_init_with_info(points, USER_MASS, USER_COLOR, USER, NULL);
+      body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
   body_t* body = state->user_body;
   body_add_force(state -> user_body, GRAVITY);
   state->user_health = FULL_HEALTH;
