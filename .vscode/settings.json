@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "asset.h": "c"
+        "asset.h": "c",
+        "sdl_wrapper.h": "c"
     }
 }

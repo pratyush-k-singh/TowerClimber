@@ -13,6 +13,7 @@
 #include "forces.h"
 #include "sdl_wrapper.h"
 #include "vector.h"
+#include "make_shape.h"
 
 const vector_t MIN = {0, 0};
 const vector_t MAX = {750, 1000};
@@ -122,18 +123,20 @@ void set_velocity(state_t *state, vector_t velocity){
 }
 
 /**
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * Creates user shape.
+ * 
+ * @return list_t containing the points of the shape
 */
-list_t *make_user(double radius) {
-  vector_t center = {MIN.x + radius + WALL_WIDTH.x, 
-                    MIN.y + radius + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
+list_t *make_user() {
+  vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
+                    MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
     double angle = 2 * M_PI * i / USER_NUM_POINTS;
     vector_t *v = malloc(sizeof(*v));
     assert(v);
-    *v = (vector_t){center.x + radius * cos(angle),
-                    center.y + radius * sin(angle)};
+    *v = (vector_t){center.x + RADIUS * cos(angle),
+                    center.y + RADIUS * sin(angle)};
     list_add(c, v);
   }
   return c;
@@ -186,7 +189,9 @@ void make_platform_points(vector_t corner, list_t *points){
 }
 
 /**
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * Initializes a single wall or platform given the info about the body
+ * 
+ * @param wall_info the object type of the body
 */
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
@@ -214,7 +219,10 @@ list_t *make_wall(void *wall_info) {
 }
 
 /**
- * !!!!!!!!!!!!!!!!!!!!!!
+ * Initializes both walls and platforms and adds to scene.
+ * 
+ * @param state the current state of the demo
+ * 
 */
 void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
@@ -245,10 +253,15 @@ void wall_init(state_t *state) {
 }
 
 /**
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * @param
+ * Generates the list of points for a powerup shape given the size of the powerup and
+ * the relative location in the vertical direction.
+ *
+ * @param length corresponds to the length/width of the generated powerup
+ * @param power_up_y_loc the relative location of the powerup in the y direction
+ * @return list_t containing points of the powerup
 */
 list_t *make_power_up_shape(double length, double power_up_y_loc) {
+  // randomize location in y direction
   double loc_y = (double) (rand() % ((size_t) POWERUP_LOC));
   loc_y += power_up_y_loc;
 
@@ -339,31 +352,27 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   vector_t v2 = body_get_velocity(body2);
   state -> collided = find_collision(body1, body2).collided;
 
-  // Checks if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
+  // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
   if (state -> collided && !velocity_zero){
-    body_remove(body2);
     if (strcmp(body_get_info(body2), JUMP_POWERUP_INFO) == 0) {
-      body_remove(body2);
-      state->jump_powerup = true;
-      return;
+        body_remove(body2);
+        state->jump_powerup = true;
     } else if (strcmp(body_get_info(body2), HEALTH_POWERUP_INFO) == 0) {
-      body_remove(body2);
-      
-      if (state->user_health < 3) {
-        state->user_health++;
-        health_bar_process(state);
-      } 
-      return;
+        body_remove(body2);
+        if (state->user_health < 3) {
+          state->user_health++;
+          health_bar_process(state);
+        } 
     } else {
-      body_set_velocity(body1, VEC_ZERO);
-      body_set_velocity(body2, VEC_ZERO);
-      state->jumping = false;
-      state->can_jump = 0;
-      if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
-        body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-    }
+        body_set_velocity(body1, VEC_ZERO);
+        body_set_velocity(body2, VEC_ZERO);
+        state->jumping = false;
+        state->can_jump = 0;
+        if (strcmp(body_get_info(body2), PLATFORM_INFO) == 0) {
+          body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+      }
     }
   }
 }
@@ -428,7 +437,7 @@ state_t *emscripten_init() {
   // intialize scene and user
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
-  list_t *points = make_user(RADIUS);
+  list_t *points = make_user();
   state->user_body =
       body_init_with_info(points, USER_MASS, USER_COLOR, (void *)USER_INFO, NULL);
   body_t* body = state->user_body;
@@ -486,7 +495,34 @@ bool emscripten_main(state_t *state) {
     check_jump_off(state);
   } 
 
-  // power ups
+  vector_t player_pos = body_get_centroid(user);
+  state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
+
+  // render assets
+  for (size_t i = 0; i < list_size(state->body_assets); i++) {
+    asset_render(list_get(state->body_assets, i), state->vertical_offset);
+  }
+
+  // render health bar
+  asset_render(state->health_bar, state->vertical_offset);
+
+  // show all rendered objects
+  sdl_show(state->vertical_offset);
+
+  // collisions between walls, platforms, powerups and user
+  for (size_t i = 0; i < scene_bodies(scene); i++){
+    body_t *body = scene_get_body(scene, i);
+
+    sticky_collision(state, user, body); // determine if user is collided with body
+
+    // include gravity
+    size_t compare = strcmp(body_get_info(body), PLATFORM_INFO);
+    if (!find_collision(state -> user_body, body).collided && compare == 0){
+      body_add_force(state -> user_body, GRAVITY);
+    }
+  }
+
+  // jump powerup determination
   if (state->jump_powerup) {
     if (state->powerup_time < POWERUP_TIME) {
       state->powerup_time += dt;
@@ -496,29 +532,6 @@ bool emscripten_main(state_t *state) {
     }
   }
 
-  vector_t player_pos = body_get_centroid(user);
-  state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
-
-  for (size_t i = 0; i < list_size(state->body_assets); i++) {
-    asset_render(list_get(state->body_assets, i), state->vertical_offset);
-  }
-
-  // render health bar
-  asset_render(state->health_bar, state->vertical_offset);
-
-  // collisions between walls, platforms, powerups and user
-  sdl_show(state->vertical_offset);
-  for (size_t i = 0; i < scene_bodies(scene); i++){
-    body_t *body = scene_get_body(scene, i);
-
-    sticky_collision(state, user, body);
-
-    // include gravity
-    size_t compare = strcmp(body_get_info(body), PLATFORM_INFO);
-    if (!find_collision(state -> user_body, body).collided && compare == 0){
-      body_add_force(state -> user_body, GRAVITY);
-    }
-  }
   return game_over(state);
 }
 
