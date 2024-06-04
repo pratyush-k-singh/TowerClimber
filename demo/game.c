@@ -386,11 +386,13 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const){
   state_t *state = aux;
   if (get_type(body2) == HEALTH_POWER) {
-    body_remove(body2);
+    body_remove(body1);
     if (state->user_health < 3) {
       state->user_health++;
       health_bar_process(state);
     }
+  } else if (get_type(body2) == JUMP_POWER) {
+    body_remove(body1);
   }
 }
 
