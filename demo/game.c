@@ -198,11 +198,12 @@ void make_platform_points(vector_t corner, list_t *points){
 */
 list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
+  body_type_t *info = wall_info;
   // size_t cmp_left = strcmp(wall_info, LEFT_WALL_INFO);
   // size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
   // size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
-  if (*wall_info = LEFT_WALL) {
+  if (*info = LEFT_WALL) {
     corner = MIN;
   } 
   if (*wall_info = RIGHT_WALL) {
