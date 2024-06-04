@@ -420,7 +420,7 @@ void create_health_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        (void *) HEALTH_POWERUP_INFO, NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
-  create_collision(state->scene, powerup, state->user_body, (void *) health_powerup_collision, 
+  create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
                   (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
 }
