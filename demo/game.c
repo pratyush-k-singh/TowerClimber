@@ -246,7 +246,7 @@ void wall_init(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_wall(PLATFORM);
+  list_t *platform_points = make_wall(make_type_info(PLATFORM));
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
