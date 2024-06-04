@@ -302,7 +302,9 @@ void create_health_power_up(state_t *state) {
 }
 
 /**
- * TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * Changes
+ * 
+ * @param state state object representing the current demo state
 */
 void health_bar_process(state_t *state) {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
@@ -316,9 +318,23 @@ void health_bar_process(state_t *state) {
 }
 
 /**
+ * Implements a buffer for the user's jumps off the platform and wall
+ * 
+ * @param state state object representing the current demo state
+*/
+void check_jump_off(state_t *state) {
+  if (state->can_jump < WALL_JUMP_BUFFER) {
+    state->can_jump++;
+  } else {
+    state->jumping = true;
+  }
+}
+
+/**
  * Check whether two bodies are colliding and applies a sticky collision between them
  * and to be called every tick
  *
+ * @param state state object representing the current demo state
  * @param body1
  * @param body2 the two bodies two check for a collision between, and if they are colliding
  * sets both velocities to be 0
@@ -390,19 +406,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
     }
   }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
-}
-
-/**
- * Implements a buffer for the user's jumps off the platform and wall
- * 
- * @param state the state representing the current demo
-*/
-void check_jump_off(state_t *state) {
-  if (state->can_jump < WALL_JUMP_BUFFER) {
-    state->can_jump++;
-  } else {
-    state->jumping = true;
-  }
 }
 
 /**
