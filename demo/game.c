@@ -363,7 +363,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
 
   if (state -> collided && !velocity_zero){
     if (get_type(body2) == HEALTH_POWER) {
-      body_remove(body2);
+      scene_remove_body(state->scene, scene_bodies(state->scene) - 2);
       if (state->user_health < 3) {
         state->user_health++;
         health_bar_process(state);
