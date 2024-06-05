@@ -321,7 +321,7 @@ void create_health_power_up(state_t *state) {
  * 
  * @param state state object representing the current demo state
 */
-void update_health_bar(state_t *state) {
+void health_bar_process(state_t *state) {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   
   if (state->user_health == 1) {
@@ -353,20 +353,25 @@ void check_jump_off(state_t *state) {
  * @param body1 the user
  * @param body2 the body with which the user is colliding
  */
-void sticky_collision(state_t *state, body_t *body1, body_t *body2){
+void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
   vector_t v1 = body_get_velocity(body1);
   vector_t v2 = body_get_velocity(body2);
+  state -> collided = find_collision(body1, body2).collided;
 
   // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
-  if (!velocity_zero){
-    body_set_velocity(body1, VEC_ZERO);
-    body_set_velocity(body2, VEC_ZERO);
-    state->jumping = false;
-    state->can_jump = 0;
-    if (get_type(body2) == PLATFORM) {
-      body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+  if (get_type(body2) != JUMP_POWER && get_type(body2) != HEALTH_POWER) {
+    if (state -> collided && !velocity_zero){
+      body_set_velocity(body1, VEC_ZERO);
+      body_set_velocity(body2, VEC_ZERO);
+      state->jumping = false;
+      state->can_jump = 0;
+      if (get_type(body2) == PLATFORM) {
+        body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+    }
   }
   }
 }
@@ -386,35 +391,44 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
     body_remove(body1);
     if (state->user_health < 3) {
       state->user_health++;
-      update_health_bar(state);
+      health_bar_process(state);
     }
   } else if (get_type(body2) == JUMP_POWER) {
     body_remove(body1);
   }
 }
 
-void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
-  printf("yay\n");
-  body_remove(body2);
-  printf("oh no\n");
-    if (state->user_health < 3) {
-      state->user_health++;
-      update_health_bar(state);
-  }
-  printf("yay again\n");
-}
-
-void collision(state_t *state, body_t *body1, body_t *body2) {
-  state -> collided = find_collision(body1, body2).collided;
-  body_type_t type = get_type(body2);
-
-  if (state->collided) {
-    if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
-      sticky_collision(state, body1, body2);
-    } else if (type == HEALTH_POWER) {
-      printf("collide\n");
-      health_powerup_collision(state, body1, body2);
-      printf("fuck\n");
+/**
+ * Adds collision handler force creators between appropriate bodies.
+ *
+ * @param state the current state of the demo
+ */
+void add_force_creators(state_t *state) { 
+  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+    body_t *body = scene_get_body(state->scene, i);
+    switch (get_type(body)) {
+    case LEFT_WALL:
+      //create_collision(state->scene, state->user_body, body,
+                       //(collision_handler_t)sticky_collision, state, 0);
+      break;
+    case RIGHT_WALL:
+      //create_collision(state->scene, state->user_body, body,
+                       //(collision_handler_t)sticky_collision, state, 0);
+      break;
+    case PLATFORM:
+      //create_collision(state->scene, state->user_body, body,
+                       //(collision_handler_t)sticky_collision, state, 0);
+      break;
+    case JUMP_POWER:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)powerup_collision, state, 0);
+      break;
+    case HEALTH_POWER:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)powerup_collision, state, 0);
+      break;
+    default:
+      break;
     }
   }
 }
@@ -515,8 +529,10 @@ state_t *emscripten_init() {
   state->jump_powerup = false;
   state->powerup_time = 0;
 
-  create_jump_power_up(state);
   create_health_power_up(state);
+  create_jump_power_up(state);
+
+  add_force_creators(state);
 
   sdl_on_key((key_handler_t)on_key);
 
@@ -553,29 +569,23 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
+    sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY);
+
+    // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
       body_add_force(state -> user_body, GRAVITY);
     }
-
-    collision(state, user, body);
-    // if (collision_success) {
-    //   i--;
-    // }
-  
-    //printf("%d", get_type(body)); // never got to 4
-
-    // include gravity
   }
 
-  // // jump powerup determination
-  // if (state->jump_powerup) {
-  //   if (state->powerup_time < POWERUP_TIME) {
-  //     state->powerup_time += dt;
-  //   } else {
-  //     state->jump_powerup = false;
-  //     state->powerup_time = 0;
-  //   }
-  // }
+  // jump powerup determination
+  if (state->jump_powerup) {
+    if (state->powerup_time < POWERUP_TIME) {
+      state->powerup_time += dt;
+    } else {
+      state->jump_powerup = false;
+      state->powerup_time = 0;
+    }
+  }
 
   return game_over(state);
 }
