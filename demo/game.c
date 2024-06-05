@@ -406,7 +406,6 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 void add_force_creators(state_t *state) { 
   for (size_t i = 0; i < scene_bodies(state->scene); i++) {
     body_t *body = scene_get_body(state->scene, i);
-    // printf("before switch\n"); success: prints out 5 times
     switch (get_type(body)) {
     case LEFT_WALL:
       create_collision(state->scene, state->user_body, body,
@@ -425,7 +424,6 @@ void add_force_creators(state_t *state) {
                        (collision_handler_t)powerup_collision, state, 0);
       break;
     case HEALTH_POWER:
-    //printf("before health\n"); Success
       create_collision(state->scene, state->user_body, body,
                        (collision_handler_t)powerup_collision, state, 0);
       break;
@@ -533,8 +531,6 @@ state_t *emscripten_init() {
 
   create_health_power_up(state);
   create_jump_power_up(state);
-
-  // printf("%zu\n", scene_bodies(state->scene)); Success: prints 5
 
   add_force_creators(state);
 
