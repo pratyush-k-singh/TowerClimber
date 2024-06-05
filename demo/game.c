@@ -556,7 +556,7 @@ bool emscripten_main(state_t *state) {
 
     bool collision_success = collision(state, user, body);
     if (collision_success) {
-      i--;
+      break;
     }
   
     //printf("%d", get_type(body)); // never got to 4
