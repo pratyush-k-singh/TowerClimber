@@ -414,6 +414,7 @@ void collision(state_t *state, body_t *body1, body_t *body2) {
     } else if (type == HEALTH_POWER) {
       printf("collide\n");
       health_powerup_collision(state, body1, body2);
+      printf("fuck\n");
     }
   }
 }
@@ -553,6 +554,7 @@ bool emscripten_main(state_t *state) {
     body_t *body = scene_get_body(scene, i);
 
     collision(state, user, body);
+    printf("loop through bodies\n");
 
     // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
