@@ -403,7 +403,7 @@ void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
   }
 }
 
-void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
+void jump_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
   body_remove(body2);
   state->jump_powerup = true;
 }
