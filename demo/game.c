@@ -245,13 +245,15 @@ void wall_init(state_t *state) {
     asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
+    create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+  create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   }
   list_t *platform_points = make_wall(make_type_info(PLATFORM));
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
   scene_add_body(scene, platform);
-  //create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
+  create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
   list_add(state->body_assets, wall_asset_platform);
 }
@@ -401,7 +403,12 @@ void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
   }
 }
 
-bool collision(state_t *state, body_t *body1, body_t *body2) {
+void jump_powerup_collision(state_t *state, body_t *body1, body_t *body_2) {
+  body_remove(body2);
+  state->jump_powerup = true;
+}
+
+void collision(state_t *state, body_t *body1, body_t *body2) {
   state -> collided = find_collision(body1, body2).collided;
   body_type_t type = get_type(body2);
 
@@ -410,10 +417,10 @@ bool collision(state_t *state, body_t *body1, body_t *body2) {
       sticky_collision(state, body1, body2);
     } else if (type == HEALTH_POWER) {
       health_powerup_collision(state, body1, body2);
-      return true;
-    }
+    } else if (type == JUMP_POWER) {
+      jump_powerup_collision(state, body1, body2);      
+    } 
   }
-  return false;
 }
 
 /**
@@ -550,29 +557,22 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
+    // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
       body_add_force(state -> user_body, GRAVITY);
     }
-
-    bool collision_success = collision(state, user, body);
-    if (collision_success) {
-      break;
-    }
-  
-    //printf("%d", get_type(body)); // never got to 4
-
-    // include gravity
+    collision(state, user, body);
   }
 
-  // // jump powerup determination
-  // if (state->jump_powerup) {
-  //   if (state->powerup_time < POWERUP_TIME) {
-  //     state->powerup_time += dt;
-  //   } else {
-  //     state->jump_powerup = false;
-  //     state->powerup_time = 0;
-  //   }
-  // }
+  // jump powerup determination
+  if (state->jump_powerup) {
+    if (state->powerup_time < POWERUP_TIME) {
+      state->powerup_time += dt;
+    } else {
+      state->jump_powerup = false;
+      state->powerup_time = 0;
+    }
+  }
 
   return game_over(state);
 }
