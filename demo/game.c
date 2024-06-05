@@ -401,7 +401,7 @@ void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
       state->user_health++;
       health_bar_process(state);
   }
-  printf("yay again\n")
+  printf("yay again\n");
 }
 
 void collision(state_t *state, body_t *body1, body_t *body2) {
