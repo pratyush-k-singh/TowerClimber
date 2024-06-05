@@ -354,6 +354,9 @@ void check_jump_off(state_t *state) {
  * @param body2 the body with which the user is colliding
  */
 void sticky_collision(state_t *state, body_t *body1, body_t *body2){
+  vector_t v1 = body_get_velocity(body1);
+  vector_t v2 = body_get_velocity(body2);
+
   // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
   if (!velocity_zero){
@@ -375,7 +378,7 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
  * @param body1 the user
  * @param body2 the body with which the user is colliding
  */
-void powerup_collision(state_t *state, *body1, body_t *body2){
+void powerup_collision(state_t *state, body_t *body1, body_t *body2){
   if (get_type(body2) == HEALTH_POWER) {
     body_remove(body1);
     if (state->user_health < 3) {
@@ -388,8 +391,6 @@ void powerup_collision(state_t *state, *body1, body_t *body2){
 }
 
 void collision(state_t *state, body_t *body1, body_t *body2) {
-  vector_t v1 = body_get_velocity(body1);
-  vector_t v2 = body_get_velocity(body2);
   state -> collided = find_collision(body1, body2).collided;
 
   body_type_t type = get_type(body2);
