@@ -375,8 +375,10 @@ void collision(state_t *state, body_t *body1, body_t *body2) {
   state -> collided = find_collision(body1, body2).collided;
   body_type_t type = get_type(body2);
 
-  if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
-    sticky_collision(state, body1, body2);
+  if (state->collided) {
+    if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
+      sticky_collision(state, body1, body2);
+  }
   }
 }
 
