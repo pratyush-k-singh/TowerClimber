@@ -415,10 +415,8 @@ bool collision(state_t *state, body_t *body1, body_t *body2) {
       printf("collide\n");
       health_powerup_collision(state, body1, body2);
       printf("fuck\n");
-      return true;
     }
   }
-  return false;
 }
 
 /**
@@ -517,8 +515,8 @@ state_t *emscripten_init() {
   state->jump_powerup = false;
   state->powerup_time = 0;
 
-  create_health_power_up(state);
   create_jump_power_up(state);
+  create_health_power_up(state);
 
   sdl_on_key((key_handler_t)on_key);
 
@@ -555,29 +553,29 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
-    bool collision_success = collision(state, user, body);
+    if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
+      body_add_force(state -> user_body, GRAVITY);
+    }
+
+    collision(state, user, body);
     // if (collision_success) {
     //   i--;
     // }
   
-    printf("loop through bodies\n");
-    printf("%d", get_type(body)); // never got to 4
+    //printf("%d", get_type(body)); // never got to 4
 
     // include gravity
-    if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
-      body_add_force(state -> user_body, GRAVITY);
-    }
   }
 
-  // jump powerup determination
-  if (state->jump_powerup) {
-    if (state->powerup_time < POWERUP_TIME) {
-      state->powerup_time += dt;
-    } else {
-      state->jump_powerup = false;
-      state->powerup_time = 0;
-    }
-  }
+  // // jump powerup determination
+  // if (state->jump_powerup) {
+  //   if (state->powerup_time < POWERUP_TIME) {
+  //     state->powerup_time += dt;
+  //   } else {
+  //     state->jump_powerup = false;
+  //     state->powerup_time = 0;
+  //   }
+  // }
 
   return game_over(state);
 }
