@@ -409,6 +409,7 @@ void collision(state_t *state, body_t *body1, body_t *body2) {
     if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
       sticky_collision(state, body1, body2);
     } else if (type == HEALTH_POWER) {
+      printf("yay\n");
       health_powerup_collision(state, body1, body2);
     }
   }
