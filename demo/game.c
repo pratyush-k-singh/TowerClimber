@@ -371,17 +371,6 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   }
 }
 
-void collision(state_t *state, body_t *body1, body_t *body2) {
-  state -> collided = find_collision(body1, body2).collided;
-  body_type_t type = get_type(body2);
-
-  if (state->collided) {
-    if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
-      sticky_collision(state, body1, body2);
-  }
-  }
-}
-
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
  * and to be called every tick
@@ -401,6 +390,27 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
     }
   } else if (get_type(body2) == JUMP_POWER) {
     body_remove(body1);
+  }
+}
+
+void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
+  body_remove(body2);
+    if (state->user_health < 3) {
+      state->user_health++;
+      health_bar_process(state);
+  }
+}
+
+void collision(state_t *state, body_t *body1, body_t *body2) {
+  state -> collided = find_collision(body1, body2).collided;
+  body_type_t type = get_type(body2);
+
+  if (state->collided) {
+    if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
+      sticky_collision(state, body1, body2);
+    } else if (type == HEALTH_POWER) {
+      health_powerup_collision(state, body1, body2);
+    }
   }
 }
 
