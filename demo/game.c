@@ -536,7 +536,7 @@ state_t *emscripten_init() {
 
   // printf("%zu\n", scene_bodies(state->scene)); Success: prints 5
 
-  add_force_creators(state);
+  //add_force_creators(state);
 
   sdl_on_key((key_handler_t)on_key);
 
