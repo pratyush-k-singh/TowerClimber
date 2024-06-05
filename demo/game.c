@@ -556,9 +556,9 @@ bool emscripten_main(state_t *state) {
     body_t *body = scene_get_body(scene, i);
 
     bool collision_success = collision(state, user, body);
-    if (collision_success) {
-      i--;
-    }
+    // if (collision_success) {
+    //   i--;
+    // }
   
     printf("loop through bodies\n");
     printf("%d", get_type(body)); // never got to 4
