@@ -404,7 +404,7 @@ void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
   printf("yay again\n");
 }
 
-bool collision(state_t *state, body_t *body1, body_t *body2) {
+void collision(state_t *state, body_t *body1, body_t *body2) {
   state -> collided = find_collision(body1, body2).collided;
   body_type_t type = get_type(body2);
 
