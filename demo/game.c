@@ -321,7 +321,7 @@ void create_health_power_up(state_t *state) {
  * 
  * @param state state object representing the current demo state
 */
-void health_bar_process(state_t *state) {
+void update_health_bar(state_t *state) {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   
   if (state->user_health == 1) {
@@ -386,7 +386,7 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
     body_remove(body1);
     if (state->user_health < 3) {
       state->user_health++;
-      health_bar_process(state);
+      update_health_bar(state);
     }
   } else if (get_type(body2) == JUMP_POWER) {
     body_remove(body1);
@@ -399,7 +399,7 @@ void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
   printf("oh no\n");
     if (state->user_health < 3) {
       state->user_health++;
-      health_bar_process(state);
+      update_health_bar(state);
   }
   printf("yay again\n");
 }
