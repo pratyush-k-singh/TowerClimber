@@ -394,7 +394,7 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 }
 
 void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
-  body_remove(body2);
+  body_remove(body1);
     if (state->user_health < 3) {
       state->user_health++;
       health_bar_process(state);
