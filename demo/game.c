@@ -468,7 +468,7 @@ bool game_over(state_t *state) {
   //   return true;
   // }
   return false;
-}
+} 
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
