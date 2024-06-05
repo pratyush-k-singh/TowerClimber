@@ -573,7 +573,7 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
-    //sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY);
+    sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY);
 
     // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
