@@ -356,7 +356,6 @@ void check_jump_off(state_t *state) {
 void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   vector_t v1 = body_get_velocity(body1);
   vector_t v2 = body_get_velocity(body2);
-  state -> collided = find_collision(body1, body2).collided;
 
   // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
@@ -374,7 +373,14 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
   }
 }
 
-//void collision()
+void collision(state_t *state, body_t *body1, body_t *body2) {
+  state -> collided = find_collision(body1, body2).collided;
+  body_type_t type = get_type(body2);
+
+  if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
+    sticky_collision(state, body1, body2);
+  }
+}
 
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
@@ -532,7 +538,7 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < scene_bodies(scene); i++){
     body_t *body = scene_get_body(scene, i);
 
-    sticky_collision(state, user, body);
+    collision(state, user, body);
 
     // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
