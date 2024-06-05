@@ -394,14 +394,11 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 }
 
 void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
-  printf("yay\n");
   body_remove(body2);
-  printf("oh no\n");
     if (state->user_health < 3) {
       state->user_health++;
       update_health_bar(state);
   }
-  printf("yay again\n");
 }
 
 void collision(state_t *state, body_t *body1, body_t *body2) {
@@ -412,9 +409,7 @@ void collision(state_t *state, body_t *body1, body_t *body2) {
     if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
       sticky_collision(state, body1, body2);
     } else if (type == HEALTH_POWER) {
-      printf("collide\n");
       health_powerup_collision(state, body1, body2);
-      printf("fuck\n");
     }
   }
 }
