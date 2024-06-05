@@ -399,41 +399,6 @@ void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 }
 
 /**
- * Adds collision handler force creators between appropriate bodies.
- *
- * @param state the current state of the demo
- */
-void add_force_creators(state_t *state) { 
-  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-    body_t *body = scene_get_body(state->scene, i);
-    switch (get_type(body)) {
-    case LEFT_WALL:
-      //create_collision(state->scene, state->user_body, body,
-                       //(collision_handler_t)sticky_collision, state, 0);
-      break;
-    case RIGHT_WALL:
-      //create_collision(state->scene, state->user_body, body,
-                       //(collision_handler_t)sticky_collision, state, 0);
-      break;
-    case PLATFORM:
-      //create_collision(state->scene, state->user_body, body,
-                       //(collision_handler_t)sticky_collision, state, 0);
-      break;
-    case JUMP_POWER:
-      create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)powerup_collision, state, 0);
-      break;
-    case HEALTH_POWER:
-      create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)powerup_collision, state, 0);
-      break;
-    default:
-      break;
-    }
-  }
-}
-
-/**
  * Move player on display screen based on key pressed.
  *
  * @param key the character of the key pressed
@@ -531,8 +496,6 @@ state_t *emscripten_init() {
 
   create_health_power_up(state);
   create_jump_power_up(state);
-
-  add_force_creators(state);
 
   sdl_on_key((key_handler_t)on_key);
 
