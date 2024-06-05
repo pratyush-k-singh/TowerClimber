@@ -555,6 +555,7 @@ bool emscripten_main(state_t *state) {
 
     collision(state, user, body);
     printf("loop through bodies\n");
+    printf("%d", get_type(body));
 
     // include gravity
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
