@@ -66,7 +66,7 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
 const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
-const double POWERUP_TIME = 7; // how long jump powerup lasts
+const double jump_powerup_time = 7; // how long jump powerup lasts
 const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
@@ -85,6 +85,7 @@ struct state {
   list_t *body_assets;
   asset_t *user_sprite;
   body_t *user;
+  
   size_t user_health;
   asset_t *health_bar;
 
@@ -93,12 +94,12 @@ struct state {
   double vertical_offset;
   bool game_over;
   
-  body_type_t collided_obj;
   bool jumping;
   size_t can_jump;
+  body_type_t collided_obj;
   
   bool jump_powerup;
-  double powerup_time;
+  double jump_powerup_time;
 };
 
 body_type_t get_type(body_t *body) {
@@ -334,19 +335,6 @@ void update_health_bar(state_t *state) {
 }
 
 /**
- * Implements a buffer for the user's jumps off the platform and wall
- * 
- * @param state state object representing the current demo state
-*/
-void check_jump_off(state_t *state) {
-  if (state->can_jump < WALL_JUMP_BUFFER) {
-    state->can_jump++;
-  } else {
-    state->jumping = true;
-  }
-}
-
-/**
  * Check whether two bodies are colliding and applies a sticky collision between them
  * and to be called every tick
  *
@@ -405,11 +393,11 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
 
 void jump_powerup_run(state_t *state, double dt) {
   if (state->jump_powerup) {
-    if (state->powerup_time < POWERUP_TIME) {
-      state->powerup_time += dt;
+    if (state->jump_powerup_time < jump_powerup_time) {
+      state->jump_powerup_time += dt;
     } else {
       state->jump_powerup = false;
-      state->powerup_time = 0;
+      state->jump_powerup_time = 0;
     }
   }
 }
@@ -528,26 +516,37 @@ state_t *emscripten_init() {
   create_walls_and_platforms(state);
 
   // Initialize powerups
-  create_jump_power_up(state);
   create_health_power_up(state);
+  create_jump_power_up(state);
+  state->jump_powerup = false;
+  state->jump_powerup_time = 0;
 
-  // initialize miscellaneous state values
+  // Initialize miscellaneous state values
   state->game_over = false;
   state->vertical_offset = 0;
+  state->jumping = false;
+  state->collided_obj = PLATFORM;
   state->can_jump = 0;
   
-  state->jumping = false;
-  state->jump_powerup = false;
-  state->powerup_time = 0;
-
-
   add_force_creators(state);
-
   sdl_on_key((key_handler_t)on_key);
 
-  state->collided_obj = PLATFORM;
-
   return state;
+}
+
+void check_jump(state) {
+  // implement buffer for user's jumps off walls and platform
+  if (state->jumping) {
+    state->collided_obj = NONE;
+    body_add_force(state->user, GRAVITY);
+  } else {
+    body_reset(state->user);
+    if (state->can_jump < WALL_JUMP_BUFFER) {
+      state->can_jump++;
+    } else {
+      state->jumping = true;
+    }
+  }
 }
 
 bool emscripten_main(state_t *state) {
@@ -558,14 +557,7 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
-  // implement buffer for user's jumps off walls and platform
-  if (state->jumping) {
-    state->collided_obj = NONE;
-    check_jump_off(state);
-    body_add_force(user, GRAVITY);
-  } else {
-    body_reset(user);
-  }
+  check_jump(state);
 
   // check if jump powerup is running and update if so
   jump_powerup_run(state, dt);
