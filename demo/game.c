@@ -308,7 +308,7 @@ void create_jump_power_up(state_t *state) {
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   state->jump_powerup_index = list_size(state->body_assets);
-  state->jump_powerup = 0;
+  state->jump_powerup_jumps = 0;
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -417,7 +417,7 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->jump_powerup_index);
-  state->jump_powerup = JUMP_POWERUP_JUMPS;
+  state->jump_powerup_jump = JUMP_POWERUP_JUMPS;
 
   if (state->health_powerup_index > state->jump_powerup_index) {
     state->health_powerup_index--;
@@ -489,10 +489,10 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case UP_ARROW: {
-        if (!state->jumping || state->jump_powerup > 0) {
+        if (!state->jumping || state->jump_powerup_jumps > 0) {
           new_vy = USER_JUMP_HEIGHT;
-          if (state->jumping && state->jump_powerup > 0) {
-            state->jump_powerup--;
+          if (state->jumping && state->jump_powerup_jump > 0) {
+            state->jump_powerup_jumps--;
           }
           state->jumping = true;
         }
