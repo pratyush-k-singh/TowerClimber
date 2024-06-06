@@ -38,7 +38,7 @@ const double RADIUS = 25;
 const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
-const size_t JUMP_BUFFER = 100; // how many pixels away from wall can user jump
+const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const double GAP = 10;
 const size_t FULL_HEALTH = 3;
 
@@ -558,16 +558,9 @@ void check_jump(state_t *state) {
     body_add_force(state->user, GRAVITY);
   } else {
     body_reset(state->user);
-
     // double user_xpos = body_get_centroid(state->user).x;
     // double obj_xpos = body_get_centroid(state->collided_obj).x;
     // if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
-    //   state->jumping = true;
-    // }
-
-    // if (state->can_jump < JUMP_BUFFER) {
-    //   state->can_jump++;
-    // } else {
     //   state->jumping = true;
     // }
   }
@@ -593,8 +586,6 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
-
-  // render health bar
   asset_render(state->health_bar, state->vertical_offset);
 
   sdl_show(state->vertical_offset);
