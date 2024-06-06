@@ -153,7 +153,7 @@ list_t *make_user() {
  * the wall
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
-void make_wall_points(vector_t corner, list_t *points){
+void create_rectangle_points(vector_t corner, list_t *points){
   vector_t wall_length = {MIN.y, MAX.y};
   vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
   vector_t *v_1 = malloc(sizeof(*v_1));
@@ -196,7 +196,7 @@ void make_platform_points(vector_t corner, list_t *points){
  * 
  * @param wall_info the object type of the body
 */
-list_t *make_wall(void *wall_info) {
+list_t *create_rectangle(void *wall_info) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
 
@@ -211,7 +211,7 @@ list_t *make_wall(void *wall_info) {
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
-    make_wall_points(corner, c);
+    create_rectangle_points(corner, c);
   } else {
     make_platform_points(corner, c);
   }
@@ -225,11 +225,11 @@ list_t *make_wall(void *wall_info) {
  * @param state the current state of the demo
  * 
 */
-void wall_init(state_t *state) {
+void create_walls_and_platforms(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_wall(make_type_info(LEFT_WALL));
-    list_t *right_points = make_wall(make_type_info(RIGHT_WALL));
+    list_t *left_points = create_rectangle(make_type_info(LEFT_WALL));
+    list_t *right_points = create_rectangle(make_type_info(RIGHT_WALL));
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(LEFT_WALL), 
                                             NULL);
@@ -243,7 +243,7 @@ void wall_init(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_wall(make_type_info(PLATFORM));
+  list_t *platform_points = create_rectangle(make_type_info(PLATFORM));
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
@@ -405,21 +405,6 @@ void jump_powerup_run(state_t *state, double dt) {
   }
 }
 
-// void collision(state_t *state, body_t *body1, body_t *body2) {
-//   state -> collided = find_collision(body1, body2).collided;
-//   body_type_t type = get_type(body2);
-
-//   if (state->collided) {
-//     if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
-//       sticky_collision(state, body1, body2);
-//     } else if (type == HEALTH_POWER) {
-//       health_powerup_collision(state, body1, body2);
-//     } else if (type == JUMP_POWER) {
-//       jump_powerup_collision(state, body1, body2);      
-//     } 
-//   }
-// }
-
 /**
  * Adds collision handler force creators between appropriate bodies.
  *
@@ -539,7 +524,7 @@ state_t *emscripten_init() {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 
-  wall_init(state);
+  create_walls_and_platforms(state);
 
   // initialize miscellaneous state values
   state->game_over = false;
