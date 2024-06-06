@@ -417,7 +417,7 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->jump_powerup_index);
-  state->jump_powerup_jump = JUMP_POWERUP_JUMPS;
+  state->jump_powerup_jumps = JUMP_POWERUP_JUMPS;
 
   if (state->health_powerup_index > state->jump_powerup_index) {
     state->health_powerup_index--;
@@ -491,7 +491,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       case UP_ARROW: {
         if (!state->jumping || state->jump_powerup_jumps > 0) {
           new_vy = USER_JUMP_HEIGHT;
-          if (state->jumping && state->jump_powerup_jump > 0) {
+          if (state->jumping && state->jump_powerup_jumps > 0) {
             state->jump_powerup_jumps--;
           }
           state->jumping = true;
