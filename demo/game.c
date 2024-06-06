@@ -515,7 +515,7 @@ void create_user(state_t *state) {
   state->user_health = FULL_HEALTH;
 
   // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, user, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 }
 
@@ -528,6 +528,7 @@ state_t *emscripten_init() {
   // intialize scene and user
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
+  state->vertical_offset = 0;
   create_user(state);
 
   // Create and save the asset for the background image
@@ -545,7 +546,7 @@ state_t *emscripten_init() {
 
   // initialize miscellaneous state values
   state->game_over = false;
-  state->vertical_offset = 0;
+  
   state->can_jump = 0;
   
   state->jumping = false;
