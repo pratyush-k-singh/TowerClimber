@@ -66,10 +66,10 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
 const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
-const double jump_powerup_time = 7; // how long jump powerup lasts
 const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
+const size_t JUMP_POWERUP_JUMPS = 3;
 
 // Game constants
 const size_t NUM_LEVELS = 1;
@@ -98,7 +98,7 @@ struct state {
   size_t can_jump;
   body_t *collided_obj;
   
-  bool jump_powerup;
+  size_t jump_powerup_jumps;
 
   size_t jump_powerup_index;
   size_t health_powerup_index;
@@ -308,7 +308,7 @@ void create_jump_power_up(state_t *state) {
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   state->jump_powerup_index = list_size(state->body_assets);
-  state->jump_powerup = false;
+  state->jump_powerup = 0;
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -417,7 +417,7 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->jump_powerup_index);
-  state->jump_powerup = true;
+  state->jump_powerup = JUMP_POWERUP_JUMPS;
 
   if (state->health_powerup_index > state->jump_powerup_index) {
     state->health_powerup_index--;
@@ -489,10 +489,10 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case UP_ARROW: {
-        if (!state->jumping || state->jump_powerup) {
+        if (!state->jumping || state->jump_powerup > 0) {
           new_vy = USER_JUMP_HEIGHT;
-          if (state->jumping && state->jump_powerup) {
-            state->jump_powerup = false;
+          if (state->jumping && state->jump_powerup > 0) {
+            state->jump_powerup--;
           }
           state->jumping = true;
         }
