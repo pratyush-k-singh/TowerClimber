@@ -623,3 +623,12 @@ void emscripten_free(state_t *state) {
   asset_cache_destroy();
   free(state);
 }
+
+
+/**
+ * Notes
+ * - Why power up isn't working
+ *    - What is the purpose of state->body_assets? 
+ *    - Powerups can't be removed because there is no way to remove from body_assets
+ *      after removing from state->scene
+*/
