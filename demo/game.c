@@ -572,7 +572,6 @@ state_t *emscripten_init() {
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
-  state->collided_obj = NONE;
   body_t *user = state->user_body;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
@@ -581,6 +580,7 @@ bool emscripten_main(state_t *state) {
 
   // implement buffer for user's jumps off walls and platform
   if (!state->collided) {
+    state->collided_obj = NONE;
     check_jump_off(state);
     body_add_force(user, GRAVITY);
   } 
