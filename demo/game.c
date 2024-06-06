@@ -541,7 +541,7 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
-  check_jump(state);
+  check_jump(state); // useless at present, attempt to fix gravity bug
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
