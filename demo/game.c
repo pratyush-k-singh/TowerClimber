@@ -581,7 +581,7 @@ bool emscripten_main(state_t *state) {
   sdl_clear();
 
   // implement buffer for user's jumps off walls and platform
-  if (!state->collided) {
+  if (state->jumping) {
     state->collided_obj = NONE;
     check_jump_off(state);
     body_add_force(user, GRAVITY);
