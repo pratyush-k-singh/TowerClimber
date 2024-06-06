@@ -473,7 +473,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case UP_ARROW: {
-        if (!state->jumping || state->jump_powerup) {
+        if (!state->jumping || state->jump_powerup || !state->collided) {
           new_vy = USER_JUMP_HEIGHT;
         }
         break;
