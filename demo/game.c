@@ -628,4 +628,5 @@ void emscripten_free(state_t *state) {
  *    - What is the purpose of state->body_assets? 
  *    - Powerups can't be removed because there is no way to remove from body_assets
  *      after removing from state->scene
+ * Just like record the index of the body asset in the body asset list
 */
