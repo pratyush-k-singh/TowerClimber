@@ -99,7 +99,6 @@ struct state {
   body_t *collided_obj;
   
   bool jump_powerup;
-  double jump_powerup_time;
 
   size_t jump_powerup_index;
   size_t health_powerup_index;
@@ -309,6 +308,7 @@ void create_jump_power_up(state_t *state) {
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
   state->jump_powerup_index = list_size(state->body_assets);
+  state->jump_powerup = false;
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -424,17 +424,6 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   }
 }
 
-void jump_powerup_run(state_t *state, double dt) {
-  if (state->jump_powerup) {
-    if (state->jump_powerup_time < jump_powerup_time) {
-      state->jump_powerup_time += dt;
-    } else {
-      state->jump_powerup = false;
-      state->jump_powerup_time = 0;
-    }
-  }
-}
-
 /**
  * Adds collision handler force creators between appropriate bodies.
  *
@@ -502,6 +491,9 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       case UP_ARROW: {
         if (!state->jumping || state->jump_powerup) {
           new_vy = USER_JUMP_HEIGHT;
+          if (state->jumping && state->jump_powerup) {
+            state->jump_powerup = false;
+          }
           state->jumping = true;
         }
         break;
@@ -567,8 +559,6 @@ state_t *emscripten_init() {
   // Initialize powerups
   create_health_power_up(state);
   create_jump_power_up(state);
-  state->jump_powerup = false;
-  state->jump_powerup_time = 0;
 
   // Initialize miscellaneous state values
   state->game_over = false;
