@@ -559,11 +559,11 @@ void check_jump(state_t *state) {
   } else {
     body_reset(state->user);
 
-    double user_xpos = body_get_centroid(state->user).x;
-    double obj_xpos = body_get_centroid(state->collided_obj).x;
-    if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
-      state->jumping = true;
-    }
+    // double user_xpos = body_get_centroid(state->user).x;
+    // double obj_xpos = body_get_centroid(state->collided_obj).x;
+    // if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
+    //   state->jumping = true;
+    // }
 
     // if (state->can_jump < JUMP_BUFFER) {
     //   state->can_jump++;
