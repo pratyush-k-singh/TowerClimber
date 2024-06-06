@@ -115,19 +115,19 @@ body_type_t *make_type_info(body_type_t type) {
   return info;
 }
 
-/**
- * Sets the velocity of the user so that the user can jump from sticky walls
- * 
- * @param state state object representing the current demo state
- * @param velocity velocity to set the user to 
- */
-void set_velocity(state_t *state, vector_t velocity){
-  body_t *user = state -> user;
-  body_set_velocity(user, velocity);
-  vector_t center = body_get_centroid(state -> user);
-  vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
-  body_set_centroid(user, vec_add(center, move));
-}
+// /**
+//  * Sets the velocity of the user so that the user can jump from sticky walls
+//  * 
+//  * @param state state object representing the current demo state
+//  * @param velocity velocity to set the user to 
+//  */
+// void set_velocity(state_t *state, vector_t velocity){
+//   body_t *user = state -> user;
+//   body_set_velocity(user, velocity);
+//   vector_t center = body_get_centroid(state -> user);
+//   vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
+//   body_set_centroid(user, vec_add(center, move));
+// }
 
 /**
  * Creates user shape.
@@ -223,6 +223,34 @@ list_t *make_rectangle(void *wall_info) {
   return c;
 }
 
+/**
+ * Generates the list of points for a powerup shape given the size of the powerup and
+ * the relative location in the vertical direction.
+ *
+ * @param length corresponds to the length/width of the generated powerup
+ * @param power_up_y_loc the relative location of the powerup in the y direction
+ * @return list_t containing points of the powerup
+*/
+list_t *make_power_up_shape(double length, double power_up_y_loc) {
+  // randomize location in y direction
+  double loc_y = (double) (rand() % ((size_t) POWERUP_LOC));
+  loc_y += power_up_y_loc;
+
+  vector_t center = {((MAX.x / 2) - 2 * POWERUP_LOC) + VERTICAL_OFFSET, 
+                     loc_y + ((MAX.y / 2) - POWERUP_LOC)};
+
+  list_t *c = list_init(USER_NUM_POINTS, free);
+  for (size_t i = 0; i < USER_NUM_POINTS; i++) {
+    double angle = 2 * M_PI * i / USER_NUM_POINTS;
+    vector_t *v = malloc(sizeof(*v));
+    assert(v);
+    *v = (vector_t){center.x + length * cos(angle),
+                    center.y + length * sin(angle)};
+    list_add(c, v);
+  }
+  return c;
+}
+
 void create_user(state_t *state) {
   list_t *points = make_user();
   body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
@@ -265,34 +293,6 @@ void create_walls_and_platforms(state_t *state) {
   list_add(state->body_assets, wall_asset_platform);
 
   state->collided_obj = platform; // inital start location
-}
-
-/**
- * Generates the list of points for a powerup shape given the size of the powerup and
- * the relative location in the vertical direction.
- *
- * @param length corresponds to the length/width of the generated powerup
- * @param power_up_y_loc the relative location of the powerup in the y direction
- * @return list_t containing points of the powerup
-*/
-list_t *make_power_up_shape(double length, double power_up_y_loc) {
-  // randomize location in y direction
-  double loc_y = (double) (rand() % ((size_t) POWERUP_LOC));
-  loc_y += power_up_y_loc;
-
-  vector_t center = {((MAX.x / 2) - 2 * POWERUP_LOC) + VERTICAL_OFFSET, 
-                     loc_y + ((MAX.y / 2) - POWERUP_LOC)};
-
-  list_t *c = list_init(USER_NUM_POINTS, free);
-  for (size_t i = 0; i < USER_NUM_POINTS; i++) {
-    double angle = 2 * M_PI * i / USER_NUM_POINTS;
-    vector_t *v = malloc(sizeof(*v));
-    assert(v);
-    *v = (vector_t){center.x + length * cos(angle),
-                    center.y + length * sin(angle)};
-    list_add(c, v);
-  }
-  return c;
 }
 
 /**
@@ -339,18 +339,18 @@ void update_health_bar(state_t *state) {
   state->health_bar = health_bar_asset;
 }
 
-/**
- * Implements a buffer for the user's jumps off the platform and wall
- * 
- * @param state state object representing the current demo state
-*/
-void check_jump_off(state_t *state) {
-  if (state->can_jump < JUMP_BUFFER) {
-    state->can_jump++;
-  } else {
-    state->jumping = true;
-  }
-}
+// /**
+//  * Implements a buffer for the user's jumps off the platform and wall
+//  * 
+//  * @param state state object representing the current demo state
+// */
+// void check_jump_off(state_t *state) {
+//   if (state->can_jump < JUMP_BUFFER) {
+//     state->can_jump++;
+//   } else {
+//     state->jumping = true;
+//   }
+// }
 
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
@@ -496,6 +496,21 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
+void check_jump(state_t *state) {
+  // implement buffer for user's jumps off walls and platform
+  if (state->jumping) {
+    state->collided_obj = NULL;
+    body_add_force(state->user, GRAVITY);
+  } else {
+    body_reset(state->user);
+    // double user_xpos = body_get_centroid(state->user).x;
+    // double obj_xpos = body_get_centroid(state->collided_obj).x;
+    // if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
+    //   state->jumping = true;
+    // }
+  }
+}
+
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
  * (loss), the user falls off the map (loss), or the user reaches the top of the map (win).
@@ -549,21 +564,6 @@ state_t *emscripten_init() {
   sdl_on_key((key_handler_t)on_key);
 
   return state;
-}
-
-void check_jump(state_t *state) {
-  // implement buffer for user's jumps off walls and platform
-  if (state->jumping) {
-    state->collided_obj = NULL;
-    body_add_force(state->user, GRAVITY);
-  } else {
-    body_reset(state->user);
-    // double user_xpos = body_get_centroid(state->user).x;
-    // double obj_xpos = body_get_centroid(state->collided_obj).x;
-    // if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
-    //   state->jumping = true;
-    // }
-  }
 }
 
 bool emscripten_main(state_t *state) {
