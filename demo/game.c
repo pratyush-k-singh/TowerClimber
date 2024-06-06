@@ -38,7 +38,7 @@ const double RADIUS = 25;
 const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
-const size_t WALL_JUMP_BUFFER = 30; // how many pixels away from wall can user jump
+const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const double GAP = 10;
 const size_t FULL_HEALTH = 3;
 
@@ -66,10 +66,10 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
 const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
-const double POWERUP_TIME = 7; // how long jump powerup lasts
 const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
+const size_t JUMP_POWERUP_JUMPS = 2;
 
 // Game constants
 const size_t NUM_LEVELS = 1;
@@ -78,13 +78,14 @@ const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
-typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER } body_type_t;
+typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, NONE } body_type_t;
 
 struct state {
   scene_t *scene;
   list_t *body_assets;
   asset_t *user_sprite;
-  body_t *user_body;
+  body_t *user;
+  
   size_t user_health;
   asset_t *health_bar;
 
@@ -93,15 +94,20 @@ struct state {
   double vertical_offset;
   bool game_over;
   
-  bool collided;
   bool jumping;
   size_t can_jump;
+  body_t *collided_obj;
   
-  bool jump_powerup;
-  double powerup_time;
+  size_t jump_powerup_jumps;
+
+  size_t jump_powerup_index;
+  size_t health_powerup_index;
 };
 
 body_type_t get_type(body_t *body) {
+  if (body == NULL) {
+    return NONE;
+  }
   return *(body_type_t *)body_get_info(body);
 }
 
@@ -111,19 +117,19 @@ body_type_t *make_type_info(body_type_t type) {
   return info;
 }
 
-/**
- * Sets the velocity of the user so that the user can jump from sticky walls
- * 
- * @param state state object representing the current demo state
- * @param velocity velocity to set the user to 
- */
-void set_velocity(state_t *state, vector_t velocity){
-  body_t *user = state -> user_body;
-  body_set_velocity(user, velocity);
-  vector_t center = body_get_centroid(state -> user_body);
-  vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
-  body_set_centroid(user, vec_add(center, move));
-}
+// /**
+//  * Sets the velocity of the user so that the user can jump from sticky walls
+//  * 
+//  * @param state state object representing the current demo state
+//  * @param velocity velocity to set the user to 
+//  */
+// void set_velocity(state_t *state, vector_t velocity){
+//   body_t *user = state -> user;
+//   body_set_velocity(user, velocity);
+//   vector_t center = body_get_centroid(state -> user);
+//   vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
+//   body_set_centroid(user, vec_add(center, move));
+// }
 
 /**
  * Creates user shape.
@@ -153,7 +159,7 @@ list_t *make_user() {
  * the wall
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
-void make_wall_points(vector_t corner, list_t *points){
+void make_rectangle_points(vector_t corner, list_t *points){
   vector_t wall_length = {MIN.y, MAX.y};
   vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
   vector_t *v_1 = malloc(sizeof(*v_1));
@@ -196,12 +202,9 @@ void make_platform_points(vector_t corner, list_t *points){
  * 
  * @param wall_info the object type of the body
 */
-list_t *make_wall(void *wall_info) {
+list_t *make_rectangle(void *wall_info) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
-  // size_t cmp_left = strcmp(wall_info, LEFT_WALL_INFO);
-  // size_t cmp_right = strcmp(wall_info, RIGHT_WALL_INFO);
-  // size_t cmp_plat = strcmp(wall_info, PLATFORM_INFO);
 
   if (*info == LEFT_WALL) {
     corner = MIN;
@@ -214,46 +217,12 @@ list_t *make_wall(void *wall_info) {
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
-    make_wall_points(corner, c);
+    make_rectangle_points(corner, c);
   } else {
     make_platform_points(corner, c);
   }
   
   return c;
-}
-
-/**
- * Initializes both walls and platforms and adds to scene.
- * 
- * @param state the current state of the demo
- * 
-*/
-void wall_init(state_t *state) {
-  scene_t *scene = state -> scene;
-  for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_wall(make_type_info(LEFT_WALL));
-    list_t *right_points = make_wall(make_type_info(RIGHT_WALL));
-    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
-                                            USER_COLOR, make_type_info(LEFT_WALL), 
-                                            NULL);
-    body_t *right_wall = body_init_with_info(right_points, INFINITY, 
-                                            USER_COLOR, make_type_info(RIGHT_WALL), 
-                                            NULL);
-    scene_add_body(scene, left_wall);
-    scene_add_body(scene, right_wall);
-    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
-    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
-    list_add(state->body_assets, wall_asset_l);
-    list_add(state->body_assets, wall_asset_r);
-  }
-  list_t *platform_points = make_wall(make_type_info(PLATFORM));
-  body_t *platform = body_init_with_info(platform_points, INFINITY, 
-                                            USER_COLOR, make_type_info(PLATFORM), 
-                                            NULL);
-  scene_add_body(scene, platform);
-  //create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
-  list_add(state->body_assets, wall_asset_platform);
 }
 
 /**
@@ -284,6 +253,50 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
   return c;
 }
 
+void create_user(state_t *state) {
+  list_t *points = make_user();
+  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
+                                     make_type_info(USER), NULL);
+  state->user = user;
+  body_add_force(user, GRAVITY);
+  state->user_health = FULL_HEALTH;
+}
+
+/**
+ * Initializes both walls and platforms and adds to scene.
+ * 
+ * @param state the current state of the demo
+ * 
+*/
+void create_walls_and_platforms(state_t *state) {
+  scene_t *scene = state -> scene;
+  for (size_t i = 0; i < NUM_LEVELS; i++){
+    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL));
+    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL));
+    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
+                                            USER_COLOR, make_type_info(LEFT_WALL), 
+                                            NULL);
+    body_t *right_wall = body_init_with_info(right_points, INFINITY, 
+                                            USER_COLOR, make_type_info(RIGHT_WALL), 
+                                            NULL);
+    scene_add_body(scene, left_wall);
+    scene_add_body(scene, right_wall);
+    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
+    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
+    list_add(state->body_assets, wall_asset_l);
+    list_add(state->body_assets, wall_asset_r);
+  }
+  list_t *platform_points = make_rectangle(make_type_info(PLATFORM));
+  body_t *platform = body_init_with_info(platform_points, INFINITY, 
+                                            USER_COLOR, make_type_info(PLATFORM), 
+                                            NULL);
+  scene_add_body(scene, platform);
+  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
+  list_add(state->body_assets, wall_asset_platform);
+
+  state->collided_obj = platform; // inital start location
+}
+
 /**
  * Creates a jump power up and adds to state
  * @param state the current state of the demo
@@ -294,8 +307,8 @@ void create_jump_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
-  //create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
-                  //(char*)"v_0", POWERUP_ELASTICITY);
+  state->jump_powerup_index = list_size(state->body_assets);
+  state->jump_powerup_jumps = 0;
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -310,8 +323,7 @@ void create_health_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(HEALTH_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
-  //create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
-                  //(char*)"v_0", POWERUP_ELASTICITY);
+  state->health_powerup_index = list_size(state->body_assets);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -321,7 +333,7 @@ void create_health_power_up(state_t *state) {
  * 
  * @param state state object representing the current demo state
 */
-void health_bar_process(state_t *state) {
+void update_health_bar(state_t *state) {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   
   if (state->user_health == 1) {
@@ -330,19 +342,6 @@ void health_bar_process(state_t *state) {
     health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
   }
   state->health_bar = health_bar_asset;
-}
-
-/**
- * Implements a buffer for the user's jumps off the platform and wall
- * 
- * @param state state object representing the current demo state
-*/
-void check_jump_off(state_t *state) {
-  if (state->can_jump < WALL_JUMP_BUFFER) {
-    state->can_jump++;
-  } else {
-    state->jumping = true;
-  }
 }
 
 /**
@@ -355,46 +354,39 @@ void check_jump_off(state_t *state) {
  */
 void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const){
+
   state_t *state = aux;
-  vector_t v1 = body_get_velocity(body1);
-  vector_t v2 = body_get_velocity(body2);
-  state -> collided = find_collision(body1, body2).collided;
+  physics_collision_handler(body1, body2, axis, aux, force_const);
+  
+  state->jumping = false;
+  state->can_jump = 0;
+  state->collided_obj = body2;
+}
 
-  // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
-  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
-
-  if (get_type(body2) != JUMP_POWER && get_type(body2) != HEALTH_POWER) {
-    if (state -> collided && !velocity_zero){
-      body_set_velocity(body1, VEC_ZERO);
-      body_set_velocity(body2, VEC_ZERO);
-      state->jumping = false;
-      state->can_jump = 0;
-      if (get_type(body2) == PLATFORM) {
-        body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-    }
+void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
+  state_t *state = aux;
+  body_remove(body2);
+  list_remove(state->body_assets, state->health_powerup_index);
+    if (state->user_health < FULL_HEALTH) {
+      state->user_health++;
+      update_health_bar(state);
   }
+
+  if (state->jump_powerup_index > state->health_powerup_index) {
+    state->jump_powerup_index--;
   }
 }
 
-/**
- * Check whether two bodies are colliding and applies a sticky collision between them
- * and to be called every tick
- *
- * @param state state object representing the current demo state
- * @param body1 the user
- * @param body2 the body with which the user is colliding
- */
-void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const){
+void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
   state_t *state = aux;
-  if (get_type(body2) == HEALTH_POWER) {
-    body_remove(body1);
-    if (state->user_health < 3) {
-      state->user_health++;
-      health_bar_process(state);
-    }
-  } else if (get_type(body2) == JUMP_POWER) {
-    body_remove(body1);
+  body_remove(body2);
+  list_remove(state->body_assets, state->jump_powerup_index);
+  state->jump_powerup_jumps = JUMP_POWERUP_JUMPS;
+
+  if (state->health_powerup_index > state->jump_powerup_index) {
+    state->health_powerup_index--;
   }
 }
 
@@ -408,24 +400,24 @@ void add_force_creators(state_t *state) {
     body_t *body = scene_get_body(state->scene, i);
     switch (get_type(body)) {
     case LEFT_WALL:
-      //create_collision(state->scene, state->user_body, body,
-                       //(collision_handler_t)sticky_collision, state, 0);
+      create_collision(state->scene, state->user, body,
+                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case RIGHT_WALL:
-      //create_collision(state->scene, state->user_body, body,
-                       //(collision_handler_t)sticky_collision, state, 0);
+      create_collision(state->scene, state->user, body,
+                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case PLATFORM:
-      //create_collision(state->scene, state->user_body, body,
-                       //(collision_handler_t)sticky_collision, state, 0);
+      create_collision(state->scene, state->user, body,
+                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case JUMP_POWER:
-      create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)powerup_collision, state, 0);
+      create_collision(state->scene, state->user, body,
+                       (collision_handler_t)jump_powerup_collision, state, POWERUP_ELASTICITY);
       break;
     case HEALTH_POWER:
-      create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)powerup_collision, state, 0);
+      create_collision(state->scene, state->user, body,
+                       (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
       break;
     default:
       break;
@@ -443,7 +435,7 @@ void add_force_creators(state_t *state) {
  * @param state the state representing the current demo
  */
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
-  body_t *user = state->user_body;
+  body_t *user = state->user;
   vector_t cur_v = body_get_velocity(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
@@ -451,22 +443,40 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        if (get_type(state->collided_obj) != LEFT_WALL) {
+          new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        }
         break;
       }
       case RIGHT_ARROW: {
-        new_vx = RESTING_SPEED + ACCEL * held_time;
+        if (get_type(state->collided_obj) != RIGHT_WALL) {
+          new_vx = RESTING_SPEED + ACCEL * held_time;
+        }
         break;
       }
       case UP_ARROW: {
-        if (!state->jumping || state->jump_powerup) {
+        if (!state->jumping || state->jump_powerup_jumps > 0) {
           new_vy = USER_JUMP_HEIGHT;
+          if (state->jumping && state->jump_powerup_jumps > 0) {
+            state->jump_powerup_jumps--;
+          }
+          state->jumping = true;
         }
         break;
       }
     }
   }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
+}
+
+void check_jump(state_t *state) {
+  // implement buffer for user's jumps off walls and platform
+  if (state->jumping) {
+    state->collided_obj = NULL;
+    body_add_force(state->user, GRAVITY);
+  } else {
+    body_reset(state->user);
+  }
 }
 
 /**
@@ -476,13 +486,8 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
  * @param state a pointer to a state object representing the current demo state
  */
 bool game_over(state_t *state) {
-  // ends the game, we will need in future but I wrote it by accident sorry ;)
-  // vector_t user_pos = body_get_centroid(state->user_body);
-  // if (user_pos.y + OUTER_RADIUS <= 0) {
-  //   return true;
-  // }
   return false;
-}
+} 
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
@@ -490,50 +495,39 @@ state_t *emscripten_init() {
   state_t *state = malloc(sizeof(state_t));
   assert(state);
 
-  // intialize scene and user
+  // Initialize scene
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
-  list_t *points = make_user();
-  state->user_body =
-      body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
-  body_t* body = state->user_body;
-  body_add_force(state -> user_body, GRAVITY);
-  state->user_health = FULL_HEALTH;
-
-  // initialize scrolling velocity
-  vector_t initial_velocity = {20, 20};
-  set_velocity(state, initial_velocity);
-
-  // Create and save the asset for the background image
+  
+  // Initialize background
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
   asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
   list_add(state->body_assets, background_asset);
 
-  // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
-  list_add(state->body_assets, user_asset);
-
-  // create health bar
+  // Initialize health bar
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
+  update_health_bar(state);
 
-  wall_init(state);
+  // Initialize user
+  create_user(state);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
+  list_add(state->body_assets, user_asset);
 
-  // initialize miscellaneous state values
-  state->game_over = false;
-  state->collided = false;
-  state->vertical_offset = 0;
-  state->can_jump = 0;
-  
-  state->jumping = false;
-  state->jump_powerup = false;
-  state->powerup_time = 0;
+  // Intialize walls and platforms
+  create_walls_and_platforms(state);
 
+  // Initialize powerups
   create_health_power_up(state);
   create_jump_power_up(state);
 
+  // Initialize miscellaneous state values
+  state->game_over = false;
+  state->vertical_offset = 0;
+  state->jumping = false;
+  state->can_jump = 0;
+  
   add_force_creators(state);
-
   sdl_on_key((key_handler_t)on_key);
 
   return state;
@@ -541,16 +535,13 @@ state_t *emscripten_init() {
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
-  body_t *user = state->user_body;
+  body_t *user = state->user;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
   body_tick(user, dt);
   sdl_clear();
 
-  // implement buffer for user's jumps off walls and platform
-  if (!state->collided) {
-    check_jump_off(state);
-  } 
+  check_jump(state);
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
@@ -559,33 +550,9 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
-
-  // render health bar
   asset_render(state->health_bar, state->vertical_offset);
 
   sdl_show(state->vertical_offset);
-
-  // collisions between walls, platforms, powerups and user
-  for (size_t i = 0; i < scene_bodies(scene); i++){
-    body_t *body = scene_get_body(scene, i);
-
-    sticky_collision(user, body, VEC_ZERO, state, WALL_ELASTICITY);
-
-    // include gravity
-    if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
-      body_add_force(state -> user_body, GRAVITY);
-    }
-  }
-
-  // jump powerup determination
-  if (state->jump_powerup) {
-    if (state->powerup_time < POWERUP_TIME) {
-      state->powerup_time += dt;
-    } else {
-      state->jump_powerup = false;
-      state->powerup_time = 0;
-    }
-  }
 
   return game_over(state);
 }
@@ -594,7 +561,7 @@ void emscripten_free(state_t *state) {
   TTF_Quit();
   scene_free(state->scene);
   list_free(state->body_assets);
-  body_free(state->user_body);
+  body_free(state->user);
   asset_cache_destroy();
   free(state);
 }
