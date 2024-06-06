@@ -84,7 +84,7 @@ struct state {
   scene_t *scene;
   list_t *body_assets;
   asset_t *user_sprite;
-  body_t *user_body;
+  body_t *user;
   size_t user_health;
   asset_t *health_bar;
 
@@ -93,7 +93,7 @@ struct state {
   double vertical_offset;
   bool game_over;
   
-  bool collided;
+  //bool collided;
   body_type_t collided_obj;
   bool jumping;
   size_t can_jump;
@@ -119,9 +119,9 @@ body_type_t *make_type_info(body_type_t type) {
  * @param velocity velocity to set the user to 
  */
 void set_velocity(state_t *state, vector_t velocity){
-  body_t *user = state -> user_body;
+  body_t *user = state -> user;
   body_set_velocity(user, velocity);
-  vector_t center = body_get_centroid(state -> user_body);
+  vector_t center = body_get_centroid(state -> user);
   vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
   body_set_centroid(user, vec_add(center, move));
 }
@@ -434,23 +434,23 @@ void add_force_creators(state_t *state) {
     body_t *body = scene_get_body(state->scene, i);
     switch (get_type(body)) {
     case LEFT_WALL:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state->scene, state->user, body,
                        (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case RIGHT_WALL:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state->scene, state->user, body,
                        (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case PLATFORM:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state->scene, state->user, body,
                        (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case JUMP_POWER:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state->scene, state->user, body,
                        (collision_handler_t)jump_powerup_collision, state, POWERUP_ELASTICITY);
       break;
     case HEALTH_POWER:
-      create_collision(state->scene, state->user_body, body,
+      create_collision(state->scene, state->user, body,
                        (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
       break;
     default:
@@ -469,7 +469,7 @@ void add_force_creators(state_t *state) {
  * @param state the state representing the current demo
  */
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
-  body_t *user = state->user_body;
+  body_t *user = state->user;
   vector_t cur_v = body_get_velocity(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
@@ -508,7 +508,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
  */
 bool game_over(state_t *state) {
   // ends the game, we will need in future but I wrote it by accident sorry ;)
-  // vector_t user_pos = body_get_centroid(state->user_body);
+  // vector_t user_pos = body_get_centroid(state->user);
   // if (user_pos.y + OUTER_RADIUS <= 0) {
   //   return true;
   // }
@@ -525,10 +525,10 @@ state_t *emscripten_init() {
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user();
-  state->user_body =
+  state->user =
       body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
-  body_t* body = state->user_body;
-  body_add_force(state -> user_body, GRAVITY);
+  body_t* body = state->user;
+  body_add_force(state -> user, GRAVITY);
   state->user_health = FULL_HEALTH;
 
   // Create and save the asset for the background image
@@ -548,7 +548,7 @@ state_t *emscripten_init() {
 
   // initialize miscellaneous state values
   state->game_over = false;
-  state->collided = false;
+  //state->collided = false;
   state->vertical_offset = 0;
   state->can_jump = 0;
   
@@ -570,7 +570,7 @@ state_t *emscripten_init() {
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
-  body_t *user = state->user_body;
+  body_t *user = state->user;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
   body_tick(user, dt);
@@ -606,8 +606,8 @@ bool emscripten_main(state_t *state) {
   //   body_t *body = scene_get_body(scene, i);
 
   //   // include gravity
-  //   if ((!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM) || !state->collided){
-  //     body_add_force(state -> user_body, GRAVITY);
+  //   if ((!find_collision(state -> user, body).collided && get_type(body) == PLATFORM) || !state->collided){
+  //     body_add_force(state -> user, GRAVITY);
   //   }
   // }
 
@@ -618,7 +618,7 @@ void emscripten_free(state_t *state) {
   TTF_Quit();
   scene_free(state->scene);
   list_free(state->body_assets);
-  body_free(state->user_body);
+  body_free(state->user);
   asset_cache_destroy();
   free(state);
 }
