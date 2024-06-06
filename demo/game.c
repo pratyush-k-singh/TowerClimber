@@ -490,6 +490,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       case UP_ARROW: {
         if (!state->jumping || state->jump_powerup || !state->collided) {
           new_vy = USER_JUMP_HEIGHT;
+          state->jumping = true;
         }
         break;
       }
@@ -565,7 +566,7 @@ state_t *emscripten_init() {
 
   sdl_on_key((key_handler_t)on_key);
 
-  state->collided_obj = NONE;
+  state->collided_obj = PLATFORM;
 
   return state;
 }
