@@ -534,7 +534,7 @@ state_t *emscripten_init() {
   return state;
 }
 
-void check_jump(state) {
+void check_jump(state_t *state) {
   // implement buffer for user's jumps off walls and platform
   if (state->jumping) {
     state->collided_obj = NONE;
