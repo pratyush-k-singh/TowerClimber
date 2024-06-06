@@ -96,13 +96,16 @@ struct state {
   
   bool jumping;
   size_t can_jump;
-  body_type_t collided_obj;
+  body_t *collided_obj;
   
   bool jump_powerup;
   double jump_powerup_time;
 };
 
 body_type_t get_type(body_t *body) {
+  if (body == NULL) {
+    return NULL;
+  }
   return *(body_type_t *)body_get_info(body);
 }
 
@@ -260,6 +263,8 @@ void create_walls_and_platforms(state_t *state) {
   scene_add_body(scene, platform);
   asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
   list_add(state->body_assets, wall_asset_platform);
+
+  state->collided_obj = platform; // inital start location
 }
 
 /**
@@ -363,7 +368,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   
   state->jumping = false;
   state->can_jump = 0;
-  state->collided_obj = get_type(body2);
+  state->collided_obj = body_2;
   // state_t *state = aux;
   // vector_t v1 = body_get_velocity(body1);
   // vector_t v2 = body_get_velocity(body2);
@@ -468,13 +473,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        if (state->collided_obj != LEFT_WALL) {
+        if (get_type(state->collided_obj) != LEFT_WALL) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
       }
       case RIGHT_ARROW: {
-        if (state->collided_obj != RIGHT_WALL) {
+        if (get_type(state->collided_obj) != RIGHT_WALL) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
@@ -538,7 +543,6 @@ state_t *emscripten_init() {
   state->game_over = false;
   state->vertical_offset = 0;
   state->jumping = false;
-  state->collided_obj = PLATFORM;
   state->can_jump = 0;
   
   add_force_creators(state);
@@ -547,18 +551,26 @@ state_t *emscripten_init() {
   return state;
 }
 
+// void get_body_from_type(body_t *body) {
+//   body_type_t type = get_type(body);
+  
+  
+// }
+
 void check_jump(state_t *state) {
   // implement buffer for user's jumps off walls and platform
   if (state->jumping) {
-    state->collided_obj = NONE;
-    if (state->can_jump < WALL_JUMP_BUFFER) {
-    state->can_jump++;
-  } else {
-    state->jumping = true;
-  }
+    state->collided_obj = NULL;
     body_add_force(state->user, GRAVITY);
   } else {
     body_reset(state->user);
+
+    double user_xpos = body_get_centroid(state->user).x;
+    // if (state->can_jump < WALL_JUMP_BUFFER) {
+    //   state->can_jump++;
+    // } else {
+    //   state->jumping = true;
+    // }
   }
 }
 
