@@ -335,6 +335,19 @@ void update_health_bar(state_t *state) {
 }
 
 /**
+ * Implements a buffer for the user's jumps off the platform and wall
+ * 
+ * @param state state object representing the current demo state
+*/
+void check_jump_off(state_t *state) {
+  if (state->can_jump < WALL_JUMP_BUFFER) {
+    state->can_jump++;
+  } else {
+    state->jumping = true;
+  }
+}
+
+/**
  * Check whether two bodies are colliding and applies a sticky collision between them
  * and to be called every tick
  *
@@ -534,19 +547,8 @@ state_t *emscripten_init() {
   return state;
 }
 
-void check_jump(state_t *state) {
-  // implement buffer for user's jumps off walls and platform
-  if (state->jumping) {
-    state->collided_obj = NONE;
-    body_add_force(state->user, GRAVITY);
-  } else {
-    body_reset(state->user);
-    if (state->can_jump < WALL_JUMP_BUFFER) {
-      state->can_jump++;
-    } else {
-      state->jumping = true;
-    }
-  }
+void check_jump(state) {
+  
 }
 
 bool emscripten_main(state_t *state) {
@@ -557,7 +559,14 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
-  check_jump(state);
+  // implement buffer for user's jumps off walls and platform
+  if (state->jumping) {
+    state->collided_obj = NONE;
+    check_jump_off(state);
+    body_add_force(user, GRAVITY);
+  } else {
+    body_reset(user);
+  }
 
   // check if jump powerup is running and update if so
   jump_powerup_run(state, dt);
