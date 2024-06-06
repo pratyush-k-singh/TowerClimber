@@ -573,10 +573,9 @@ bool emscripten_main(state_t *state) {
     body_t *body = scene_get_body(scene, i);
 
     // include gravity
-    if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
+    if (!find_collision(state -> user_body, body).collided){
       body_add_force(state -> user_body, GRAVITY);
     }
-    //collision(state, user, body);
   }
 
   // jump powerup determination
