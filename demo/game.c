@@ -370,6 +370,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
     }
   } else {
     state->collided_obj = NONE;
+    body_add_force(body1, GRAVITY);
   }
 }
 
