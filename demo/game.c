@@ -100,6 +100,9 @@ struct state {
   
   bool jump_powerup;
   double jump_powerup_time;
+
+  size_t jump_powerup_index;
+  size_t health_powerup_index;
 };
 
 body_type_t get_type(body_t *body) {
@@ -305,6 +308,7 @@ void create_jump_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
+  state->jump_powerup_index = list_size(state->body_assets);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -319,6 +323,7 @@ void create_health_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(HEALTH_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
+  state->health_powerup_index = list_size(state->body_assets);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -396,6 +401,7 @@ void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void 
                 double force_const) {
   state_t *state = aux;
   body_remove(body2);
+  list_remove(state->body_assets, state->health_powerup_index);
     if (state->user_health < 3) {
       state->user_health++;
       update_health_bar(state);
@@ -406,6 +412,7 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
                 double force_const) {
   state_t *state = aux;
   body_remove(body2);
+  list_remove(state->body_assets, state->jump_powerup_index);
   state->jump_powerup = true;
 }
 
