@@ -94,6 +94,7 @@ struct state {
   bool game_over;
   
   bool collided;
+  body_type_t collided_obj;
   bool jumping;
   size_t can_jump;
   
@@ -359,6 +360,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
   if (state -> collided && !velocity_zero){
+    state->collided_obj = get_type(body2);
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->jumping = false;
@@ -366,6 +368,8 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
     if (get_type(body2) == PLATFORM) {
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
     }
+  } else {
+    state->collided_obj = NULL;
   }
 }
 
@@ -465,11 +469,15 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
-        new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        if (state->collided_obj != LEFT_WALL) {
+          new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
+        }
         break;
       }
       case RIGHT_ARROW: {
-        new_vx = RESTING_SPEED + ACCEL * held_time;
+        if (state->collided_obj != RIGHT_WALL) {
+          new_vx = RESTING_SPEED + ACCEL * held_time;
+        }
         break;
       }
       case UP_ARROW: {
@@ -549,6 +557,8 @@ state_t *emscripten_init() {
   add_force_creators(state);
 
   sdl_on_key((key_handler_t)on_key);
+
+  state->collided_obj = NULL;
 
   return state;
 }
