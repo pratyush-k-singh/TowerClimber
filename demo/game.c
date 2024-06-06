@@ -351,27 +351,29 @@ void check_jump_off(state_t *state) {
  */
 void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const){
-  state_t *state = aux;
-  vector_t v1 = body_get_velocity(body1);
-  vector_t v2 = body_get_velocity(body2);
-  state -> collided = find_collision(body1, body2).collided;
+  physics_collision_handler(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const);
+  // state_t *state = aux;
+  // vector_t v1 = body_get_velocity(body1);
+  // vector_t v2 = body_get_velocity(body2);
+  // state -> collided = find_collision(body1, body2).collided;
 
-  // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
-  bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
+  // // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
+  // bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
-  if (state -> collided && !velocity_zero){
-    state->collided_obj = get_type(body2);
-    body_set_velocity(body1, VEC_ZERO);
-    body_set_velocity(body2, VEC_ZERO);
-    state->jumping = false;
-    state->can_jump = 0;
-    if (get_type(body2) == PLATFORM) {
-      body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-    }
-  } else {
-    state->collided_obj = NONE;
-    body_add_force(body1, GRAVITY);
-  }
+  // if (state -> collided && !velocity_zero){
+  //   state->collided_obj = get_type(body2);
+  //   body_set_velocity(body1, VEC_ZERO);
+  //   body_set_velocity(body2, VEC_ZERO);
+  //   state->jumping = false;
+  //   state->can_jump = 0;
+  //   if (get_type(body2) == PLATFORM) {
+  //     body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+  //   }
+  // } else {
+  //   state->collided_obj = NONE;
+  //   body_add_force(body1, GRAVITY);
+  // }
 }
 
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
