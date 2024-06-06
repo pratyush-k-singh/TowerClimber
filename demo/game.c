@@ -513,6 +513,10 @@ void create_user(state_t *state) {
   state->user = user;
   body_add_force(user, GRAVITY);
   state->user_health = FULL_HEALTH;
+
+  // Create and save the asset for the user image
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
+  list_add(state->body_assets, user_asset);
 }
 
 state_t *emscripten_init() {
@@ -531,9 +535,7 @@ state_t *emscripten_init() {
   asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
   list_add(state->body_assets, background_asset);
 
-  // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
-  list_add(state->body_assets, user_asset);
+  
 
   // create health bar
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
