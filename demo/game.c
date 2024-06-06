@@ -355,7 +355,9 @@ void check_jump_off(state_t *state) {
  * @param body1 the user
  * @param body2 the body with which the user is colliding
  */
-void sticky_collision(state_t *state, body_t *body1, body_t *body2){
+void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
   vector_t v1 = body_get_velocity(body1);
   vector_t v2 = body_get_velocity(body2);
 
@@ -369,33 +371,13 @@ void sticky_collision(state_t *state, body_t *body1, body_t *body2){
     state->can_jump = 0;
     if (get_type(body2) == PLATFORM) {
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-  }
-  }
-}
-
-/**
- * Check whether two bodies are colliding and applies a sticky collision between them
- * and to be called every tick
- *
- * @param state state object representing the current demo state
- * @param body1 the user
- * @param body2 the body with which the user is colliding
- */
-void powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const){
-  state_t *state = aux;
-  if (get_type(body2) == HEALTH_POWER) {
-    body_remove(body1);
-    if (state->user_health < 3) {
-      state->user_health++;
-      update_health_bar(state);
     }
-  } else if (get_type(body2) == JUMP_POWER) {
-    body_remove(body1);
   }
 }
 
-void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
+void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
+  state_t *state = aux;
   body_remove(body2);
     if (state->user_health < 3) {
       state->user_health++;
@@ -403,23 +385,60 @@ void health_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
   }
 }
 
-void jump_powerup_collision(state_t *state, body_t *body1, body_t *body2) {
+void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
+  state_t *state = aux;
   body_remove(body2);
   state->jump_powerup = true;
 }
 
-void collision(state_t *state, body_t *body1, body_t *body2) {
-  state -> collided = find_collision(body1, body2).collided;
-  body_type_t type = get_type(body2);
+// void collision(state_t *state, body_t *body1, body_t *body2) {
+//   state -> collided = find_collision(body1, body2).collided;
+//   body_type_t type = get_type(body2);
 
-  if (state->collided) {
-    if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
-      sticky_collision(state, body1, body2);
-    } else if (type == HEALTH_POWER) {
-      health_powerup_collision(state, body1, body2);
-    } else if (type == JUMP_POWER) {
-      jump_powerup_collision(state, body1, body2);      
-    } 
+//   if (state->collided) {
+//     if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
+//       sticky_collision(state, body1, body2);
+//     } else if (type == HEALTH_POWER) {
+//       health_powerup_collision(state, body1, body2);
+//     } else if (type == JUMP_POWER) {
+//       jump_powerup_collision(state, body1, body2);      
+//     } 
+//   }
+// }
+
+/**
+ * Adds collision handler force creators between appropriate bodies.
+ *
+ * @param state the current state of the demo
+ */
+void add_force_creators(state_t *state) { 
+  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+    body_t *body = scene_get_body(state->scene, i);
+    switch (get_type(body)) {
+    case LEFT_WALL:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)sticky_collision, state, 0);
+      break;
+    case RIGHT_WALL:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)sticky_collision, state, 0);
+      break;
+    case PLATFORM:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)sticky_collision, state, 0);
+      break;
+    case JUMP_POWER:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)jump_powerup_collision, state, 0);
+      break;
+    case HEALTH_POWER:
+      create_collision(state->scene, state->user_body, body,
+                       (collision_handler_t)health_powerup_collision, state, 0);
+      break;
+    default:
+      break;
+    }
   }
 }
 
@@ -522,6 +541,8 @@ state_t *emscripten_init() {
   create_jump_power_up(state);
   create_health_power_up(state);
 
+  add_force_creators(state);
+
   sdl_on_key((key_handler_t)on_key);
 
   return state;
@@ -561,7 +582,7 @@ bool emscripten_main(state_t *state) {
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
       body_add_force(state -> user_body, GRAVITY);
     }
-    collision(state, user, body);
+    //collision(state, user, body);
   }
 
   // jump powerup determination
