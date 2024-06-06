@@ -356,6 +356,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   physics_collision_handler(body1, body2, axis, aux, force_const);
   state->jumping = false;
   state->can_jump = 0;
+  state->collided_obj = get_type(body2);
   // state_t *state = aux;
   // vector_t v1 = body_get_velocity(body1);
   // vector_t v2 = body_get_velocity(body2);
@@ -571,6 +572,7 @@ state_t *emscripten_init() {
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
+  state->collided_obj = NONE;
   body_t *user = state->user_body;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
