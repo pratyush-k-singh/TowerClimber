@@ -354,6 +354,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 
   state_t *state = aux;
   physics_collision_handler(body1, body2, axis, aux, force_const);
+  
   state->jumping = false;
   state->can_jump = 0;
   state->collided_obj = get_type(body2);
@@ -584,7 +585,9 @@ bool emscripten_main(state_t *state) {
     state->collided_obj = NONE;
     check_jump_off(state);
     body_add_force(user, GRAVITY);
-  } 
+  } else {
+    body_reset(user);
+  }
 
   // check if jump powerup is running and update if so
   jump_powerup_run(state, dt);
