@@ -245,15 +245,12 @@ void wall_init(state_t *state) {
     asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
-    create_collision(scene, left_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
-  create_collision(scene, right_wall, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   }
   list_t *platform_points = make_wall(make_type_info(PLATFORM));
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
   scene_add_body(scene, platform);
-  create_collision(scene, platform, state -> user_body, physics_collision_handler, (char*)"v_0", WALL_ELASTICITY);
   asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
   list_add(state->body_assets, wall_asset_platform);
 }
@@ -296,8 +293,6 @@ void create_jump_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
-  //create_collision(state->scene, powerup, state->user_body, physics_collision_handler, 
-                  //(char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -312,8 +307,6 @@ void create_health_power_up(state_t *state) {
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(HEALTH_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
-  create_collision(state->scene, powerup, state->user_body, (void *) physics_collision_handler, 
-                  (char*)"v_0", POWERUP_ELASTICITY);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
@@ -360,11 +353,12 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state_t *state = aux;
   vector_t v1 = body_get_velocity(body1);
   vector_t v2 = body_get_velocity(body2);
+  state -> collided = find_collision(body1, body2).collided;
 
   // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
   bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
 
-  if (!velocity_zero){
+  if (state -> collided && !velocity_zero){
     body_set_velocity(body1, VEC_ZERO);
     body_set_velocity(body2, VEC_ZERO);
     state->jumping = false;
@@ -582,7 +576,7 @@ bool emscripten_main(state_t *state) {
     if (!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM){
       body_add_force(state -> user_body, GRAVITY);
     }
-    collision(state, user, body);
+    //collision(state, user, body);
   }
 
   // jump powerup determination
