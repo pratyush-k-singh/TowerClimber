@@ -547,9 +547,16 @@ state_t *emscripten_init() {
   return state;
 }
 
-// void check_jump(state) {
-  
-// }
+void check_jump(state_t *state) {
+  // implement buffer for user's jumps off walls and platform
+  if (state->jumping) {
+    state->collided_obj = NONE;
+    check_jump_off(state);
+    body_add_force(user, GRAVITY);
+  } else {
+    body_reset(user);
+  }
+}
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
@@ -559,14 +566,7 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
-  // implement buffer for user's jumps off walls and platform
-  if (state->jumping) {
-    state->collided_obj = NONE;
-    check_jump_off(state);
-    body_add_force(user, GRAVITY);
-  } else {
-    body_reset(user);
-  }
+  check_jump(state);
 
   // check if jump powerup is running and update if so
   jump_powerup_run(state, dt);
