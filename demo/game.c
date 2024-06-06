@@ -358,6 +358,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->jumping = false;
   state->can_jump = 0;
   state->collided_obj = get_type(body2);
+  state->collided = true;
   // state_t *state = aux;
   // vector_t v1 = body_get_velocity(body1);
   // vector_t v2 = body_get_velocity(body2);
