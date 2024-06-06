@@ -40,7 +40,7 @@ const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const double GAP = 10;
-const size_t FULL_HEALTH = 2;
+const size_t FULL_HEALTH = 3;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -402,7 +402,7 @@ void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void 
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->health_powerup_index);
-    if (state->user_health < 3) {
+    if (state->user_health < FULL_HEALTH) {
       state->user_health++;
       update_health_bar(state);
   }
@@ -422,6 +422,8 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   if (state->health_powerup_index > state->jump_powerup_index) {
     state->health_powerup_index--;
   }
+
+  state->user_health--;
 }
 
 void jump_powerup_run(state_t *state, double dt) {
