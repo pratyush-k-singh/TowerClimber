@@ -423,23 +423,23 @@ void add_force_creators(state_t *state) {
     switch (get_type(body)) {
     case LEFT_WALL:
       create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case RIGHT_WALL:
       create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case PLATFORM:
       create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)sticky_collision, state, 0);
+                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     case JUMP_POWER:
       create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)jump_powerup_collision, state, 0);
+                       (collision_handler_t)jump_powerup_collision, state, POWERUP_ELASTICITY);
       break;
     case HEALTH_POWER:
       create_collision(state->scene, state->user_body, body,
-                       (collision_handler_t)health_powerup_collision, state, 0);
+                       (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
       break;
     default:
       break;
@@ -564,6 +564,7 @@ bool emscripten_main(state_t *state) {
   // implement buffer for user's jumps off walls and platform
   if (!state->collided) {
     check_jump_off(state);
+    body_add_force(user, GRAVITY);
   } 
 
   // check if jump powerup is running and update if so
