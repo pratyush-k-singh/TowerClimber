@@ -406,6 +406,10 @@ void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void 
       state->user_health++;
       update_health_bar(state);
   }
+
+  if (state->jump_powerup_index > state->health_powerup_index) {
+    state->jump_powerup_index--;
+  }
 }
 
 void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
@@ -414,6 +418,10 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   body_remove(body2);
   list_remove(state->body_assets, state->jump_powerup_index);
   state->jump_powerup = true;
+
+  if (state->health_powerup_index > state->jump_powerup_index) {
+    state->health_powerup_index--;
+  }
 }
 
 void jump_powerup_run(state_t *state, double dt) {
