@@ -528,7 +528,7 @@ state_t *emscripten_init() {
   
   // create
   create_user(state);
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, user, state->vertical_offset);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
   // Create and save the asset for the background image
