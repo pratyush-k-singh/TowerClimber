@@ -104,7 +104,7 @@ struct state {
 
 body_type_t get_type(body_t *body) {
   if (body == NULL) {
-    return NULL;
+    return NONE;
   }
   return *(body_type_t *)body_get_info(body);
 }
@@ -368,7 +368,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   
   state->jumping = false;
   state->can_jump = 0;
-  state->collided_obj = body_2;
+  state->collided_obj = body2;
   // state_t *state = aux;
   // vector_t v1 = body_get_velocity(body1);
   // vector_t v2 = body_get_velocity(body2);
