@@ -249,14 +249,13 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 
 void create_user(state_t *state) {
   list_t *points = make_user();
-  state->user =
-      body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
-  body_t* body = state->user;
-  body_add_force(state -> user, GRAVITY);
+  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
+  state->user = user;
+  body_add_force(user, GRAVITY);
   state->user_health = FULL_HEALTH;
   
   // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, user, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 }
 
@@ -428,21 +427,6 @@ void jump_powerup_run(state_t *state, double dt) {
     }
   }
 }
-
-// void collision(state_t *state, body_t *body1, body_t *body2) {
-//   state -> collided = find_collision(body1, body2).collided;
-//   body_type_t type = get_type(body2);
-
-//   if (state->collided) {
-//     if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
-//       sticky_collision(state, body1, body2);
-//     } else if (type == HEALTH_POWER) {
-//       health_powerup_collision(state, body1, body2);
-//     } else if (type == JUMP_POWER) {
-//       jump_powerup_collision(state, body1, body2);      
-//     } 
-//   }
-// }
 
 /**
  * Adds collision handler force creators between appropriate bodies.
