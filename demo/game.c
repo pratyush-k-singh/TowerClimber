@@ -508,10 +508,10 @@ bool game_over(state_t *state) {
 
 void create_user(state_t *state) {
   list_t *points = make_user();
-  state->user =
-      body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
-  body_t* body = state->user;
-  body_add_force(state -> user, GRAVITY);
+  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
+                                     make_type_info(USER), NULL);
+  state->user = user;
+  body_add_force(user, GRAVITY);
   state->user_health = FULL_HEALTH;
 }
 
