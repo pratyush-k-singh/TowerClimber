@@ -38,7 +38,7 @@ const double RADIUS = 25;
 const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
-const size_t WALL_JUMP_BUFFER = 30; // how many pixels away from wall can user jump
+const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const double GAP = 10;
 const size_t FULL_HEALTH = 3;
 
@@ -345,7 +345,7 @@ void update_health_bar(state_t *state) {
  * @param state state object representing the current demo state
 */
 void check_jump_off(state_t *state) {
-  if (state->can_jump < WALL_JUMP_BUFFER) {
+  if (state->can_jump < JUMP_BUFFER) {
     state->can_jump++;
   } else {
     state->jumping = true;
@@ -551,12 +551,6 @@ state_t *emscripten_init() {
   return state;
 }
 
-// void get_body_from_type(body_t *body) {
-//   body_type_t type = get_type(body);
-  
-  
-// }
-
 void check_jump(state_t *state) {
   // implement buffer for user's jumps off walls and platform
   if (state->jumping) {
@@ -566,7 +560,12 @@ void check_jump(state_t *state) {
     body_reset(state->user);
 
     double user_xpos = body_get_centroid(state->user).x;
-    // if (state->can_jump < WALL_JUMP_BUFFER) {
+    double obj_xpos = body_get_centroid(state->collided_obj).x;
+    if (abs(user_xpos - obj_xpos) > buffer) {
+      state->jumping = true;
+    }
+
+    // if (state->can_jump < JUMP_BUFFER) {
     //   state->can_jump++;
     // } else {
     //   state->jumping = true;
