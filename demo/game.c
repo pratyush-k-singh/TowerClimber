@@ -524,10 +524,10 @@ state_t *emscripten_init() {
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user();
-  state->user_body =
+  state->user =
       body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
-  body_t* body = state->user_body;
-  body_add_force(state -> user_body, GRAVITY);
+  body_t* body = state->user;
+  body_add_force(state -> user, GRAVITY);
   state->user_health = FULL_HEALTH;
 
   // initialize scrolling velocity
@@ -547,11 +547,10 @@ state_t *emscripten_init() {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 
-  wall_init(state);
+  create_walls_and_platforms(state);
 
   // initialize miscellaneous state values
   state->game_over = false;
-  state->collided = false;
   state->vertical_offset = 0;
   state->can_jump = 0;
   
