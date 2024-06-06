@@ -530,6 +530,9 @@ state_t *emscripten_init() {
   body_t* body = state->user;
   body_add_force(state -> user, GRAVITY);
   state->user_health = FULL_HEALTH;
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
+  list_add(state->body_assets, user_asset);
+
 
   //create_user(state);
   create_background(state);
