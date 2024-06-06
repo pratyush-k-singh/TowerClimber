@@ -196,7 +196,7 @@ void make_platform_points(vector_t corner, list_t *points){
  * 
  * @param wall_info the object type of the body
 */
-list_t *make_rectangle(void *wall_info) {
+list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
 
@@ -217,6 +217,39 @@ list_t *make_rectangle(void *wall_info) {
   }
   
   return c;
+}
+
+/**
+ * Initializes both walls and platforms and adds to scene.
+ * 
+ * @param state the current state of the demo
+ * 
+*/
+void wall_init(state_t *state) {
+  scene_t *scene = state -> scene;
+  for (size_t i = 0; i < NUM_LEVELS; i++){
+    list_t *left_points = make_wall(make_type_info(LEFT_WALL));
+    list_t *right_points = make_wall(make_type_info(RIGHT_WALL));
+    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
+                                            USER_COLOR, make_type_info(LEFT_WALL), 
+                                            NULL);
+    body_t *right_wall = body_init_with_info(right_points, INFINITY, 
+                                            USER_COLOR, make_type_info(RIGHT_WALL), 
+                                            NULL);
+    scene_add_body(scene, left_wall);
+    scene_add_body(scene, right_wall);
+    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
+    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
+    list_add(state->body_assets, wall_asset_l);
+    list_add(state->body_assets, wall_asset_r);
+  }
+  list_t *platform_points = make_wall(make_type_info(PLATFORM));
+  body_t *platform = body_init_with_info(platform_points, INFINITY, 
+                                            USER_COLOR, make_type_info(PLATFORM), 
+                                            NULL);
+  scene_add_body(scene, platform);
+  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
+  list_add(state->body_assets, wall_asset_platform);
 }
 
 /**
@@ -245,62 +278,6 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
     list_add(c, v);
   }
   return c;
-}
-
-void create_user(state_t *state) {
-  list_t *points = make_user();
-  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
-  state->user = user;
-  body_add_force(user, GRAVITY);
-  state->user_health = FULL_HEALTH;
-  
-  // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, user, state->vertical_offset);
-  list_add(state->body_assets, user_asset);
-}
-
-void create_background(state_t *state) {
-  // Create and save the asset for the background image
-  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
-  asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
-  list_add(state->body_assets, background_asset);
-
-  // create health bar
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
-  state->health_bar = health_bar_asset;
-}
-
-/**
- * Initializes both walls and platforms and adds to scene.
- * 
- * @param state the current state of the demo
- * 
-*/
-void create_walls_and_platforms(state_t *state) {
-  scene_t *scene = state -> scene;
-  for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL));
-    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL));
-    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
-                                            USER_COLOR, make_type_info(LEFT_WALL), 
-                                            NULL);
-    body_t *right_wall = body_init_with_info(right_points, INFINITY, 
-                                            USER_COLOR, make_type_info(RIGHT_WALL), 
-                                            NULL);
-    scene_add_body(scene, left_wall);
-    scene_add_body(scene, right_wall);
-    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
-    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
-    list_add(state->body_assets, wall_asset_l);
-    list_add(state->body_assets, wall_asset_r);
-  }
-  list_t *platform_points = make_rectangle(make_type_info(PLATFORM));
-  body_t *platform = body_init_with_info(platform_points, INFINITY, 
-                                            USER_COLOR, make_type_info(PLATFORM), 
-                                            NULL);
-  scene_add_body(scene, platform);
-  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
-  list_add(state->body_assets, wall_asset_platform);
 }
 
 /**
@@ -428,6 +405,21 @@ void jump_powerup_run(state_t *state, double dt) {
   }
 }
 
+// void collision(state_t *state, body_t *body1, body_t *body2) {
+//   state -> collided = find_collision(body1, body2).collided;
+//   body_type_t type = get_type(body2);
+
+//   if (state->collided) {
+//     if (type == PLATFORM || type == LEFT_WALL || type == RIGHT_WALL) {
+//       sticky_collision(state, body1, body2);
+//     } else if (type == HEALTH_POWER) {
+//       health_powerup_collision(state, body1, body2);
+//     } else if (type == JUMP_POWER) {
+//       jump_powerup_collision(state, body1, body2);      
+//     } 
+//   }
+// }
+
 /**
  * Adds collision handler force creators between appropriate bodies.
  *
@@ -520,8 +512,7 @@ state_t *emscripten_init() {
   state_t *state = malloc(sizeof(state_t));
   assert(state);
 
-  // intialize user and scene
-  
+  // intialize scene and user
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user();
@@ -531,10 +522,20 @@ state_t *emscripten_init() {
   body_add_force(state -> user, GRAVITY);
   state->user_health = FULL_HEALTH;
 
-  //create_user(state);
-  create_background(state);
-  create_walls_and_platforms(state);
+  // Create and save the asset for the background image
+  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
+  asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
+  list_add(state->body_assets, background_asset);
 
+  // Create and save the asset for the user image
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
+  list_add(state->body_assets, user_asset);
+
+  // create health bar
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  state->health_bar = health_bar_asset;
+
+  wall_init(state);
 
   // initialize miscellaneous state values
   state->game_over = false;
