@@ -546,6 +546,7 @@ state_t *emscripten_init() {
   // Initialize health bar
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
+  update_health_bar(state);
 
   // Initialize user
   create_user(state);
