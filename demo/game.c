@@ -582,9 +582,6 @@ bool emscripten_main(state_t *state) {
 
   check_jump(state);
 
-  // check if jump powerup is running and update if so
-  jump_powerup_run(state, dt);
-
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
