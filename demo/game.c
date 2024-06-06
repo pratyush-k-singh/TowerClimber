@@ -78,7 +78,7 @@ const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
-typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER } body_type_t;
+typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, NONE } body_type_t;
 
 struct state {
   scene_t *scene;
@@ -369,7 +369,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
       body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
     }
   } else {
-    state->collided_obj = NULL;
+    state->collided_obj = NONE;
   }
 }
 
@@ -558,7 +558,7 @@ state_t *emscripten_init() {
 
   sdl_on_key((key_handler_t)on_key);
 
-  state->collided_obj = NULL;
+  state->collided_obj = NONE;
 
   return state;
 }
