@@ -520,7 +520,8 @@ state_t *emscripten_init() {
   state_t *state = malloc(sizeof(state_t));
   assert(state);
 
-  // intialize scene and user
+  // intialize user and scene
+  
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user();
@@ -530,24 +531,10 @@ state_t *emscripten_init() {
   body_add_force(state -> user, GRAVITY);
   state->user_health = FULL_HEALTH;
 
-  // initialize scrolling velocity
-  vector_t initial_velocity = {20, 20};
-  set_velocity(state, initial_velocity);
-
-  // Create and save the asset for the background image
-  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
-  asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
-  list_add(state->body_assets, background_asset);
-
-  // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, body, state->vertical_offset);
-  list_add(state->body_assets, user_asset);
-
-  // create health bar
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
-  state->health_bar = health_bar_asset;
-
+  //create_user(state);
+  create_background(state);
   create_walls_and_platforms(state);
+
 
   // initialize miscellaneous state values
   state->game_over = false;
@@ -558,8 +545,8 @@ state_t *emscripten_init() {
   state->jump_powerup = false;
   state->powerup_time = 0;
 
-  create_health_power_up(state);
   create_jump_power_up(state);
+  create_health_power_up(state);
 
   add_force_creators(state);
 
