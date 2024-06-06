@@ -531,9 +531,6 @@ state_t *emscripten_init() {
   asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
-  // create walls and platforms
-  create_walls_and_platforms(state);
-
   // Create and save the asset for the background image
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
   asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
@@ -545,7 +542,7 @@ state_t *emscripten_init() {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 
-  
+  create_walls_and_platforms(state);
 
   // initialize miscellaneous state values
   state->game_over = false;
