@@ -552,9 +552,9 @@ void check_jump(state_t *state) {
   if (state->jumping) {
     state->collided_obj = NONE;
     check_jump_off(state);
-    body_add_force(user, GRAVITY);
+    body_add_force(state->user, GRAVITY);
   } else {
-    body_reset(user);
+    body_reset(state->user);
   }
 }
 
