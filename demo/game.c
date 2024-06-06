@@ -547,9 +547,9 @@ state_t *emscripten_init() {
   return state;
 }
 
-void check_jump(state) {
+// void check_jump(state) {
   
-}
+// }
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
