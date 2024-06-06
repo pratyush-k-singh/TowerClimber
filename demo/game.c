@@ -531,10 +531,6 @@ state_t *emscripten_init() {
   body_add_force(state -> user_body, GRAVITY);
   state->user_health = FULL_HEALTH;
 
-  // initialize scrolling velocity
-  vector_t initial_velocity = {20, 20};
-  set_velocity(state, initial_velocity);
-
   // Create and save the asset for the background image
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
   asset_t *background_asset = asset_make_image(BACKGROUND_PATH, background_box);
