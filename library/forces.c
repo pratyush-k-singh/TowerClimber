@@ -230,7 +230,7 @@ void create_destructive_collision(scene_t *scene, body_t *body1,
 
 void physics_collision_handler(body_t *body1, body_t *body2, vector_t axis,
                                void *aux, double force_const) {
-  // if (strcmp((char*)aux, "v_0") == 0){
+  //if (strcmp((char*)aux, "v_0") == 0){
   body_set_velocity(body1, VEC_ZERO);
   body_set_velocity(body2, VEC_ZERO);
   return;
