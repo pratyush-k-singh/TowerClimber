@@ -196,7 +196,7 @@ void make_platform_points(vector_t corner, list_t *points){
  * 
  * @param wall_info the object type of the body
 */
-list_t *make_rectangle(void *wall_info) {
+list_t *make_wall(void *wall_info) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
 
@@ -219,26 +219,17 @@ list_t *make_rectangle(void *wall_info) {
   return c;
 }
 
-void create_user(state_t *state) {
-  list_t *points = make_user();
-  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
-                                     make_type_info(USER), NULL);
-  state->user = user;
-  body_add_force(user, GRAVITY);
-  state->user_health = FULL_HEALTH;
-}
-
 /**
  * Initializes both walls and platforms and adds to scene.
  * 
  * @param state the current state of the demo
  * 
 */
-void create_walls_and_platforms(state_t *state) {
+void wall_init(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL));
-    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL));
+    list_t *left_points = make_wall(make_type_info(LEFT_WALL));
+    list_t *right_points = make_wall(make_type_info(RIGHT_WALL));
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(LEFT_WALL), 
                                             NULL);
@@ -252,7 +243,7 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_rectangle(make_type_info(PLATFORM));
+  list_t *platform_points = make_wall(make_type_info(PLATFORM));
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
@@ -515,6 +506,15 @@ bool game_over(state_t *state) {
   return false;
 } 
 
+void create_user(state_t *state) {
+  list_t *points = make_user();
+  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
+                                     make_type_info(USER), NULL);
+  state->user = user;
+  body_add_force(user, GRAVITY);
+  state->user_health = FULL_HEALTH;
+}
+
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   asset_cache_init();
@@ -526,9 +526,9 @@ state_t *emscripten_init() {
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   state->vertical_offset = 0;
   
-  // create user
+  // create
   create_user(state);
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, user, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
   // Create and save the asset for the background image
@@ -542,7 +542,7 @@ state_t *emscripten_init() {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 
-  create_walls_and_platforms(state);
+  wall_init(state);
 
   // initialize miscellaneous state values
   state->game_over = false;
