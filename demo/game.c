@@ -386,6 +386,17 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   state->jump_powerup = true;
 }
 
+void jump_powerup_run(state_t *state, double dt) {
+  if (state->jump_powerup) {
+    if (state->powerup_time < POWERUP_TIME) {
+      state->powerup_time += dt;
+    } else {
+      state->jump_powerup = false;
+      state->powerup_time = 0;
+    }
+  }
+}
+
 // void collision(state_t *state, body_t *body1, body_t *body2) {
 //   state -> collided = find_collision(body1, body2).collided;
 //   body_type_t type = get_type(body2);
@@ -555,6 +566,9 @@ bool emscripten_main(state_t *state) {
     check_jump_off(state);
   } 
 
+  // check if jump powerup is running and update if so
+  jump_powerup_run(state, dt);
+
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
@@ -568,25 +582,15 @@ bool emscripten_main(state_t *state) {
 
   sdl_show(state->vertical_offset);
 
-  // collisions between walls, platforms, powerups and user
-  for (size_t i = 0; i < scene_bodies(scene); i++){
-    body_t *body = scene_get_body(scene, i);
+  // // collisions between walls, platforms, powerups and user
+  // for (size_t i = 0; i < scene_bodies(scene); i++){
+  //   body_t *body = scene_get_body(scene, i);
 
-    // include gravity
-    if ((!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM) || !state->collided){
-      body_add_force(state -> user_body, GRAVITY);
-    }
-  }
-
-  // jump powerup determination
-  if (state->jump_powerup) {
-    if (state->powerup_time < POWERUP_TIME) {
-      state->powerup_time += dt;
-    } else {
-      state->jump_powerup = false;
-      state->powerup_time = 0;
-    }
-  }
+  //   // include gravity
+  //   if ((!find_collision(state -> user_body, body).collided && get_type(body) == PLATFORM) || !state->collided){
+  //     body_add_force(state -> user_body, GRAVITY);
+  //   }
+  // }
 
   return game_over(state);
 }
