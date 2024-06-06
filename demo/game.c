@@ -424,6 +424,7 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   }
 
   state->user_health--;
+  update_health_bar(state);
 }
 
 void jump_powerup_run(state_t *state, double dt) {
