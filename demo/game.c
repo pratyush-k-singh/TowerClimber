@@ -525,10 +525,10 @@ state_t *emscripten_init() {
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   list_t *points = make_user();
-  state->user_body =
+  state->user =
       body_init_with_info(points, USER_MASS, USER_COLOR, make_type_info(USER), NULL);
-  body_t* body = state->user_body;
-  body_add_force(state -> user_body, GRAVITY);
+  body_t* body = state->user;
+  body_add_force(state -> user, GRAVITY);
   state->user_health = FULL_HEALTH;
 
   //create_user(state);
