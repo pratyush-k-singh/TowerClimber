@@ -422,9 +422,6 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
   if (state->health_powerup_index > state->jump_powerup_index) {
     state->health_powerup_index--;
   }
-
-  state->user_health--;
-  update_health_bar(state);
 }
 
 void jump_powerup_run(state_t *state, double dt) {
