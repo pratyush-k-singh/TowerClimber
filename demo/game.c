@@ -527,6 +527,10 @@ state_t *emscripten_init() {
   // Intialize walls and platforms
   create_walls_and_platforms(state);
 
+  // Initialize powerups
+  create_jump_power_up(state);
+  create_health_power_up(state);
+
   // initialize miscellaneous state values
   state->game_over = false;
   state->vertical_offset = 0;
@@ -536,8 +540,6 @@ state_t *emscripten_init() {
   state->jump_powerup = false;
   state->powerup_time = 0;
 
-  create_jump_power_up(state);
-  create_health_power_up(state);
 
   add_force_creators(state);
 
