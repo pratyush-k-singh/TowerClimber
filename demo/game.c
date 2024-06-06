@@ -513,10 +513,6 @@ void create_user(state_t *state) {
   state->user = user;
   body_add_force(user, GRAVITY);
   state->user_health = FULL_HEALTH;
-
-  // Create and save the asset for the user image
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, user, state->vertical_offset);
-  list_add(state->body_assets, user_asset);
 }
 
 state_t *emscripten_init() {
@@ -529,6 +525,7 @@ state_t *emscripten_init() {
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
   create_user(state);
+  printf("lol\n");
 
   // Create and save the asset for the background image
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
