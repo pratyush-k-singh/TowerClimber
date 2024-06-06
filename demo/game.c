@@ -351,6 +351,8 @@ void check_jump_off(state_t *state) {
  */
 void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const){
+
+  state_t *state = aux;
   physics_collision_handler(body1, body2, axis, aux, force_const);
   state->jumping = false;
   state->can_jump = 0;
