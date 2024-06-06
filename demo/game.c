@@ -69,7 +69,7 @@ const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
 const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
-const size_t JUMP_POWERUP_JUMPS = 3;
+const size_t JUMP_POWERUP_JUMPS = 2;
 
 // Game constants
 const size_t NUM_LEVELS = 1;
@@ -344,19 +344,6 @@ void update_health_bar(state_t *state) {
   state->health_bar = health_bar_asset;
 }
 
-// /**
-//  * Implements a buffer for the user's jumps off the platform and wall
-//  * 
-//  * @param state state object representing the current demo state
-// */
-// void check_jump_off(state_t *state) {
-//   if (state->can_jump < JUMP_BUFFER) {
-//     state->can_jump++;
-//   } else {
-//     state->jumping = true;
-//   }
-// }
-
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
  * and to be called every tick
@@ -374,27 +361,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->jumping = false;
   state->can_jump = 0;
   state->collided_obj = body2;
-  // state_t *state = aux;
-  // vector_t v1 = body_get_velocity(body1);
-  // vector_t v2 = body_get_velocity(body2);
-  // state -> collided = find_collision(body1, body2).collided;
-
-  // // Check if either velocity is not 0 so that the body's velocities aren't redundantly set to 0
-  // bool velocity_zero = (vec_cmp(v1, VEC_ZERO) && vec_cmp(v2, VEC_ZERO)); 
-
-  // if (state -> collided && !velocity_zero){
-  //   state->collided_obj = get_type(body2);
-  //   body_set_velocity(body1, VEC_ZERO);
-  //   body_set_velocity(body2, VEC_ZERO);
-  //   state->jumping = false;
-  //   state->can_jump = 0;
-  //   if (get_type(body2) == PLATFORM) {
-  //     body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-  //   }
-  // } else {
-  //   state->collided_obj = NONE;
-  //   body_add_force(body1, GRAVITY);
-  // }
 }
 
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
@@ -510,11 +476,6 @@ void check_jump(state_t *state) {
     body_add_force(state->user, GRAVITY);
   } else {
     body_reset(state->user);
-    // double user_xpos = body_get_centroid(state->user).x;
-    // double obj_xpos = body_get_centroid(state->collided_obj).x;
-    // if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
-    //   state->jumping = true;
-    // }
   }
 }
 
@@ -593,16 +554,6 @@ bool emscripten_main(state_t *state) {
 
   sdl_show(state->vertical_offset);
 
-  // // collisions between walls, platforms, powerups and user
-  // for (size_t i = 0; i < scene_bodies(scene); i++){
-  //   body_t *body = scene_get_body(scene, i);
-
-  //   // include gravity
-  //   if ((!find_collision(state -> user, body).collided && get_type(body) == PLATFORM) || !state->collided){
-  //     body_add_force(state -> user, GRAVITY);
-  //   }
-  // }
-
   return game_over(state);
 }
 
@@ -614,13 +565,3 @@ void emscripten_free(state_t *state) {
   asset_cache_destroy();
   free(state);
 }
-
-
-/**
- * Notes
- * - Why power up isn't working
- *    - What is the purpose of state->body_assets? 
- *    - Powerups can't be removed because there is no way to remove from body_assets
- *      after removing from state->scene
- * Just like record the index of the body asset in the body asset list
-*/
