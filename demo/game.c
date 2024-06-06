@@ -40,7 +40,7 @@ const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const double GAP = 10;
-const size_t FULL_HEALTH = 3;
+const size_t FULL_HEALTH = 2;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
