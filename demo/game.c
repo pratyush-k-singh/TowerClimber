@@ -561,7 +561,7 @@ void check_jump(state_t *state) {
 
     double user_xpos = body_get_centroid(state->user).x;
     double obj_xpos = body_get_centroid(state->collided_obj).x;
-    if (abs(user_xpos - obj_xpos) > buffer) {
+    if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
       state->jumping = true;
     }
 
