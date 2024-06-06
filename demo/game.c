@@ -551,7 +551,11 @@ void check_jump(state_t *state) {
   // implement buffer for user's jumps off walls and platform
   if (state->jumping) {
     state->collided_obj = NONE;
-    check_jump_off(state);
+    if (state->can_jump < WALL_JUMP_BUFFER) {
+    state->can_jump++;
+  } else {
+    state->jumping = true;
+  }
     body_add_force(state->user, GRAVITY);
   } else {
     body_reset(state->user);
