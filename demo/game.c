@@ -500,10 +500,6 @@ bool game_over(state_t *state) {
   return false;
 } 
 
-void create_background(state_t *state) {
-  
-}
-
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   asset_cache_init();
@@ -513,7 +509,7 @@ state_t *emscripten_init() {
   // intialize scene and user
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
-  create_user(state);
+  
 
   // Create and save the asset for the background image
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
@@ -521,6 +517,7 @@ state_t *emscripten_init() {
   list_add(state->body_assets, background_asset);
 
   // Create and save the asset for the user image
+  create_user(state);
   asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
