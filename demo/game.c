@@ -153,7 +153,7 @@ list_t *make_user() {
  * the wall
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
-void create_rectangle_points(vector_t corner, list_t *points){
+void make_rectangle_points(vector_t corner, list_t *points){
   vector_t wall_length = {MIN.y, MAX.y};
   vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
   vector_t *v_1 = malloc(sizeof(*v_1));
@@ -196,7 +196,7 @@ void make_platform_points(vector_t corner, list_t *points){
  * 
  * @param wall_info the object type of the body
 */
-list_t *create_rectangle(void *wall_info) {
+list_t *make_rectangle(void *wall_info) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
 
@@ -211,12 +211,21 @@ list_t *create_rectangle(void *wall_info) {
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
-    create_rectangle_points(corner, c);
+    make_rectangle_points(corner, c);
   } else {
     make_platform_points(corner, c);
   }
   
   return c;
+}
+
+void create_user(state_t *state) {
+  list_t *points = make_user();
+  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
+                                     make_type_info(USER), NULL);
+  state->user = user;
+  body_add_force(user, GRAVITY);
+  state->user_health = FULL_HEALTH;
 }
 
 /**
@@ -228,8 +237,8 @@ list_t *create_rectangle(void *wall_info) {
 void create_walls_and_platforms(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = create_rectangle(make_type_info(LEFT_WALL));
-    list_t *right_points = create_rectangle(make_type_info(RIGHT_WALL));
+    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL));
+    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL));
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(LEFT_WALL), 
                                             NULL);
@@ -243,7 +252,7 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = create_rectangle(make_type_info(PLATFORM));
+  list_t *platform_points = make_rectangle(make_type_info(PLATFORM));
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
@@ -490,15 +499,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 bool game_over(state_t *state) {
   return false;
 } 
-
-void create_user(state_t *state) {
-  list_t *points = make_user();
-  body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
-                                     make_type_info(USER), NULL);
-  state->user = user;
-  body_add_force(user, GRAVITY);
-  state->user_health = FULL_HEALTH;
-}
 
 void create_background(state_t *state) {
   
