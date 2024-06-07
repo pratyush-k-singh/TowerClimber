@@ -493,6 +493,15 @@ void check_jump(state_t *state) {
   }
 }
 
+void check_gravity_and_friction(state_t *state) {
+  check_jump(state);
+
+  if (get_type(state->collided_obj) == PLATFORM) {
+    vector_t v1 = body_get_velocity(user);
+    body_set_velocity(user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+  }
+}
+
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
  * (loss), the user falls off the map (loss), or the user reaches the top of the map (win).
@@ -553,12 +562,7 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
-  check_jump(state); // useless at present, attempt to fix gravity bug
-
-  if (get_type(state->collided_obj) == PLATFORM) {
-    vector_t v1 = body_get_velocity(user);
-    body_set_velocity(user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-  }
+  check_gravity_and_friction(state);
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
