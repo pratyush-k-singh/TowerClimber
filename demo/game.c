@@ -101,6 +101,13 @@ struct state {
   size_t health_powerup_index;
 };
 
+
+/**
+ * Get body_type_t type of body
+ * 
+ * @param body body to find the fype of
+ * @return body_type_t associated with body
+*/
 body_type_t get_type(body_t *body) {
   if (body == NULL) {
     return NONE;
@@ -108,25 +115,17 @@ body_type_t get_type(body_t *body) {
   return *(body_type_t *)body_get_info(body);
 }
 
+/**
+ * Covert body type into pointer
+ * 
+ * @param type body_type_t to be converted
+ * @return body_type_t* pointer to type
+*/
 body_type_t *make_type_info(body_type_t type) {
   body_type_t *info = malloc(sizeof(body_type_t));
   *info = type;
   return info;
 }
-
-// /**
-//  * Sets the velocity of the user so that the user can jump from sticky walls
-//  * 
-//  * @param state state object representing the current demo state
-//  * @param velocity velocity to set the user to 
-//  */
-// void set_velocity(state_t *state, vector_t velocity){
-//   body_t *user = state -> user;
-//   body_set_velocity(user, velocity);
-//   vector_t center = body_get_centroid(state -> user);
-//   vector_t move = {velocity.x/VELOCITY_SCALE, velocity.y/VELOCITY_SCALE};
-//   body_set_centroid(user, vec_add(center, move));
-// }
 
 /**
  * Creates user shape.
@@ -346,9 +345,11 @@ void update_health_bar(state_t *state) {
  * Check whether two bodies are colliding and applies a sticky collision between them
  * and to be called every tick
  *
- * @param state state object representing the current demo state
  * @param body1 the user
  * @param body2 the body with which the user is colliding
+ * @param axis the axis of collision
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
  */
 void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const){
@@ -360,12 +361,23 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->collided_obj = body2;
 }
 
+/**
+ * Collision handler for health powerups
+ *
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ * @param axis the axis of collision
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
+ */
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const) {
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->health_powerup_index);
-    if (state->user_health < FULL_HEALTH) {
+
+  // add to health only if health is not full
+  if (state->user_health < FULL_HEALTH) {
       state->user_health++;
       update_health_bar(state);
   }
@@ -375,15 +387,79 @@ void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void 
   }
 }
 
+/**
+ * Collision handler for jump powerups
+ *
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ * @param axis the axis of collision
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
+ */
 void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const) {
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->jump_powerup_index);
+
+  // set number of extra jumps the user can take
   state->jump_powerup_jumps = JUMP_POWERUP_JUMPS;
 
   if (state->health_powerup_index > state->jump_powerup_index) {
     state->health_powerup_index--;
+  }
+}
+
+/**
+ * Helper function to check when gravity should be applied to the user
+ * 
+ * @param state the current state of the demo
+*/
+void check_jump(state_t *state) {
+  // adds gravity if user is in the air
+  if (state->jumping) {
+    state->collided_obj = NULL;
+    body_add_force(state->user, GRAVITY);
+  } 
+
+  // removes gravity if user is not in the air
+  else {
+    body_reset(state->user);
+
+    bool is_collided = false;
+
+    // check if the user is still collided
+    for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+      body_t *body = scene_get_body(state->scene, i);
+      if (find_collision(state->user, body).collided) {
+        is_collided = true;
+        break;
+      }
+    }
+    
+    // determines whether the user has fallen and can no longer jump
+    if (is_collided == false) {
+      double user_xpos = body_get_centroid(state->user).x;
+      double obj_xpos = body_get_centroid(state->collided_obj).x;
+      if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
+        state->jumping = true;
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to add gravity and friction in edge cases
+ * 
+ * @param state the current state of the demo
+*/
+void check_gravity_and_friction(state_t *state) {
+  check_jump(state);
+
+  // add horizontal friction if the user is on the platform
+  if (get_type(state->collided_obj) == PLATFORM) {
+    vector_t v1 = body_get_velocity(state->user);
+    body_set_velocity(state->user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
   }
 }
 
@@ -454,6 +530,8 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
       case UP_ARROW: {
         if (!state->jumping || state->jump_powerup_jumps > 0) {
           new_vy = USER_JUMP_HEIGHT;
+
+          // determine if jump was taken using powerup and update if so
           if (state->jumping && state->jump_powerup_jumps > 0) {
             state->jump_powerup_jumps--;
           }
@@ -464,33 +542,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
     }
   }
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
-}
-
-void check_jump(state_t *state) {
-  if (state->jumping) {
-    state->collided_obj = NULL;
-    body_add_force(state->user, GRAVITY);
-  } 
-  else {
-    body_reset(state->user);
-
-    bool is_collided = false;
-    for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-      body_t *body = scene_get_body(state->scene, i);
-      if (find_collision(state->user, body).collided) {
-        is_collided = true;
-        break;
-      }
-    }
-    
-    if (is_collided == false) {
-      double user_xpos = body_get_centroid(state->user).x;
-      double obj_xpos = body_get_centroid(state->collided_obj).x;
-      if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
-        state->jumping = true;
-      }
-    }
-  }
 }
 
 /**
@@ -553,12 +604,7 @@ bool emscripten_main(state_t *state) {
   body_tick(user, dt);
   sdl_clear();
 
-  check_jump(state); // useless at present, attempt to fix gravity bug
-
-  if (get_type(state->collided_obj) == PLATFORM) {
-    vector_t v1 = body_get_velocity(user);
-    body_set_velocity(user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-  }
+  check_gravity_and_friction(state);
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
