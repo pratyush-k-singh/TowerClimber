@@ -360,6 +360,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->collided_obj = body2;
 
   if (get_type(body2) == PLATFORM) {
+    vector_t v1 = body_get_velocity(body1);
     body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
   }
 }
