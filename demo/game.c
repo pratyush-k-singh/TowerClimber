@@ -74,7 +74,7 @@ const size_t NUM_LEVELS = 1;
 const vector_t GRAVITY = {0, -1000};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
-const double VERTICAL_OFFSET = 100;
+const double VERTICAL_OFFSET = 0;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, NONE } body_type_t;
 
