@@ -514,7 +514,7 @@ void ghost_move(state_t *state){
         // srand(time(NULL) + i + Y_RAND);
         // double y = rand() % (size_t)fabs(RAND_SPEED);
         // (vector_t){x, y}
-        vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY);
+        vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY, i);
         vector_t rand_velocity = vec_add(velocity, rand_add);
         body_set_velocity(body, rand_velocity);
         if (i == num_bodies - 1){
