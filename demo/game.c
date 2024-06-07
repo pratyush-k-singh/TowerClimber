@@ -93,7 +93,7 @@ struct state {
   bool game_over;
   
   bool jumping; // determines whether up button can be pressed
-  body_t *collided_obj;
+  body_t *collided_obj; // the object that the user is collided with
   
   size_t jump_powerup_jumps;
 
@@ -358,6 +358,10 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   
   state->jumping = false;
   state->collided_obj = body2;
+
+  if (get_type(body2) == PLATFORM) {
+    body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+  }
 }
 
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
