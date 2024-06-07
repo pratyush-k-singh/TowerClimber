@@ -474,8 +474,22 @@ void check_jump(state_t *state) {
   if (state->jumping) {
     state->collided_obj = NULL;
     body_add_force(state->user, GRAVITY);
-  } else {
+  } 
+  else {
     body_reset(state->user);
+
+    bool is_collided = false;
+    for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+      body_t *body = scene_get_body(scene, i);
+      if (find_collision(state->user, body2).collided) {
+        is_collided = true;
+        break;
+      }
+    }
+    
+    if (is_collided == false) {
+      state->jumping = true;
+    }
   }
 }
 
