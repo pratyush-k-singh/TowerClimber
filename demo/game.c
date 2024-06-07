@@ -480,8 +480,8 @@ void check_jump(state_t *state) {
 
     bool is_collided = false;
     for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-      body_t *body = scene_get_body(scene, i);
-      if (find_collision(state->user, body2).collided) {
+      body_t *body = scene_get_body(state->scene, i);
+      if (find_collision(state->user, body).collided) {
         is_collided = true;
         break;
       }
