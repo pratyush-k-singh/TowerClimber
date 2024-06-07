@@ -27,6 +27,8 @@ const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
+const char *GHOST_PATH = "assets/ghost.png";
+const char *SPIKE_PATH = "assets/spike.png";
 
 // User constants
 const double USER_MASS = 5;
@@ -40,9 +42,36 @@ const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const size_t FULL_HEALTH = 3;
+const size_t ZERO_SEED;
+
+// Ghost constants
+const double GHOST_RADIUS = 30;
+const double GHOST_NUM = 3; // Total number of ghosts to be spawned 
+const double GHOST_MASS = 5;
+const rgb_color_t GHOST_COLOUR = (rgb_color_t){0, 0, 0};
+const double GHOST_OFFSET = 50;
+const double GHOST_SPEED = 150;
+const double SPAWN_TIMER = 3;
+const size_t INITIAL_GHOST = 1;
+const double Y_OFFSET_GHOST = -100;
+const double VELOCITY_BUFFER = 0.1;
+const double GHOST_ELASTICITY = 1;
+const double TRANSLATE_SCALE = 800;
+const double GHOST_RAND_MAX = 20;
+const size_t Y_RAND = 413;
+const double RAND_SPEED = 80;
+const size_t IMMUNITY = 3;
+
+// Obstacle constants
+const double SPIKE_RADIUS = 120;
+const vector_t SPIKE_MIN = {150, 500};
+const vector_t SPIKE_MAX = {600, 0};
+const double SPIKE_MASS = 5;
+const size_t SPIKE_NUM = 6;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
+const vector_t WALL_LENGTH = {0, 2000};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
 const double WALL_ELASTICITY = 0;
@@ -53,6 +82,7 @@ const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_FRICTION = .85;
+const size_t PLATFORM_LEVEL = 0;
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -70,13 +100,13 @@ const double POWERUP_ELASTICITY = 1;
 const size_t JUMP_POWERUP_JUMPS = 2;
 
 // Game constants
-const size_t NUM_LEVELS = 1;
+const size_t NUM_LEVELS = 3;
 const vector_t GRAVITY = {0, -1000};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
-typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, NONE } body_type_t;
+typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
 
 struct state {
   scene_t *scene;
@@ -86,9 +116,12 @@ struct state {
   
   size_t user_health;
   asset_t *health_bar;
+  double user_immunity;
 
   size_t ghost_counter;
   double ghost_timer;
+  double velocity_timer;
+
   double vertical_offset;
   bool game_over;
   
@@ -100,6 +133,7 @@ struct state {
   size_t jump_powerup_index;
   size_t health_powerup_index;
 };
+
 
 
 /**
@@ -132,20 +166,28 @@ body_type_t *make_type_info(body_type_t type) {
  * 
  * @return list_t containing the points of the shape
 */
-list_t *make_user() {
-  vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
-                    MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
+list_t *make_user(vector_t center, void *info, size_t seed) {
+  double radius = RADIUS;
+  vector_t center_body = center;
+  if (*(body_type_t *)info == SPIKE){
+    radius = SPIKE_RADIUS;
+    vector_t spike_max = {SPIKE_MAX.x, SPIKE_MAX.y + 
+                          WALL_LENGTH.y * NUM_LEVELS};
+    center_body = rand_vec(SPIKE_MIN, spike_max, seed);
+
+  }
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
     double angle = 2 * M_PI * i / USER_NUM_POINTS;
     vector_t *v = malloc(sizeof(*v));
     assert(v);
-    *v = (vector_t){center.x + RADIUS * cos(angle),
-                    center.y + RADIUS * sin(angle)};
+    *v = (vector_t){center_body.x + radius * cos(angle),
+                    center_body.y + radius * sin(angle)};
     list_add(c, v);
   }
   return c;
 }
+
 
 /**
  * Generates the list of points for a Wall shape given the vector of the bottom left
@@ -155,9 +197,13 @@ list_t *make_user() {
  * the wall
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
-void make_rectangle_points(vector_t corner, list_t *points){
-  vector_t wall_length = {MIN.y, MAX.y};
-  vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
+void make_rectangle_points(vector_t corner, list_t *points, bool platform){
+  vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
+  if (!platform){
+    temp[0] = WALL_LENGTH;
+    temp[1] = WALL_WIDTH;
+    temp[2] = vec_negate(WALL_LENGTH);
+  }
   vector_t *v_1 = malloc(sizeof(*v_1));
   *v_1 = corner;
   list_add(points, v_1);
@@ -179,18 +225,7 @@ void make_rectangle_points(vector_t corner, list_t *points){
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
 void make_platform_points(vector_t corner, list_t *points){
-  
-  vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
-  vector_t *v_1 = malloc(sizeof(*v_1));
-  *v_1 = corner;
-  list_add(points, v_1);
-  assert(v_1);
-  for (size_t i = 0; i < WALL_POINTS-1; i++){
-    vector_t *v = malloc(sizeof(*v));
-    *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
-    assert(v);
-    list_add(points, v);
-  }
+  make_rectangle_points(corner, points, true);
 }
 
 /**
@@ -198,22 +233,22 @@ void make_platform_points(vector_t corner, list_t *points){
  * 
  * @param wall_info the object type of the body
 */
-list_t *make_rectangle(void *wall_info) {
+list_t *make_rectangle(void *wall_info, size_t level) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
 
   if (*info == LEFT_WALL) {
-    corner = MIN;
+    corner = (vector_t){MIN.x, MIN.y + WALL_LENGTH.y * level};
   } 
   if (*info == RIGHT_WALL) {
-    corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
+    corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.y + WALL_LENGTH.y * level};
   }
   if (*info == PLATFORM) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
-    make_rectangle_points(corner, c);
+    make_rectangle_points(corner, c, false);
   } else {
     make_platform_points(corner, c);
   }
@@ -250,9 +285,11 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 }
 
 void create_user(state_t *state) {
-  list_t *points = make_user();
+  vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
+                    MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
+  list_t *points = make_user(center,  make_type_info(USER), ZERO_SEED);
   body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
-                                     make_type_info(USER), NULL);
+                                    make_type_info(USER), NULL);
   state->user = user;
   body_add_force(user, GRAVITY);
   state->jumping = false;
@@ -268,12 +305,12 @@ void create_user(state_t *state) {
 void create_walls_and_platforms(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL));
-    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL));
+    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL), i);
+    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL), i);
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(LEFT_WALL), 
                                             NULL);
-    body_t *right_wall = body_init_with_info(right_points, INFINITY, 
+    body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(RIGHT_WALL), 
                                             NULL);
     scene_add_body(scene, left_wall);
@@ -283,7 +320,7 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_rectangle(make_type_info(PLATFORM));
+  list_t *platform_points = make_rectangle(make_type_info(PLATFORM), PLATFORM_LEVEL);
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
@@ -411,6 +448,96 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
 }
 
 /**
+ * Check whether two bodies are colliding and applies a sticky collision between them
+ * and to be called every tick
+ *
+ * @param state state object representing the current demo state
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ */
+void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  if (state -> user_immunity > IMMUNITY){
+    if (state -> user_health > 1){
+      state -> user_health --;
+      update_health_bar(state);
+    } else {
+      //body_remove(user);
+    }
+    state -> user_immunity = 0;
+  }
+}
+
+
+
+/**
+ * Spawns a ghost on the screen at fixed y value and at a random x value
+ * that is within the bounds of the window
+ * 
+ */
+void spawn_ghost(state_t *state) {
+  
+  vector_t max = {MAX.x, 0};
+  double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
+  vector_t ghost_center = {x, Y_OFFSET_GHOST};
+  list_t *c = make_user(ghost_center, make_type_info(GHOST), ZERO_SEED);
+  body_t *ghost = body_init_with_info(c, GHOST_MASS, GHOST_COLOUR, 
+                                      make_type_info(GHOST), NULL);
+  scene_add_body(state -> scene, ghost);
+  asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, VERTICAL_OFFSET);
+  list_add(state->body_assets, ghost_asset);
+  create_collision(state->scene, state->user, ghost,
+                      (collision_handler_t)ghost_collision, state, 0);
+  state -> ghost_counter++;
+  state -> ghost_timer = 0;
+  
+}
+
+/**
+ * Spawns a ghost on the screen at fixed y value and at a random x value
+ * that is within the bounds of the window
+ */
+void ghost_move(state_t *state){
+  scene_t *scene = state->scene;
+  size_t num_bodies = scene_bodies(scene);
+  for (size_t i = 0; i < num_bodies; i++){
+    body_t *body = scene_get_body(scene, i);
+    if (get_type(body) == GHOST && (state->velocity_timer > VELOCITY_BUFFER)){
+        vector_t user_center = body_get_centroid(state->user);
+        vector_t ghost_center = body_get_centroid(body);
+        vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
+        vector_t velocity = vec_multiply(GHOST_SPEED, direction);
+        srand(time(NULL) + i);
+        double x = rand() % (size_t)fabs(RAND_SPEED);
+        srand(time(NULL) + i + Y_RAND);
+        double y = rand() % (size_t)fabs(RAND_SPEED);
+        vector_t rand_velocity = vec_add(velocity, (vector_t){x, y});
+        body_set_velocity(body, rand_velocity);
+        if (i == num_bodies - 1){
+          state->velocity_timer = 0;
+        }
+      }
+    }
+}
+
+
+/**
+ * Spawns spikes on the screen at random y value and at a random x value
+ * that is within the bounds wall height and the space in between
+ */
+void spawn_spike(state_t *state) {
+  for (size_t i = 0; i < SPIKE_NUM; i++){
+    list_t *c = make_user(VEC_ZERO, make_type_info(SPIKE), i);
+    body_t *spike = body_init_with_info(c, SPIKE_MASS, GHOST_COLOUR, 
+                                        make_type_info(SPIKE), NULL);
+    scene_add_body(state -> scene, spike);
+    asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, VERTICAL_OFFSET);
+    list_add(state->body_assets, spike_asset);
+  }
+}
+
+/**
  * Helper function to check when gravity should be applied to the user
  * 
  * @param state the current state of the demo
@@ -492,6 +619,9 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body,
                        (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
       break;
+    case SPIKE:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)ghost_collision, state, GHOST_ELASTICITY);
     default:
       break;
     }
@@ -512,7 +642,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   vector_t cur_v = body_get_velocity(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
-
   if (type == KEY_PRESSED) {
       switch (key) {
       case LEFT_ARROW: {
@@ -586,9 +715,16 @@ state_t *emscripten_init() {
   create_health_power_up(state);
   create_jump_power_up(state);
 
+  // Initialize obstacles
+  spawn_spike(state);
+
   // Initialize miscellaneous state values
   state->game_over = false;
   state->vertical_offset = 0;
+  state->velocity_timer = 0;
+  state->ghost_counter = 0;
+  state->user_immunity = 0;
+  state->ghost_timer = 0;
   
   add_force_creators(state);
   sdl_on_key((key_handler_t)on_key);
@@ -598,6 +734,9 @@ state_t *emscripten_init() {
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
+  state -> ghost_timer += dt;
+  state -> velocity_timer += dt;
+  state -> user_immunity += dt;
   body_t *user = state->user;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
@@ -608,6 +747,12 @@ bool emscripten_main(state_t *state) {
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
+
+  // spawn and move ghosts
+  if (state -> ghost_timer > SPAWN_TIMER && state -> ghost_counter <= GHOST_NUM){
+    spawn_ghost(state);
+  }
+  ghost_move(state);
 
   // render assets
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
