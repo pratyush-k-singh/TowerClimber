@@ -497,8 +497,8 @@ void check_gravity_and_friction(state_t *state) {
   check_jump(state);
 
   if (get_type(state->collided_obj) == PLATFORM) {
-    vector_t v1 = body_get_velocity(user);
-    body_set_velocity(user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+    vector_t v1 = body_get_velocity(state->user);
+    body_set_velocity(state->user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
   }
 }
 
