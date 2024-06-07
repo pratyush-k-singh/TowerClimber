@@ -2,6 +2,7 @@
 #define __VECTOR_H__
 
 #include <stdbool.h>
+#include <stdio.h>
 
 /**
  * A real-valued 2-dimensional vector.
@@ -107,5 +108,16 @@ double vec_get_length(vector_t v);
  * if they are equal and false if they are not
  */
 bool vec_cmp(vector_t v1, vector_t v2);
+
+/**
+ * @return a vectore representing the unit vector of @param v1 
+ */
+vector_t vec_unit(vector_t v1);
+
+/**
+ * Generates a random vector between the specified range
+ * and returns it
+ */
+vector_t rand_vec(vector_t min, vector_t max, size_t seed);
 
 #endif // #ifndef __VECTOR_H__

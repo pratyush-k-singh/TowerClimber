@@ -1,4 +1,6 @@
 #include "vector.h"
+#include <time.h>
+#include <stdlib.h>
 #include <math.h>
 
 const vector_t VEC_ZERO = {0.0, 0.0};
@@ -42,4 +44,22 @@ double vec_get_length(vector_t v) { return sqrt(pow(v.x, 2) + pow(v.y, 2)); }
 
 bool vec_cmp(vector_t v1, vector_t v2){
   return((v1.x == v2.x) && (v1.y == v2.y));
+}
+
+vector_t vec_unit(vector_t v1){
+  return (vec_multiply((1/vec_get_length(v1)), v1));
+}
+
+
+vector_t rand_vec(vector_t min, vector_t max, size_t seed){
+  double range_x = max.x - min.x;
+  double range_y = max.y - min.y;
+  srand(time(NULL) + seed + rand());
+  double x = min.x + (rand() / (double)RAND_MAX)*range_x;
+  srand(time(NULL) + seed + rand());
+  double y = min.y + (rand() / (double)RAND_MAX)*range_y;
+  vector_t v;
+  v.x = x;
+  v.y = y;
+  return v;
 }
