@@ -358,11 +358,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   
   state->jumping = false;
   state->collided_obj = body2;
-
-  if (get_type(body2) == PLATFORM) {
-    vector_t v1 = body_get_velocity(body1);
-    body_set_velocity(body1, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-  }
 }
 
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
@@ -559,6 +554,11 @@ bool emscripten_main(state_t *state) {
   sdl_clear();
 
   check_jump(state); // useless at present, attempt to fix gravity bug
+
+  if (get_type(state->collided_obj) == PLATFORM) {
+    vector_t v1 = body_get_velocity(user);
+    body_set_velocity(user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+  }
 
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
