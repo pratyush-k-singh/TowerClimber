@@ -60,6 +60,7 @@ const double TRANSLATE_SCALE = 800;
 const double GHOST_RAND_MAX = 20;
 const size_t Y_RAND = 413;
 const double RAND_SPEED = 80;
+const double RAND_VELOCITY = {60, 60};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
@@ -508,11 +509,13 @@ void ghost_move(state_t *state){
         vector_t ghost_center = body_get_centroid(body);
         vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
         vector_t velocity = vec_multiply(GHOST_SPEED, direction);
-        srand(time(NULL) + i);
-        double x = rand() % (size_t)fabs(RAND_SPEED);
-        srand(time(NULL) + i + Y_RAND);
-        double y = rand() % (size_t)fabs(RAND_SPEED);
-        vector_t rand_velocity = vec_add(velocity, (vector_t){x, y});
+        // srand(time(NULL) + i);
+        // double x = rand() % (size_t)fabs(RAND_SPEED);
+        // srand(time(NULL) + i + Y_RAND);
+        // double y = rand() % (size_t)fabs(RAND_SPEED);
+        // (vector_t){x, y}
+        vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY);
+        vector_t rand_velocity = vec_add(velocity, rand_add);
         body_set_velocity(body, rand_velocity);
         if (i == num_bodies - 1){
           state->velocity_timer = 0;
