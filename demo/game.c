@@ -470,7 +470,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 void check_jump(state_t *state) {
-  // implement buffer for user's jumps off walls and platform
   if (state->jumping) {
     state->collided_obj = NULL;
     body_add_force(state->user, GRAVITY);
@@ -488,7 +487,11 @@ void check_jump(state_t *state) {
     }
     
     if (is_collided == false) {
-      state->jumping = true;
+      double user_xpos = body_get_centroid(state->user).x;
+      double obj_xpos = body_get_centroid(state->collided_obj).x;
+      if (fabs(user_xpos - obj_xpos) > JUMP_BUFFER) {
+        state->jumping = true;
+      }
     }
   }
 }
