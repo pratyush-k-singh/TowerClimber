@@ -39,7 +39,6 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
-const double GAP = 10;
 const size_t FULL_HEALTH = 3;
 
 // Wall constants
@@ -53,7 +52,6 @@ const double PLATFORM_SCALING = 5;
 const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
-const double PLATFORM_ROTATION = M_PI/2;
 const double PLATFORM_FRICTION = .85;
 
 // health bar location
@@ -94,8 +92,7 @@ struct state {
   double vertical_offset;
   bool game_over;
   
-  bool jumping;
-  size_t can_jump;
+  bool jumping; // determines whether up button can be pressed
   body_t *collided_obj;
   
   size_t jump_powerup_jumps;
@@ -359,7 +356,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   physics_collision_handler(body1, body2, axis, aux, force_const);
   
   state->jumping = false;
-  state->can_jump = 0;
   state->collided_obj = body2;
 }
 
@@ -542,7 +538,6 @@ state_t *emscripten_init() {
   state->game_over = false;
   state->vertical_offset = 0;
   state->jumping = false;
-  state->can_jump = 0;
   
   add_force_creators(state);
   sdl_on_key((key_handler_t)on_key);
