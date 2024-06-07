@@ -256,6 +256,7 @@ void create_user(state_t *state) {
                                      make_type_info(USER), NULL);
   state->user = user;
   body_add_force(user, GRAVITY);
+  state->jumping = false;
   state->user_health = FULL_HEALTH;
 }
 
@@ -537,7 +538,6 @@ state_t *emscripten_init() {
   // Initialize miscellaneous state values
   state->game_over = false;
   state->vertical_offset = 0;
-  state->jumping = false;
   
   add_force_creators(state);
   sdl_on_key((key_handler_t)on_key);
