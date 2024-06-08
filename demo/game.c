@@ -110,6 +110,8 @@ const size_t JUMP_POWERUP_JUMPS = 2;
 const size_t SOUND_SIZE = 5;
 const double HIT_BUFFER = 0.3;
 const double COLLIDING_BUFFER = 0.36;
+const double FALL_BUFFER = 0.2;
+const double FALL_THRESHOLD = 50;
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -155,6 +157,8 @@ struct state {
   list_t *sounds;
   double hit_buffer;
   double colliding_buffer;
+  double fall_buffer;
+  size_t fall_channel;
   bool is_colliding;
 };
 
@@ -461,6 +465,18 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->colliding_buffer = 0;
 }
 
+void fall_sound(state_t *state){
+  double y_vel = fabs(body_get_velocity(state->user).y);
+
+  if (y_vel > FALL_THRESHOLD && state->fall_buffer > FALL_BUFFER){
+    state->fall_channel = Mix_PlayChannel(-1, sdl_play_sound(get_sound(state, FLYING)), 0);
+    
+    state->fall_buffer = 0;
+  } else if(state->fall_buffer>FALL_BUFFER <= FALL_BUFFER){
+    Mix_HaltChannel(state->fall_channel);
+  }
+}
+
 /**
  * Collision handler for health powerups
  *
@@ -762,6 +778,7 @@ state_t *emscripten_init() {
   state->hit_buffer = 0;
   state->colliding_buffer = 0;
   state->is_colliding = false;
+  
 
   
   // Initialize background
