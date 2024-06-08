@@ -30,6 +30,8 @@ const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *GHOST_PATH = "assets/ghost.png";
 const char *SPIKE_PATH = "assets/spike.png";
 
+const char *GHOST_HIT = "assets/ghost_hit.mp3";
+
 // User constants
 const double USER_MASS = 5;
 const double USER_ROTATION = 0;
@@ -133,6 +135,8 @@ struct state {
 
   size_t jump_powerup_index;
   size_t health_powerup_index;
+
+  Mix_Chunk *ghost_hit;
 };
 
 
@@ -463,6 +467,7 @@ void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
     if (state -> user_health > 1){
       state -> user_health --;
       update_health_bar(state);
+      sdl_play_sound(state->ghost_hit);
     } else {
       //body_remove(user);
     }
@@ -715,6 +720,9 @@ state_t *emscripten_init() {
 
   // Initialize obstacles
   spawn_spike(state);
+
+  // Initialize sounds
+  state->ghost_hit = sdl_load_sound(GHOST_HIT);
 
   // Initialize miscellaneous state values
   state->game_over = false;
