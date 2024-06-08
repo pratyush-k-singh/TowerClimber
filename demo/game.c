@@ -773,7 +773,7 @@ state_t *emscripten_init() {
 
   // Initialize sound
   Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
-  Mix_Volume(-1, MIX_MAX_VOLUME);
+  Mix_Volume(-1, MIX_MAX_VOLUME/2);
   sound_init(state);
   state->hit_buffer = 0;
   state->colliding_buffer = 0;
