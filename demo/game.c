@@ -468,7 +468,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->colliding_buffer = 0;
   if (get_type(body2) == LEFT_WALL){
     state->wall_l = 0;
-    exit(0);
   } else if (get_type(body2) == RIGHT_WALL){
     state->wall_r = 0;
   }
@@ -722,7 +721,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
     switch (key) {
       case LEFT_ARROW: {
-        if (get_type(state->collided_obj) != LEFT_WALL && !colliding_l) {
+        if (get_type(state->collided_obj) != LEFT_WALL && false) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
