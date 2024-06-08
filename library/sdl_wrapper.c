@@ -119,7 +119,10 @@ void sdl_init(vector_t min, vector_t max) {
                             SDL_WINDOW_RESIZABLE);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
   TTF_Init();
-  Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+  if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+    printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    exit(1);
+}
 }
 
 bool sdl_is_done(void *state) {
