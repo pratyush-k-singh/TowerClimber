@@ -108,6 +108,8 @@ const size_t JUMP_POWERUP_JUMPS = 2;
 
 // Sound constants
 const size_t SOUND_SIZE = 5;
+const double HIT_BUFFER = 0.3;
+const double COLLIDING_BUFFER = 0.1;
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -151,6 +153,9 @@ struct state {
   size_t health_powerup_index;
 
   list_t *sounds;
+  double *hit_buffer;
+  double *colliding_buffer;
+  bool *is_colliding;
 };
 
 void sound_free(sound_t *sound){
@@ -447,6 +452,17 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   
   state->jumping = false;
   state->collided_obj = body2;
+  if (state->colliding_buffer > COLLIDING_BUFFER){
+    body_type_t type = get_type(body2);
+    if (type == LEFT_WALL || type == RIGHT_WALL){
+      sdl_play_sound(get_sound(state, WALL_IMPACT));
+    } else{
+      sdl_play_sound(get_sound(state, PLATFORM_IMPACT));
+    }
+  }
+
+  state->colliding_buffer = 0;
+  state->is_colliding = true;
 }
 
 /**
@@ -747,6 +763,10 @@ state_t *emscripten_init() {
   Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
   Mix_Volume(-1, MIX_MAX_VOLUME);
   sound_init(state);
+  state->hit_buffer = 0;
+  state->colliding_buffer = 0;
+  state->is_colliding = false;
+
   
   // Initialize background
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
@@ -790,9 +810,10 @@ state_t *emscripten_init() {
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
-  state -> ghost_timer += dt;
-  state -> velocity_timer += dt;
-  state -> user_immunity += dt;
+  state->ghost_timer += dt;
+  state->velocity_timer += dt;
+  state->user_immunity += dt;
+  state->hit_buffer += dt;
   body_t *user = state->user;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
@@ -805,7 +826,7 @@ bool emscripten_main(state_t *state) {
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
   // spawn and move ghosts
-  if (state -> ghost_timer > SPAWN_TIMER && state -> ghost_counter <= GHOST_NUM){
+  if (state->ghost_timer > SPAWN_TIMER && state -> ghost_counter <= GHOST_NUM){
     spawn_ghost(state);
   }
   ghost_move(state);
