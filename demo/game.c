@@ -160,11 +160,15 @@ void sound_free(sound_t *sound){
 
 void sound_init(state_t *state){
   list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
-  const char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
+  char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
                         PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = malloc(sizeof(sound_t));
-    list_add(sounds, paths[i]);
+    sound_type_t *info = malloc(sizeof(sound_type_t))
+    *info = i;
+    sound->info = info;
+    sound->player = sdl_load_sound(paths[i]);
+    list_add(sounds, sound);
   }
   state->sounds = sounds;
 }
@@ -741,7 +745,7 @@ state_t *emscripten_init() {
   // Initialize sound
   Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
   Mix_Volume(-1, MIX_MAX_VOLUME);
-  state->ghost_hit = sdl_load_sound(GHOST_HIT);
+
   
   // Initialize background
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
