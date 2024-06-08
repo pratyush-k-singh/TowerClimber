@@ -181,6 +181,7 @@ Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
       return sound->player;
     }
   }
+  return NULL;
 }
 
 
@@ -745,7 +746,7 @@ state_t *emscripten_init() {
   // Initialize sound
   Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
   Mix_Volume(-1, MIX_MAX_VOLUME);
-
+  sound_init(state);
   
   // Initialize background
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
