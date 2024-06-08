@@ -113,7 +113,7 @@ const double COLLIDING_BUFFER = 0.36;
 const double FALL_BUFFER = 0.2;
 const double FALL_THRESHOLD = 50;
 const size_t FLYING_CHANNEL = 1;
-const size_t IMPACT_CHANNGEL = 2;
+const size_t IMPACT_CHANNEL = 2;
 const size_t FREQUENCY = 44100;
 const size_t STEREO = 2;
 const size_t AUDIO_BUFFER = 2048;
@@ -459,7 +459,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->jumping = false;
   state->collided_obj = body2;
   if (state->colliding_buffer > COLLIDING_BUFFER){
-    Mix_PlayChannel(FLYING_CHANNEL, get_sound(state, PLATFORM_IMPACT), 0);
+    Mix_PlayChannel(IMPACT_CHANNEL, get_sound(state, PLATFORM_IMPACT), 0);
   }
 
   state->colliding_buffer = 0;
@@ -764,7 +764,7 @@ state_t *emscripten_init() {
   Mix_Volume(DEFAULT_CHANNEL, MIX_MAX_VOLUME/2);
   sound_init(state);
   state->colliding_buffer = 0;
-  Mix_PlayChannel(FLYING_CHANNEL, get_sound(state, WIND), 0);
+  Mix_PlayChannel(WIND_CHANNEL, get_sound(state, WIND), DEFAULT_CHANNEL);
   
 
   
