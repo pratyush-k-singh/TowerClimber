@@ -471,7 +471,6 @@ void fall_sound(state_t *state){
 
   if (y_vel > FALL_THRESHOLD && !Mix_Playing(FLYING_CHANNEL)){
     state->fall_channel = Mix_PlayChannel(FLYING_CHANNEL, get_sound(state, FLYING), 0);
-    exit(0);
     state->fall_buffer = 0;
   } else if(Mix_Playing(FLYING_CHANNEL)){
     Mix_HaltChannel(state->fall_channel);
@@ -847,6 +846,8 @@ bool emscripten_main(state_t *state) {
     spawn_ghost(state);
   }
   ghost_move(state);
+
+  fall_sound(state);
 
   // render assets
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
