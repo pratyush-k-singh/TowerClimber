@@ -777,6 +777,7 @@ state_t *emscripten_init() {
   sound_init(state);
   state->hit_buffer = 0;
   state->colliding_buffer = 0;
+  state->fall_buffer = 0;
   state->is_colliding = false;
   
 
@@ -828,6 +829,7 @@ bool emscripten_main(state_t *state) {
   state->user_immunity += dt;
   state->hit_buffer += dt;
   state->colliding_buffer += dt;
+  state->fall_buffer += dt;
   body_t *user = state->user;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
