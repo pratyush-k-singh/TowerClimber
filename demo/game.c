@@ -727,7 +727,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
         break;
       }
       case RIGHT_ARROW: {
-        if (get_type(state->collided_obj) != RIGHT_WALL && !colliding_R) {
+        if (get_type(state->collided_obj) != RIGHT_WALL && !colliding_r) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
