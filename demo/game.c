@@ -116,6 +116,7 @@ const size_t FLYING_CHANNEL = 1;
 const size_t FREQUENCY = 44100;
 const size_t STEREO = 2;
 const size_t AUDIO_BUFFER = 2048;
+const size_t DEFAULT_CHANNEL = -1;
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -761,10 +762,10 @@ state_t *emscripten_init() {
 
   // Initialize sound
   Mix_OpenAudio(FREQUENCY, MIX_DEFAULT_FORMAT, STEREO, AUDIO_BUFFER);
-  Mix_Volume(-1, MIX_MAX_VOLUME/2);
+  Mix_Volume(DEFAULT_CHANNEL, MIX_MAX_VOLUME/2);
   sound_init(state);
   state->colliding_buffer = 0;
-  Mix_PlayChannel(-1, get_sound(state, WIND), 0);
+  Mix_PlayChannel(DEFAULT_CHANNEL, get_sound(state, WIND), 0);
   
 
   
@@ -814,7 +815,6 @@ bool emscripten_main(state_t *state) {
   state->velocity_timer += dt;
   state->user_immunity += dt;
   state->colliding_buffer += dt;
-  state->fall_buffer += dt;
   body_t *user = state->user;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
@@ -831,8 +831,6 @@ bool emscripten_main(state_t *state) {
     spawn_ghost(state);
   }
   ghost_move(state);
-
-  fall_sound(state);
 
   // render assets
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
