@@ -71,12 +71,12 @@ void sdl_clear(void);
 /**
  * 
  */
-Mix_Chunk *sdl_load_sound(const char *file);
+Mix_Music *sdl_load_sound(const char *file);
 
 /**
  * 
  */
-void sdl_play_sound(Mix_Chunk *sound);
+void sdl_play_sound(Mix_Music *sound);
 
 /**
  * Draws a polygon from the given list of vertices and a color.

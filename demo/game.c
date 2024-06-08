@@ -136,7 +136,7 @@ struct state {
   size_t jump_powerup_index;
   size_t health_powerup_index;
 
-  Mix_Chunk *ghost_hit;
+  Mix_Music *ghost_hit;
 };
 
 
@@ -695,6 +695,11 @@ state_t *emscripten_init() {
   // Initialize scene
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
+
+  // Initialize sound
+  Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+  Mix_Volume(-1, MIX_MAX_VOLUME);
+  state->ghost_hit = sdl_load_sound(GHOST_HIT);
   
   // Initialize background
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
@@ -720,9 +725,7 @@ state_t *emscripten_init() {
 
   // Initialize obstacles
   spawn_spike(state);
-
-  // Initialize sounds
-  state->ghost_hit = sdl_load_sound(GHOST_HIT);
+  
 
   // Initialize miscellaneous state values
   state->game_over = false;
