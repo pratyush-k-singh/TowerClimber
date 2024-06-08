@@ -792,7 +792,7 @@ void update_buffers(state_t *state, double dt){
 bool game_over(state_t *state) {
   return false;
 } 
-}
+
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
