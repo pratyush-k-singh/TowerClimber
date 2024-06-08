@@ -112,6 +112,7 @@ const double HIT_BUFFER = 0.3;
 const double COLLIDING_BUFFER = 0.36;
 const double FALL_BUFFER = 0.2;
 const double FALL_THRESHOLD = 50;
+const size_t FLYING_CHANNEL = 1;
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -468,11 +469,11 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 void fall_sound(state_t *state){
   double y_vel = fabs(body_get_velocity(state->user).y);
 
-  if (y_vel > FALL_THRESHOLD && state->fall_buffer > FALL_BUFFER){
-    state->fall_channel = Mix_PlayChannel(-1, get_sound(state, FLYING), 0);
+  if (y_vel > FALL_THRESHOLD && !Mix_Playing(FLYING_CHANNEL)){
+    state->fall_channel = Mix_PlayChannel(FLYING_CHANNEL, get_sound(state, FLYING), 0);
     
     state->fall_buffer = 0;
-  } else if(state->fall_buffer>FALL_BUFFER <= FALL_BUFFER){
+  } else if(Mix_Playing(FLYING_CHANNEL)){
     Mix_HaltChannel(state->fall_channel);
   }
 }
