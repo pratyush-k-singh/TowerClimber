@@ -31,7 +31,7 @@ const char *GHOST_PATH = "assets/ghost.png";
 const char *SPIKE_PATH = "assets/spike.png";
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
-const char *FLYING_PATH = "assets/flying.wav":
+const char *FLYING_PATH = "assets/flying.wav";
 const char *SPIKE_IMPACT_PATH = "assets/spike_impact.wav";
 const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
@@ -121,7 +121,7 @@ typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, 
 typedef enum { GHOST_IMPACT, FLYING, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
-  Mix_Chunx *player;
+  Mix_Chunk *player;
   void *info;
 } sound_t;
 
@@ -483,7 +483,7 @@ void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
     if (state -> user_health > 1){
       state -> user_health --;
       update_health_bar(state);
-      sdl_play_sound(state->ghost_hit);
+      sdl_play_sound(get_sound(state, GHOST_IMPACT));
     } else {
       //body_remove(user);
     }
@@ -692,7 +692,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
-sound_free(sound_type_t *sound){
+void sound_free(sound_t *sound){
   Mix_FreeChunk(sound->player);
   free(sound);
 }
@@ -706,6 +706,16 @@ void sound_init(state_t *state){
     list_add(sounds, paths[i]);
   }
   state->sounds = sounds;
+}
+
+Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
+  list_t* sounds = state->sounds;
+  for (size_t i = 0; i < SOUND_SIZE; i++){
+    sound_t *sound = list_get(sounds, i);
+    if (*sound->info == sound_type){
+      return sound->player;
+    }
+  }
 }
 
 /**
