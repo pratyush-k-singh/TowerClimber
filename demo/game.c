@@ -525,7 +525,7 @@ void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
     if (state -> user_health > 1){
       state -> user_health --;
       update_health_bar(state);
-      sdl_play_sound(get_sound(state, GHOST_IMPACT));
+      // sdl_play_sound(get_sound(state, GHOST_IMPACT));
     } else {
       //body_remove(user);
     }
