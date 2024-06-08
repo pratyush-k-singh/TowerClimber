@@ -15,7 +15,7 @@
 #include "vector.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {750, 1000};
+const vector_t MAX = {1000, 1000};
 
 // File paths
 const char *BACKGROUND_PATH = "assets/background.png";
