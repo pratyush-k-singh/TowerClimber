@@ -155,8 +155,6 @@ struct state {
   
   bool jumping; // determines whether up button can be pressed
   body_t *collided_obj; // the object that the user is collided with
-  double wall_r;
-  double wall_l;
   
   size_t jump_powerup_jumps;
 
@@ -466,11 +464,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   }
 
   state->colliding_buffer = 0;
-  if (get_type(body2) == LEFT_WALL){
-    state->wall_l = 0;
-  } else if (get_type(body2) == RIGHT_WALL){
-    state->wall_r = 0;
-  }
 }
 
 /**
@@ -715,19 +708,17 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   vector_t cur_v = body_get_velocity(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
-  bool colliding_r = (state->wall_r < COLLIDING_BUFFER);
-  bool colliding_l = (state->wall_l < COLLIDING_BUFFER);
 
   if (type == KEY_PRESSED) {
     switch (key) {
       case LEFT_ARROW: {
-        if (get_type(state->collided_obj) != LEFT_WALL && false) {
+        if (get_type(state->collided_obj) != LEFT_WALL) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
       }
       case RIGHT_ARROW: {
-        if (get_type(state->collided_obj) != RIGHT_WALL && !colliding_r) {
+        if (get_type(state->collided_obj) != RIGHT_WALL) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
@@ -759,8 +750,6 @@ void update_buffers(state_t *state, double dt){
   state->velocity_timer += dt;
   state->user_immunity += dt;
   state->colliding_buffer += dt;
-  state->wall_l += dt;
-  state->wall_r += dt;
 }
 
 
@@ -810,8 +799,6 @@ state_t *emscripten_init() {
 
   // Intialize walls and platforms
   create_walls_and_platforms(state);
-  state->wall_l = 0;
-  state->wall_r = 0;
 
   // Initialize powerups
   create_health_power_up(state);
