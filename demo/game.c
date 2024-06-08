@@ -31,7 +31,7 @@ const char *GHOST_PATH = "assets/ghost.png";
 const char *SPIKE_PATH = "assets/spike.png";
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
-const char *FLYING_PATH = "assets/flying.wav";
+const char *WIND_PATH = "assets/wind.wav";
 const char *SPIKE_IMPACT_PATH = "assets/spike_impact.wav";
 const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
@@ -113,6 +113,9 @@ const double COLLIDING_BUFFER = 0.36;
 const double FALL_BUFFER = 0.2;
 const double FALL_THRESHOLD = 50;
 const size_t FLYING_CHANNEL = 1;
+const size_t FREQUENCY = 44100;
+const size_t STEREO = 2;
+const size_t AUDIO_BUFFER = 2048;
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -123,7 +126,7 @@ const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
 
-typedef enum { GHOST_IMPACT, FLYING, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
+typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
   Mix_Chunk *player;
@@ -156,11 +159,7 @@ struct state {
   size_t health_powerup_index;
 
   list_t *sounds;
-  double hit_buffer;
   double colliding_buffer;
-  double fall_buffer;
-  size_t fall_channel;
-  bool is_colliding;
 };
 
 void sound_free(sound_t *sound){
@@ -170,7 +169,7 @@ void sound_free(sound_t *sound){
 
 void sound_init(state_t *state){
   list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
-  const char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
+  const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, SPIKE_IMPACT_PATH, 
                         PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = malloc(sizeof(sound_t));
@@ -464,17 +463,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   }
 
   state->colliding_buffer = 0;
-}
-
-void fall_sound(state_t *state){
-  double y_vel = fabs(body_get_velocity(state->user).y);
-
-  if (y_vel > FALL_THRESHOLD && state->fall_buffer > FALL_BUFFER && !Mix_Playing(state->fall_channel)){
-    state->fall_channel = Mix_PlayChannel(FLYING_CHANNEL, get_sound(state, FLYING), 0);
-    state->fall_buffer = 0;
-  } else if(Mix_Playing(FLYING_CHANNEL)){
-    // Mix_HaltChannel(state->fall_channel);
-  }
 }
 
 /**
@@ -772,14 +760,11 @@ state_t *emscripten_init() {
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
 
   // Initialize sound
-  Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+  Mix_OpenAudio(FREQUENCY, MIX_DEFAULT_FORMAT, STEREO, AUDIO_BUFFER);
   Mix_Volume(-1, MIX_MAX_VOLUME/2);
   sound_init(state);
-  state->hit_buffer = 0;
   state->colliding_buffer = 0;
-  state->fall_buffer = 0;
-  state->is_colliding = false;
-  state->fall_channel = FLYING_CHANNEL;
+  Mix_PlayChannel(-1, get_sound(state, WIND), 0);
   
 
   
@@ -828,7 +813,6 @@ bool emscripten_main(state_t *state) {
   state->ghost_timer += dt;
   state->velocity_timer += dt;
   state->user_immunity += dt;
-  state->hit_buffer += dt;
   state->colliding_buffer += dt;
   state->fall_buffer += dt;
   body_t *user = state->user;
