@@ -553,7 +553,6 @@ void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
 }
 
 
-
 /**
  * Spawns a ghost on the screen at fixed y value and at a random x value
  * that is within the bounds of the window
