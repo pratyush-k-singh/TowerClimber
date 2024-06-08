@@ -632,6 +632,25 @@ void add_force_creators(state_t *state) {
   }
 }
 
+void start_button_handler(state_t *state) {
+  state->game_state = GAME_RUNNING;
+}
+
+void pause_button_handler(state_t *state) {
+  if (state->game_state == GAME_RUNNING) {
+    state->game_state = GAME_PAUSED;
+  } else if (state->game_state == GAME_PAUSED) {
+    state->game_state = GAME_RUNNING;
+  }
+}
+
+void restart_button_handler(state_t *state) {
+  state->user_health = FULL_HEALTH;
+  health_bar_process(state);
+  set_velocity(state, (vector_t){20, 20});
+  state->game_state = GAME_RUNNING;
+}
+
 /**
  * Move player on display screen based on key pressed.
  *
