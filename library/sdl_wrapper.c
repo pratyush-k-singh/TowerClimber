@@ -171,9 +171,9 @@ void sdl_clear(void) {
 
 Mix_Music *sdl_load_sound(const char *file){
   Mix_Music *sound = Mix_LoadMUS(file);
-  if (!sound){
-    exit(0);
-  }
+  // if (!sound){
+  //   exit(0);
+  // }
   return sound;
 }
 
