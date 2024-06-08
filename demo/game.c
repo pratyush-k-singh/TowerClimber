@@ -118,6 +118,7 @@ const size_t FREQUENCY = 44100;
 const size_t STEREO = 2;
 const size_t AUDIO_BUFFER = 2048;
 const size_t DEFAULT_CHANNEL = -1;
+const size_t LOOPS = 20;
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -764,7 +765,7 @@ state_t *emscripten_init() {
   Mix_Volume(DEFAULT_CHANNEL, MIX_MAX_VOLUME/2);
   sound_init(state);
   state->colliding_buffer = 0;
-  Mix_PlayChannel(WIND_CHANNEL, get_sound(state, WIND), DEFAULT_CHANNEL);
+  Mix_PlayChannel(WIND_CHANNEL, get_sound(state, WIND), LOOPS);
   
 
   
