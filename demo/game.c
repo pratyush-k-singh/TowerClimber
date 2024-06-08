@@ -109,7 +109,7 @@ const size_t JUMP_POWERUP_JUMPS = 2;
 // Sound constants
 const size_t SOUND_SIZE = 5;
 const double HIT_BUFFER = 0.3;
-const double COLLIDING_BUFFER = 0.05;
+const double COLLIDING_BUFFER = 0.36;
 
 // Game constants
 const size_t NUM_LEVELS = 3;
