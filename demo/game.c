@@ -186,7 +186,6 @@ Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
       return sound->player;
     }
   }
-  exit(0);
   return NULL;
 }
 
@@ -455,7 +454,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->collided_obj = body2;
   if (state->colliding_buffer > COLLIDING_BUFFER){
     body_type_t type = get_type(body2);
-    exit(0);
     if (type == LEFT_WALL || type == RIGHT_WALL){
       sdl_play_sound(get_sound(state, WALL_IMPACT));
       
@@ -816,6 +814,7 @@ bool emscripten_main(state_t *state) {
   state->velocity_timer += dt;
   state->user_immunity += dt;
   state->hit_buffer += dt;
+  state->colliding_buffer += dt;
   body_t *user = state->user;
   scene_t *scene = state->scene;
   scene_tick(scene, dt);
