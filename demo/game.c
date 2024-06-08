@@ -468,6 +468,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->colliding_buffer = 0;
   if (get_type(body2) == LEFT_WALL){
     state->wall_l = 0;
+    exit(0)
   } else if (get_type(body2) == RIGHT_WALL){
     state->wall_r = 0;
   }
