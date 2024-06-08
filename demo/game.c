@@ -122,7 +122,7 @@ typedef enum { GHOST_IMPACT, FLYING, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT 
 
 typedef struct sound {
   Mix_Chunk *player;
-  void *info;
+  sound_type_t *info;
 } sound_t;
 
 struct state {
@@ -160,11 +160,11 @@ void sound_free(sound_t *sound){
 
 void sound_init(state_t *state){
   list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
-  char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
+  const char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
                         PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = malloc(sizeof(sound_t));
-    sound_type_t *info = malloc(sizeof(sound_type_t))
+    sound_type_t *info = malloc(sizeof(sound_type_t));
     *info = i;
     sound->info = info;
     sound->player = sdl_load_sound(paths[i]);
@@ -177,7 +177,7 @@ Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
   list_t* sounds = state->sounds;
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = list_get(sounds, i);
-    if (*sound->info == sound_type){
+    if (*(sound->info) == sound_type){
       return sound->player;
     }
   }
