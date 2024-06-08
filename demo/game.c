@@ -153,9 +153,9 @@ struct state {
   size_t health_powerup_index;
 
   list_t *sounds;
-  double *hit_buffer;
-  double *colliding_buffer;
-  bool *is_colliding;
+  double hit_buffer;
+  double colliding_buffer;
+  bool is_colliding;
 };
 
 void sound_free(sound_t *sound){
@@ -462,7 +462,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   }
 
   state->colliding_buffer = 0;
-  state->is_colliding = true;
 }
 
 /**
