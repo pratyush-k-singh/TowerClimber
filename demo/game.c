@@ -66,7 +66,7 @@ const double TRANSLATE_SCALE = 800;
 const double GHOST_RAND_MAX = 20;
 const size_t Y_RAND = 413;
 const double RAND_SPEED = 80;
-const vector_t RAND_VELOCITY = {60, 60};
+const vector_t RAND_VELOCITY = {100, 100};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
