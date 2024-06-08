@@ -19,6 +19,10 @@ const vector_t MAX = {750, 1000};
 
 // File paths
 const char *BACKGROUND_PATH = "assets/background.png";
+const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
+const char *RESTART_BUTTON_PATH = "assets/restart_button.png";
+const char *START_BUTTON_PATH = "assets/start_button.png";
+const char *TITLE_PATH = "assets/title.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.png";
 const char *PLATFORM_PATH = "assets/platform.png";
@@ -120,6 +124,11 @@ const size_t AUDIO_BUFFER = 2048;
 const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
 
+// Button and Title Constans
+const vector_t TITLE_OFFSETS = {475, 150};
+const vector_t BUTTON_OFFSETS = {425, 275};
+const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
+
 // Game constants
 const size_t NUM_LEVELS = 3;
 const vector_t GRAVITY = {0, -1000};
@@ -128,6 +137,7 @@ const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
+typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER } game_state_t;
 
 typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
@@ -151,7 +161,6 @@ struct state {
   double velocity_timer;
 
   double vertical_offset;
-  bool game_over;
   
   bool jumping; // determines whether up button can be pressed
   body_t *collided_obj; // the object that the user is collided with
@@ -160,6 +169,12 @@ struct state {
 
   size_t jump_powerup_index;
   size_t health_powerup_index;
+
+  asset_t *start_button;
+  asset_t *game_title;
+  asset_t *pause_button;
+  asset_t *restart_button;
+  game_state_t game_state;
 
   list_t *sounds;
   double colliding_buffer;
@@ -250,7 +265,6 @@ list_t *make_user(vector_t center, void *info, size_t seed) {
   }
   return c;
 }
-
 
 /**
  * Generates the list of points for a Wall shape given the vector of the bottom left
@@ -546,7 +560,6 @@ void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
  * 
  */
 void spawn_ghost(state_t *state) {
-  
   vector_t max = {MAX.x, 0};
   double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
   vector_t ghost_center = {x, Y_OFFSET_GHOST};
@@ -560,7 +573,6 @@ void spawn_ghost(state_t *state) {
                       (collision_handler_t)ghost_collision, state, 0);
   state -> ghost_counter++;
   state -> ghost_timer = 0;
-  
 }
 
 /**
@@ -573,18 +585,18 @@ void ghost_move(state_t *state){
   for (size_t i = 0; i < num_bodies; i++){
     body_t *body = scene_get_body(scene, i);
     if (get_type(body) == GHOST && (state->velocity_timer > VELOCITY_BUFFER)){
-        vector_t user_center = body_get_centroid(state->user);
-        vector_t ghost_center = body_get_centroid(body);
-        vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
-        vector_t velocity = vec_multiply(GHOST_SPEED, direction);
-        vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY, i);
-        vector_t rand_velocity = vec_add(velocity, rand_add);
-        body_set_velocity(body, rand_velocity);
-        if (i == num_bodies - 1){
-          state->velocity_timer = 0;
-        }
+      vector_t user_center = body_get_centroid(state->user);
+      vector_t ghost_center = body_get_centroid(body);
+      vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
+      vector_t velocity = vec_multiply(GHOST_SPEED, direction);
+      vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY, i);
+      vector_t rand_velocity = vec_add(velocity, rand_add);
+      body_set_velocity(body, rand_velocity);
+      if (i == num_bodies - 1){
+        state->velocity_timer = 0;
       }
     }
+  }
 }
 
 
@@ -694,6 +706,23 @@ void add_force_creators(state_t *state) {
   }
 }
 
+void start_button_handler(state_t *state) {
+  state->game_state = GAME_RUNNING;
+}
+
+void pause_button_handler(state_t *state) {
+  if (state->game_state == GAME_RUNNING) {
+    state->game_state = GAME_PAUSED;
+  } else if (state->game_state == GAME_PAUSED) {
+    state->game_state = GAME_RUNNING;
+  }
+}
+
+void restart_button_handler(state_t *state) {
+  state->user_health = FULL_HEALTH;
+  state->game_state = GAME_RUNNING;
+}
+
 /**
  * Move player on display screen based on key pressed.
  *
@@ -708,6 +737,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   vector_t cur_v = body_get_velocity(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
+
 
   if (type == KEY_PRESSED) {
     switch (key) {
@@ -762,6 +792,7 @@ void update_buffers(state_t *state, double dt){
 bool game_over(state_t *state) {
   return false;
 } 
+}
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
@@ -806,10 +837,26 @@ state_t *emscripten_init() {
 
   // Initialize obstacles
   spawn_spike(state);
+
+  // Initialize buttons and title
+  SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
+  state->start_button = asset_make_button(start_button_box, asset_make_image(START_BUTTON_PATH, start_button_box), NULL, (button_handler_t)start_button_handler);
+  asset_cache_register_button(state->start_button);
+
+  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
+  state->game_title = asset_make_image(TITLE_PATH, game_title_box);
+
+  SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
+  state->pause_button = asset_make_button(pause_button_box, asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), NULL, (button_handler_t)pause_button_handler);
+  asset_cache_register_button(state->pause_button);
+
+  SDL_Rect restart_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
+  state->restart_button = asset_make_button(restart_button_box, asset_make_image(RESTART_BUTTON_PATH, start_button_box), NULL, (button_handler_t)restart_button_handler);
+  asset_cache_register_button(state->restart_button);
   
 
   // Initialize miscellaneous state values
-  state->game_over = false;
+  state->game_state = GAME_START;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
@@ -828,8 +875,12 @@ bool emscripten_main(state_t *state) {
   
   body_t *user = state->user;
   scene_t *scene = state->scene;
-  scene_tick(scene, dt);
-  body_tick(user, dt);
+
+  if (state->game_state == GAME_RUNNING) {
+    scene_tick(scene, dt);
+    body_tick(user, dt);
+  }
+
   sdl_clear();
 
   check_gravity_and_friction(state);
@@ -838,20 +889,37 @@ bool emscripten_main(state_t *state) {
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
   // spawn and move ghosts
-  if (state->ghost_timer > SPAWN_TIMER && state -> ghost_counter <= GHOST_NUM){
+  if (state->ghost_timer > SPAWN_TIMER && state->ghost_counter <= GHOST_NUM){
     spawn_ghost(state);
   }
   ghost_move(state);
 
-  // render assets
+  // Render assets
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
   asset_render(state->health_bar, state->vertical_offset);
 
+    // Render buttons and/or title based on game state
+  if (state->game_state == GAME_START) {
+    asset_render(state->game_title, state->vertical_offset);
+    asset_render(state->start_button, state->vertical_offset);
+  } else if (state->game_state == GAME_RUNNING) {
+    asset_render(state->pause_button, state->vertical_offset);
+  } else if (state->game_state == GAME_PAUSED) {
+    asset_render(state->pause_button, state->vertical_offset);
+    asset_render(state->restart_button, state->vertical_offset);
+  } else if (state->game_state == GAME_OVER) {
+    asset_render(state->restart_button, state->vertical_offset);
+  }
+
   sdl_show(state->vertical_offset);
 
-  return game_over(state);
+  if (state->user_health == 0) {
+    state->game_state = GAME_OVER;
+  }
+
+  return false  ;
 }
 
 void emscripten_free(state_t *state) {
