@@ -175,7 +175,7 @@ Mix_Music *sdl_load_sound(const char *file){
 }
 
 void sdl_play_sound(Mix_Music *sound){
-  Mix_PlayChannel(-1, sound, 0);
+  Mix_PlayMusicl(sound, 1);
 }
 
 
