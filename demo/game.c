@@ -186,6 +186,7 @@ Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
       return sound->player;
     }
   }
+  exit(0);
   return NULL;
 }
 
@@ -456,6 +457,7 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
     body_type_t type = get_type(body2);
     if (type == LEFT_WALL || type == RIGHT_WALL){
       sdl_play_sound(get_sound(state, WALL_IMPACT));
+      exit(0);
     } else{
       sdl_play_sound(get_sound(state, PLATFORM_IMPACT));
     }
