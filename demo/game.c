@@ -473,7 +473,7 @@ void fall_sound(state_t *state){
     state->fall_channel = Mix_PlayChannel(FLYING_CHANNEL, get_sound(state, FLYING), 0);
     state->fall_buffer = 0;
   } else if(Mix_Playing(FLYING_CHANNEL)){
-    Mix_HaltChannel(state->fall_channel);
+    // Mix_HaltChannel(state->fall_channel);
   }
 }
 
