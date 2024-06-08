@@ -469,11 +469,11 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 void fall_sound(state_t *state){
   double y_vel = fabs(body_get_velocity(state->user).y);
 
-  if (y_vel > FALL_THRESHOLD && state->fall_buffer > FALL_BUFFER){
+  if (y_vel > FALL_THRESHOLD && state->fall_buffer > FALL_BUFFER && !Mix_Playing(FLYING_CHANNEL)){
     state->fall_channel = Mix_PlayChannel(FLYING_CHANNEL, get_sound(state, FLYING), 0);
     state->fall_buffer = 0;
   } else if(Mix_Playing(FLYING_CHANNEL)){
-    // Mix_HaltChannel(state->fall_channel);
+    Mix_HaltChannel(state->fall_channel);
   }
 }
 
