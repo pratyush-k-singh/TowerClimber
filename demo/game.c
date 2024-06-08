@@ -30,7 +30,11 @@ const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *GHOST_PATH = "assets/ghost.png";
 const char *SPIKE_PATH = "assets/spike.png";
 
-const char *GHOST_HIT = "assets/ghost_hit.wav";
+const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
+const char *FLYING_PATH = "assets/flying.wav":
+const char *SPIKE_IMPACT_PATH = "assets/spike_impact.wav";
+const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
+const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
 
 // User constants
 const double USER_MASS = 5;
@@ -102,6 +106,9 @@ const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
 const size_t JUMP_POWERUP_JUMPS = 2;
 
+// Sound constants
+const size_t SOUND_SIZE = 5;
+
 // Game constants
 const size_t NUM_LEVELS = 3;
 const vector_t GRAVITY = {0, -1000};
@@ -110,6 +117,13 @@ const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
+
+typedef enum { GHOST_IMPACT, FLYING, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
+
+typedef struct sound {
+  Mix_Chunx *player;
+  void *info;
+} sound_t;
 
 struct state {
   scene_t *scene;
@@ -136,7 +150,7 @@ struct state {
   size_t jump_powerup_index;
   size_t health_powerup_index;
 
-  Mix_Chunk *ghost_hit;
+  list_t *sounds;
 };
 
 
@@ -165,6 +179,8 @@ body_type_t *make_type_info(body_type_t type) {
   *info = type;
   return info;
 }
+
+
 
 /**
  * Creates user shape.
@@ -676,6 +692,22 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
+sound_free(sound_type_t *sound){
+  Mix_FreeChunk(sound->player);
+  free(sound);
+}
+
+void sound_init(state_t *state){
+  list_t *sounds = list_init(SOUND_SIZE, sound_free);
+  const char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
+                        PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
+  for (size_t i = 0; i < SOUND_SIZE; i++){
+    sound_t *sound = malloc(sizeof(sound_t));
+    list_add(sounds, paths[i]);
+  }
+  state->sounds = sounds;
+}
+
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
  * (loss), the user falls off the map (loss), or the user reaches the top of the map (win).
@@ -776,6 +808,7 @@ bool emscripten_main(state_t *state) {
 
 void emscripten_free(state_t *state) {
   TTF_Quit();
+  list_free(state->sounds);
   scene_free(state->scene);
   list_free(state->body_assets);
   body_free(state->user);
