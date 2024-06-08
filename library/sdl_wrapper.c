@@ -178,7 +178,7 @@ Mix_Chunk *sdl_load_sound(const char *file){
 }
 
 void sdl_play_sound(Mix_Chunk *sound){
-  Mix_PlayChannel(sound, 1);
+  Mix_PlayChannel(-1, sound, 0);
 }
 
 
