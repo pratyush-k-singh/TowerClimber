@@ -153,6 +153,31 @@ struct state {
   list_t *sounds;
 };
 
+void sound_free(sound_t *sound){
+  Mix_FreeChunk(sound->player);
+  free(sound);
+}
+
+void sound_init(state_t *state){
+  list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
+  const char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
+                        PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
+  for (size_t i = 0; i < SOUND_SIZE; i++){
+    sound_t *sound = malloc(sizeof(sound_t));
+    list_add(sounds, paths[i]);
+  }
+  state->sounds = sounds;
+}
+
+Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
+  list_t* sounds = state->sounds;
+  for (size_t i = 0; i < SOUND_SIZE; i++){
+    sound_t *sound = list_get(sounds, i);
+    if (*sound->info == sound_type){
+      return sound->player;
+    }
+  }
+}
 
 
 /**
@@ -692,31 +717,6 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_set_velocity(user, (vector_t) {new_vx, new_vy});
 }
 
-void sound_free(sound_t *sound){
-  Mix_FreeChunk(sound->player);
-  free(sound);
-}
-
-void sound_init(state_t *state){
-  list_t *sounds = list_init(SOUND_SIZE, sound_free);
-  const char* paths[] = {GHOST_HIT_PATH, FLYING_PATH, SPIKE_IMPACT_PATH, 
-                        PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
-  for (size_t i = 0; i < SOUND_SIZE; i++){
-    sound_t *sound = malloc(sizeof(sound_t));
-    list_add(sounds, paths[i]);
-  }
-  state->sounds = sounds;
-}
-
-Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
-  list_t* sounds = state->sounds;
-  for (size_t i = 0; i < SOUND_SIZE; i++){
-    sound_t *sound = list_get(sounds, i);
-    if (*sound->info == sound_type){
-      return sound->player;
-    }
-  }
-}
 
 /**
  * Check conditions to see if game is over. Game is over if the user has no more health
