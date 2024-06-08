@@ -543,7 +543,7 @@ void spawn_spike(state_t *state) {
 void check_jump(state_t *state) {
   // adds gravity if user is in the air
   if (state->jumping) {
-    //state->collided_obj = NULL;
+    state->collided_obj = NULL;
     body_add_force(state->user, GRAVITY);
   } 
 
