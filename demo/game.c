@@ -56,7 +56,7 @@ const double GHOST_NUM = 3; // Total number of ghosts to be spawned
 const double GHOST_MASS = 5;
 const rgb_color_t GHOST_COLOUR = (rgb_color_t){0, 0, 0};
 const double GHOST_OFFSET = 50;
-const double GHOST_SPEED = 150;
+const double GHOST_SPEED = 100;
 const double SPAWN_TIMER = 3;
 const size_t INITIAL_GHOST = 1;
 const double Y_OFFSET_GHOST = -100;
@@ -66,7 +66,7 @@ const double TRANSLATE_SCALE = 800;
 const double GHOST_RAND_MAX = 20;
 const size_t Y_RAND = 413;
 const double RAND_SPEED = 80;
-const vector_t RAND_VELOCITY = {150, 150};
+const vector_t RAND_VELOCITY = {70, 70};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
