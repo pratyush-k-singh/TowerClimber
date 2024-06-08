@@ -169,16 +169,16 @@ void sdl_clear(void) {
   SDL_RenderClear(renderer);
 }
 
-Mix_Music *sdl_load_sound(const char *file){
-  Mix_Music *sound = Mix_LoadMUS(file);
-  // if (!sound){
-  //   exit(0);
-  // }
+Mix_Chunk *sdl_load_sound(const char *file){
+  Mix_Chunk *sound = Mix_LoadWAV(file);
+  if (!sound){
+    exit(0);
+  }
   return sound;
 }
 
-void sdl_play_sound(Mix_Music *sound){
-  Mix_PlayMusic(sound, 1);
+void sdl_play_sound(Mix_Chunk *sound){
+  Mix_PlayChannel(sound, 1);
 }
 
 

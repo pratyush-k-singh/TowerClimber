@@ -136,7 +136,7 @@ struct state {
   size_t jump_powerup_index;
   size_t health_powerup_index;
 
-  Mix_Music *ghost_hit;
+  Mix_Chunk *ghost_hit;
 };
 
 
