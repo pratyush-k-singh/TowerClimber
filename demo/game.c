@@ -455,9 +455,10 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->collided_obj = body2;
   if (state->colliding_buffer > COLLIDING_BUFFER){
     body_type_t type = get_type(body2);
+    exit(0);
     if (type == LEFT_WALL || type == RIGHT_WALL){
       sdl_play_sound(get_sound(state, WALL_IMPACT));
-      exit(0);
+      
     } else{
       sdl_play_sound(get_sound(state, PLATFORM_IMPACT));
     }
