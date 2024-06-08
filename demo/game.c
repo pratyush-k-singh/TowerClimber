@@ -779,6 +779,7 @@ state_t *emscripten_init() {
   state->colliding_buffer = 0;
   state->fall_buffer = 0;
   state->is_colliding = false;
+  state->fall_channel = FLYING_CHANNEL;
   
 
   
