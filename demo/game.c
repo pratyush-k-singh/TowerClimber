@@ -734,7 +734,7 @@ state_t *emscripten_init() {
   // Initialize obstacles
   spawn_spike(state);
 
-    // Initialize buttons and title
+  // Initialize buttons and title
   SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
   state->start_button = asset_make_button(start_button_box, asset_make_image(START_BUTTON_PATH, start_button_box), NULL, (button_handler_t)start_button_handler);
   asset_cache_register_button(state->start_button);
@@ -751,6 +751,7 @@ state_t *emscripten_init() {
   asset_cache_register_button(state->restart_button);
 
   // Initialize miscellaneous state values
+  state->game_state = GAME_START;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
