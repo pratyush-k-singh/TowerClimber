@@ -122,7 +122,8 @@ void sdl_init(vector_t min, vector_t max) {
   if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
     printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
     exit(1);
-}
+  }
+  Mix_Volume(-1, MIX_MAX_VOLUME); 
 }
 
 bool sdl_is_done(void *state) {
