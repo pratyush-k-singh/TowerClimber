@@ -650,7 +650,6 @@ void pause_button_handler(state_t *state) {
 
 void restart_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
-  health_bar_process(state);
   state->game_state = GAME_RUNNING;
 }
 
