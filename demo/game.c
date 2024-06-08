@@ -469,7 +469,7 @@ void fall_sound(state_t *state){
   double y_vel = fabs(body_get_velocity(state->user).y);
 
   if (y_vel > FALL_THRESHOLD && state->fall_buffer > FALL_BUFFER){
-    state->fall_channel = Mix_PlayChannel(-1, sdl_play_sound(get_sound(state, FLYING)), 0);
+    state->fall_channel = Mix_PlayChannel(-1, get_sound(state, FLYING), 0);
     
     state->fall_buffer = 0;
   } else if(state->fall_buffer>FALL_BUFFER <= FALL_BUFFER){
