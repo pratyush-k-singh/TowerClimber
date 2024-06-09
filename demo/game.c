@@ -761,9 +761,7 @@ void check_jump(state_t *state) {
   // removes gravity if user is not in the air
   else {
     body_reset(state->user);
-
     bool is_collided = false;
-
     // check if the user is still collided
     for (size_t i = 0; i < scene_bodies(state->scene); i++) {
       body_t *body = scene_get_body(state->scene, i);
@@ -1037,16 +1035,20 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && state->state_msg_tracker == false) {
+  if (state->game_state == GAME_START && 
+      state->state_msg_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
     state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_OVER && state->state_msg_tracker == false) {
+  } else if (state->game_state == GAME_OVER && 
+            state->state_msg_tracker == false) {
     printf("%s", FAILIURE_MESSAGE);
     state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_PAUSED && state->state_msg_tracker == false) {
+  } else if (state->game_state == GAME_PAUSED && 
+            state->state_msg_tracker == false) {
     printf("%s", PAUSE_MESSAGE);
     state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_VICTORY && state->state_msg_tracker == false) {
+  } else if (state->game_state == GAME_VICTORY && 
+            state->state_msg_tracker == false) {
     printf("%s", VICTORY_MESSAGE);
     state->state_msg_tracker = true;
   } else if (state->game_state == GAME_RUNNING) {
@@ -1060,7 +1062,9 @@ bool emscripten_main(state_t *state) {
     printf("%s", PORTAL_SENSED_MESSAGE);
     state->distance_halfpoint = true;
   } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE &&
-            state->distance_portal == false && state->game_state == GAME_RUNNING) {
+            state->distance_portal == false && 
+            state->game_state == GAME_RUNNING &&
+            state->restart_buffer >= RESTART_BUFFER) {
     printf("%s", PORTAL_SEEN_MESSAGE);
     state->distance_portal = true;
   }
@@ -1084,7 +1088,8 @@ bool emscripten_main(state_t *state) {
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
   // spawn and move ghosts
-  if (state->ghost_timer > SPAWN_TIMER && state->ghost_counter <= GHOST_NUM){
+  if (state->ghost_timer > SPAWN_TIMER && 
+      state->ghost_counter <= GHOST_NUM){
     spawn_ghost(state);
   }
 
