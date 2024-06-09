@@ -69,18 +69,19 @@ double get_scene_scale(vector_t window_center) {
   return x_scale < y_scale ? x_scale : y_scale;
 }
 
-vector_t get_window_position(vector_t scene_pos, vector_t window_center) {
+/** Maps a scene coordinate to a window coordinate */
+vector_t get_window_position(vector_t scene_pos, vector_t window_center, double vertical_offset) {
   // Scale scene coordinates by the scaling factor
   // and map the center of the scene to the center of the window
-  vector_t scene_center_offset = vec_subtract(scene_pos, center);
   double scale = get_scene_scale(window_center);
+  vector_t scene_center_offset = vec_subtract(scene_pos, center);
+  scene_center_offset.y -= vertical_offset;
   vector_t pixel_center_offset = vec_multiply(scale, scene_center_offset);
   vector_t pixel = {.x = round(window_center.x + pixel_center_offset.x),
                     // Flip y axis since positive y is down on the screen
                     .y = round(window_center.y - pixel_center_offset.y)};
   return pixel;
 }
-
 
 /**
  * Converts an SDL key code to a char.
