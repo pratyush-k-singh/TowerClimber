@@ -66,13 +66,13 @@ const double GHOST_SPEED = 130;
 const double SPAWN_TIMER = 3;
 const size_t INITIAL_GHOST = 1;
 const double Y_OFFSET_GHOST = -100;
-const double VELOCITY_BUFFER = 0.88;
+const double VELOCITY_BUFFER = 0.66;
 const double GHOST_ELASTICITY = 1;
 const double TRANSLATE_SCALE = 800;
 const double GHOST_RAND_MAX = 20;
 const size_t Y_RAND = 413;
 const double RAND_SPEED = 80;
-const vector_t RAND_VELOCITY = {100, 100};
+const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
