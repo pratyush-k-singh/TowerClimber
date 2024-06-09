@@ -17,7 +17,7 @@
 const vector_t MIN = {0, 0};
 const vector_t MAX = {1000, 1000};
 
-// File paths
+// File paths and constants
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
 const char *RESTART_BUTTON_PATH = "assets/restart_button.png";
@@ -35,6 +35,7 @@ const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *HEALTH_BAR_0_PATH = "assets/health_bar_0.png";
 const char *GHOST_PATH = "assets/ghost.png";  
 const char *SPIKE_PATH = "assets/spike.png";
+const size_t MAX_LINE_LENGTH = 150;
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
@@ -818,20 +819,15 @@ void update_buffers(state_t *state, double dt){
   state->colliding_buffer += dt;
 }
 
-void print_welcome_message() {
-  FILE *file = fopen(WELCOME_MESSAGE_PATH, "r");
+void print_message(const char *filename) {
+    FILE *file = fopen(filename, "r");
 
-  fseek(file, 0, SEEK_END);
-  long file_size = ftell(file);
-  fseek(file, 0, SEEK_SET);
-  char *buffer = malloc(file_size + 1);
+    char line[MAX_LINE_LENGTH];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        printf("%s", line);
+    }
 
-  fread(buffer, 1, file_size, file);
-  buffer[file_size] = '\0';
-  printf("%s", buffer);
-
-  free(buffer);
-  fclose(file);
+    fclose(file);
 }
 
 state_t *emscripten_init() {
@@ -914,7 +910,7 @@ bool emscripten_main(state_t *state) {
   scene_t *scene = state->scene;
 
   if (state->game_state == GAME_START && state->welcome_message == false) {
-    print_welcome_message();
+    print_message(WELCOME_MESSAGE_PATH);
     state->welcome_message = true;
   }
 
