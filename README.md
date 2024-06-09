@@ -81,7 +81,7 @@ Priority 4 Features:
     - Add power ups to the game that gives advantages to the user upon collection
     - Implement health bar that allows the user to see how they are doing and if they will die upon collision with an obstacle/ghost
 - Generate Text Based on Cues + Music (Pratyush):
-    - As the character reaches points of their climb up the tower, generate relevant text
+    - As the character reaches points of their climb up the tower, or when the user accesses certain screens, generate relevant text in the console
     - Add background music to the game depending on the scene
 
 ## Section 4: Disaster Recovery
