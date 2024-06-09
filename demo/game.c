@@ -606,7 +606,7 @@ void ghost_move(state_t *state){
       vector_t ghost_center = body_get_centroid(body);
       vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
       vector_t velocity = vec_multiply(GHOST_SPEED, direction);
-      vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY, i);
+      vector_t rand_add = rand_vec(vec_negate(RAND_VELOCITY), RAND_VELOCITY, i);
       vector_t rand_velocity = vec_add(velocity, rand_add);
       body_set_velocity(body, rand_velocity);
       if (i == num_bodies - 1){
