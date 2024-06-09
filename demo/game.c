@@ -908,8 +908,8 @@ state_t *emscripten_init() {
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
   state->game_title = asset_make_image(TITLE_PATH, game_title_box);
 
-  SDL_Rect victory_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 250};
-  state->victory_text = asset_make_image(VICTORY_TEXT_PATH, game_title_box);
+  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 250};
+  state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
   SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
   state->start_button = asset_make_button(start_button_box, asset_make_image(START_BUTTON_PATH, start_button_box), NULL, (button_handler_t)start_button_handler);
