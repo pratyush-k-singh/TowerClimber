@@ -244,6 +244,7 @@ struct state {
 
 void sound_free(sound_t *sound){
   Mix_FreeChunk(sound->player);
+  free(sound->info);
   free(sound);
 }
 
@@ -254,6 +255,8 @@ void sound_init(state_t *state){
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = malloc(sizeof(sound_t));
     sound_type_t *info = malloc(sizeof(sound_type_t));
+    assert(sound);
+    assert(info);
     *info = i;
     sound->info = info;
     sound->player = sdl_load_sound(paths[i]);
@@ -295,27 +298,33 @@ body_type_t get_type(body_t *body) {
 */
 body_type_t *make_type_info(body_type_t type) {
   body_type_t *info = malloc(sizeof(body_type_t));
+  assert(info);
   *info = type;
   return info;
 }
 
 
 /**
- * Creates user shape.
+ * Creates a circle shape
+ * @param ceneter the coordinates of the center of the circle
+ * @param info a pointer to the type of the body
+ * @param idx index of the body to be made. If multiple bodies 
+ * are created in a loop, then the index distinguishes the coordinates
+ * of the different bodies
  * 
  * @return list_t containing the points of the shape
 */
-list_t *make_circle(vector_t center, void *info, size_t idx) {
+list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
   double radius = RADIUS;
   vector_t center_body = center;
-  if (*(body_type_t *)info == GAS){
+  if (*info == GAS){
     radius = GAS_RADIUS;
     double y = (WALL_LENGTH.y/2) * (idx+1) - GAS_OFFSET;
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x + GAS_RADIUS * pow((-1), position + 1)
              + GAP_DISTANCE * (1 - position);
     center_body = (vector_t){x, y}; //first GAS coorder: (700, 800)
-  } else if (*(body_type_t *)info == PORTAL){
+  } else if (*info == PORTAL){
     radius = PORTAL_RADIUS;
     double y = WALL_LENGTH.y * NUM_LEVELS + PORTAL_OFFSET;
     double x = GAP_DISTANCE / 2 + WALL_WIDTH.x;
@@ -356,9 +365,9 @@ void make_rectangle_points(vector_t corner, list_t *points, body_type_t *info){
     temp[2] = vec_negate(WALL_LENGTH);
   }
   vector_t *v_1 = malloc(sizeof(*v_1));
+  assert(v_1);
   *v_1 = corner;
   list_add(points, v_1);
-  assert(v_1);
   for (size_t i = 0; i < WALL_POINTS-1; i++){
     vector_t *v = malloc(sizeof(*v));
     *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
