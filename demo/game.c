@@ -1003,7 +1003,6 @@ bool emscripten_main(state_t *state) {
   }
   ghost_move(state);
 
-  rotate_portal(state);
 
 
   // Render assets
