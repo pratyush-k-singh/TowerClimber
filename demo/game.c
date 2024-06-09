@@ -944,6 +944,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
  * Updates all the buffers in the main loop
  * 
  * @param dt the time between each tick
+ * @param state the current demo state
  */
 void update_buffers(state_t *state, double dt){
   state->ghost_timer += dt;
@@ -1136,7 +1137,7 @@ bool emscripten_main(state_t *state) {
   }
 
   if (Mix_PlayingMusic() == 0) {
-    Mix_PlayMusic(state->music, -1);
+    Mix_PlayMusic(state->music, 0.2);
   }
 
   sdl_show(state->vertical_offset);
