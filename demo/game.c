@@ -78,6 +78,7 @@ const size_t Y_RAND = 413;
 const double RAND_SPEED = 80;
 const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
+const double RESTART_BUFFER = 5;
 
 // Obstacle constants
 const double GAS_RADIUS = 250;
@@ -199,6 +200,7 @@ struct state {
   size_t ghost_counter;
   double ghost_timer;
   double velocity_timer;
+  double restart_buffer;
 
   double vertical_offset;
   
@@ -810,6 +812,7 @@ void pause_button_handler(state_t *state) {
 void restart_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
+  state->restart_buffer = 0;
 
   bool contains_jump = false;
   bool contains_health = false;
@@ -902,6 +905,7 @@ void update_buffers(state_t *state, double dt){
   state->velocity_timer += dt;
   state->user_immunity += dt;
   state->colliding_buffer += dt;
+  state->restart_buffer += dt;
 }
 
 state_t *emscripten_init() {
@@ -975,6 +979,7 @@ state_t *emscripten_init() {
   state->ghost_counter = 0;
   state->user_immunity = 0;
   state->ghost_timer = 0;
+  state->restart_buffer = 0;
   
   add_force_creators(state);
   sdl_on_key((key_handler_t)on_key);
@@ -1021,7 +1026,11 @@ bool emscripten_main(state_t *state) {
   if (state->ghost_timer > SPAWN_TIMER && state->ghost_counter <= GHOST_NUM){
     spawn_ghost(state);
   }
-  ghost_move(state);
+
+  if (state->restart_buffer > RESTART_BUFFER){
+    ghost_move(state);
+  }
+  
 
 
 
