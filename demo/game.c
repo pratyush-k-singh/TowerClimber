@@ -259,7 +259,7 @@ list_t *make_user(vector_t center, void *info, size_t idx) {
     size_t position = idx % (SPIKE_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
              + GAP_DISTANCE * position;
-    center_body = {x, y};
+    center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
