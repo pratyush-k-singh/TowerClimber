@@ -915,7 +915,7 @@ bool emscripten_main(state_t *state) {
     printf("%s", PAUSE_MESSAGE);
     state->message = true;
   } else if (state->game_state == GAME_RUNNING) {
-    state->message = false
+    state->message = false;
   }
 
   double dt = time_since_last_tick();
