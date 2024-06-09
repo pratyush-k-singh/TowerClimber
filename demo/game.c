@@ -907,12 +907,6 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && state->welcome_message == false) {
-    print_welcome_message();
-    state->welcome_message = true;
-  }
-
-
   double dt = time_since_last_tick();
   update_buffers(state, dt);
   
