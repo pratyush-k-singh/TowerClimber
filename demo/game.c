@@ -35,11 +35,13 @@ const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *HEALTH_BAR_0_PATH = "assets/health_bar_0.png";
 const char *GHOST_PATH = "assets/ghost.png";  
-const char *SPIKE_PATH = "assets/spike.png";
+const char *GAS_PATH = "assets/obstacle.png";
+const char *PORTAL_PATH = "assets/portal.png";
+const char *ISLAND_PATH = "assets/island.png";
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
-const char *SPIKE_IMPACT_PATH = "assets/spike_impact.wav";
+const char *GAS_IMPACT_PATH = "assets/gas_impact.wav";
 const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
 const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
@@ -76,14 +78,21 @@ const size_t Y_RAND = 413;
 const double RAND_SPEED = 80;
 const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
+const double RESTART_BUFFER = 5;
 
 // Obstacle constants
-const double SPIKE_RADIUS = 250;
-const vector_t SPIKE_MIN = {150, 500};
-const vector_t SPIKE_MAX = {600, 0};
-const double SPIKE_MASS = 5;
-const size_t SPIKE_NUM = 6;
-const double SPIKE_OFFSET = 220;
+const double GAS_RADIUS = 250;
+const vector_t GAS_MIN = {150, 500};
+const vector_t GAS_MAX = {600, 0};
+const double GAS_MASS = 5;
+const size_t GAS_NUM = 6;
+const double GAS_OFFSET = 220;
+
+// Portal constants
+const double PORTAL_RADIUS = 350;
+const double PORTAL_MASS = 10;
+const double PORTAL_ROTATION = 0.05;
+const double PORTAL_OFFSET = 300;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -167,9 +176,10 @@ const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
-typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
+typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
+              HEALTH_POWER, GHOST, GAS, PORTAL, ISLAND, NONE } body_type_t;
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER, GAME_VICTORY } game_state_t;
-typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
+typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
   Mix_Chunk *player;
@@ -190,6 +200,7 @@ struct state {
   size_t ghost_counter;
   double ghost_timer;
   double velocity_timer;
+  double restart_buffer;
 
   double vertical_offset;
   
@@ -222,7 +233,7 @@ void sound_free(sound_t *sound){
 
 void sound_init(state_t *state){
   list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
-  const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, SPIKE_IMPACT_PATH, 
+  const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, GAS_IMPACT_PATH, 
                         PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = malloc(sizeof(sound_t));
@@ -278,16 +289,21 @@ body_type_t *make_type_info(body_type_t type) {
  * 
  * @return list_t containing the points of the shape
 */
-list_t *make_user(vector_t center, void *info, size_t idx) {
+list_t *make_circle(vector_t center, void *info, size_t idx) {
   double radius = RADIUS;
   vector_t center_body = center;
-  if (*(body_type_t *)info == SPIKE){
-    radius = SPIKE_RADIUS;
-    double y = (WALL_LENGTH.y/2) * (idx+1) - SPIKE_OFFSET;
-    size_t position = idx % (SPIKE_NUM / NUM_LEVELS);
-    double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
+  if (*(body_type_t *)info == GAS){
+    radius = GAS_RADIUS;
+    double y = (WALL_LENGTH.y/2) * (idx+1) - GAS_OFFSET;
+    size_t position = idx % (GAS_NUM / NUM_LEVELS);
+    double x = WALL_WIDTH.x + GAS_RADIUS * pow((-1), position + 1)
              + GAP_DISTANCE * (1 - position);
-    center_body = (vector_t){x, y}; //first spike coorder: (700, 800)
+    center_body = (vector_t){x, y}; //first GAS coorder: (700, 800)
+  } else if (*(body_type_t *)info == PORTAL){
+    radius = PORTAL_RADIUS;
+    double y = WALL_LENGTH.y * NUM_LEVELS + PORTAL_OFFSET;
+    double x = GAP_DISTANCE / 2 + WALL_WIDTH.x;
+    center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
@@ -407,7 +423,7 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 void create_user(state_t *state) {
   vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
                     MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
-  list_t *points = make_user(center,  make_type_info(USER), ZERO_SEED);
+  list_t *points = make_circle(center,  make_type_info(USER), ZERO_SEED);
   body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
                                     make_type_info(USER), NULL);
   state->user = user;
@@ -457,7 +473,6 @@ void create_walls_and_platforms(state_t *state) {
 /**
  * Creates a jump power up and adds to state
  * @param state the current state of the demo
- * @param powerup_path the path to the powerup file
 */
 void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
@@ -473,17 +488,44 @@ void create_jump_power_up(state_t *state) {
 /**
  * Creates a health power up and adds to state
  * @param state the current state of the demo
- * @param powerup_path the path to the powerup file
 */
 void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                       make_type_info(HEALTH_POWER), NULL);
+                                        make_type_info(HEALTH_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
   state->health_powerup_index = list_size(state->body_assets);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
 }
+
+/**
+ * Creates a portal and adds to state
+ * @param state the current state of the demo
+*/
+void create_portal(state_t *state) {
+  list_t *points = make_circle(VEC_ZERO, make_type_info(PORTAL), ZERO_SEED);
+  body_t *portal = body_init_with_info(points, PORTAL_MASS, USER_COLOR, 
+                                        make_type_info(PORTAL), NULL);
+  asset_t *portal_asset = asset_make_image_with_body(PORTAL_PATH, portal, state->vertical_offset);
+  list_add(state->body_assets, portal_asset);
+  scene_add_body(state->scene, portal);
+}
+
+/**
+ * Check whether two bodies are colliding and applies a collision between
+ * portal and body
+ *
+ * @param state state object representing the current demo state
+ * @param body1 the user
+ * @param body2 the portal
+ */
+void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  state->game_state = GAME_VICTORY;
+}
+
 
 /**
  * Called whenever the user health changes so that the health bar asset can be updated
@@ -609,7 +651,7 @@ void spawn_ghost(state_t *state) {
   vector_t max = {MAX.x, 0};
   double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
   vector_t ghost_center = {x, Y_OFFSET_GHOST};
-  list_t *c = make_user(ghost_center, make_type_info(GHOST), ZERO_SEED);
+  list_t *c = make_circle(ghost_center, make_type_info(GHOST), ZERO_SEED);
   body_t *ghost = body_init_with_info(c, GHOST_MASS, GHOST_COLOUR, 
                                       make_type_info(GHOST), NULL);
   scene_add_body(state -> scene, ghost);
@@ -647,17 +689,17 @@ void ghost_move(state_t *state){
 
 
 /**
- * Spawns spikes on the screen at random y value and at a random x value
+ * Spawns GASs on the screen at random y value and at a random x value
  * that is within the bounds wall height and the space in between
  */
-void spawn_spike(state_t *state) {
-  for (size_t i = 0; i < SPIKE_NUM; i++){
-    list_t *c = make_user(VEC_ZERO, make_type_info(SPIKE), i);
-    body_t *spike = body_init_with_info(c, SPIKE_MASS, GHOST_COLOUR, 
-                                        make_type_info(SPIKE), NULL);
-    scene_add_body(state -> scene, spike);
-    asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, VERTICAL_OFFSET);
-    list_add(state->body_assets, spike_asset);
+void spawn_gas(state_t *state) {
+  for (size_t i = 0; i < GAS_NUM; i++){
+    list_t *c = make_circle(VEC_ZERO, make_type_info(GAS), i);
+    body_t *gas = body_init_with_info(c, GAS_MASS, GHOST_COLOUR, 
+                                        make_type_info(GAS), NULL);
+    scene_add_body(state -> scene, gas);
+    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, gas, VERTICAL_OFFSET);
+    list_add(state->body_assets, gas_asset);
   }
 }
 
@@ -743,9 +785,12 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body,
                        (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
       break;
-    case SPIKE:
+    case GAS:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+    case PORTAL:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)portal_collision, state, WALL_ELASTICITY);
     default:
       break;
     }
@@ -767,6 +812,7 @@ void pause_button_handler(state_t *state) {
 void restart_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
+  state->restart_buffer = 0;
 
   bool contains_jump = false;
   bool contains_health = false;
@@ -786,6 +832,7 @@ void restart_button_handler(state_t *state) {
       double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
       vector_t ghost_center = {x, Y_OFFSET_GHOST};
       body_set_centroid(body, ghost_center);
+      body_set_velocity(body, VEC_ZERO);
     }
     if (get_type(body) == JUMP_POWER){
       contains_jump = true;
@@ -859,6 +906,7 @@ void update_buffers(state_t *state, double dt){
   state->velocity_timer += dt;
   state->user_immunity += dt;
   state->colliding_buffer += dt;
+  state->restart_buffer += dt;
 }
 
 state_t *emscripten_init() {
@@ -902,7 +950,8 @@ state_t *emscripten_init() {
   create_jump_power_up(state);
 
   // Initialize obstacles
-  spawn_spike(state);
+  spawn_gas(state);
+  create_portal(state);
 
   // Initialize buttons and in-game text
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
@@ -931,6 +980,7 @@ state_t *emscripten_init() {
   state->ghost_counter = 0;
   state->user_immunity = 0;
   state->ghost_timer = 0;
+  state->restart_buffer = 0;
   
   add_force_creators(state);
   sdl_on_key((key_handler_t)on_key);
@@ -977,7 +1027,13 @@ bool emscripten_main(state_t *state) {
   if (state->ghost_timer > SPAWN_TIMER && state->ghost_counter <= GHOST_NUM){
     spawn_ghost(state);
   }
-  ghost_move(state);
+
+  if (state->restart_buffer > RESTART_BUFFER){
+    ghost_move(state);
+  }
+  
+
+
 
   // Render assets
   asset_render(state->background_asset, state->vertical_offset);
