@@ -150,6 +150,7 @@ const size_t STEREO = 2;
 const size_t AUDIO_BUFFER = 2048;
 const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
+const size_t MUSIC_VOLUME = 50;
 
 // Button and Title Constants
 const vector_t TITLE_OFFSETS = {0, 75};
@@ -1137,7 +1138,8 @@ bool emscripten_main(state_t *state) {
   }
 
   if (Mix_PlayingMusic() == 0) {
-    Mix_PlayMusic(state->music, 0);
+    Mix_PlayMusic(state->music, -1);
+    Mix_VolumeMusic(MUSIC_VOLUME);
   }
 
   sdl_show(state->vertical_offset);
