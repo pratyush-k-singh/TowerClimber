@@ -333,7 +333,7 @@ list_t *make_rectangle(void *wall_info, size_t level) {
       middle = MIDDLE;
     }
     corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset - 
-                        PLATFORM_WIDTH/2 * middle, PLATFORM_HEIGHT + 
+                        PLATFORM_WIDTH.x/2 * middle, PLATFORM_HEIGHT + 
                         level * WALL_LENGTH.y/2};
   }
   list_t *c = list_init(WALL_POINTS, free);
