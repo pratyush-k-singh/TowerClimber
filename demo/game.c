@@ -76,12 +76,12 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
-const double SPIKE_RADIUS = 200;
+const double SPIKE_RADIUS = 250;
 const vector_t SPIKE_MIN = {150, 500};
 const vector_t SPIKE_MAX = {600, 0};
 const double SPIKE_MASS = 5;
 const size_t SPIKE_NUM = 6;
-const double SPIKE_OFFSET = 200;
+const double SPIKE_OFFSET = 300;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
