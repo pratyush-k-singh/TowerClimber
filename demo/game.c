@@ -31,7 +31,7 @@ const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
-const char *HEALTH_BAR_0_PATH = "assets/no_health_bar.png";
+const char *HEALTH_BAR_0_PATH = "assets/health_bar_0.png";
 const char *GHOST_PATH = "assets/ghost.png";
 const char *SPIKE_PATH = "assets/spike.png";
 
@@ -449,10 +449,10 @@ void create_health_power_up(state_t *state) {
 void update_health_bar(state_t *state) {
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   
-  if (state->user_health == 1) {
-    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
-  } else if (state->user_health == 2) {
+  if (state->user_health == 2) {
     health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
+  } else if (state->user_health == 1) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
   } else if (state->user_health == 0) {
     health_bar_asset = asset_make_image(HEALTH_BAR_0_PATH, HEALTH_BAR_BOX);
   }
@@ -875,10 +875,6 @@ bool emscripten_main(state_t *state) {
   body_t *user = state->user;
   scene_t *scene = state->scene;
 
-  if (state->user_health == 0) {
-    state->game_state == GAME_OVER;
-  }
-
   if (state->game_state == GAME_RUNNING) {
     scene_tick(scene, dt);
     body_tick(user, dt);
@@ -928,6 +924,10 @@ bool emscripten_main(state_t *state) {
   }
 
   sdl_show(state->vertical_offset);
+
+  if (state->user_health == 0) {
+    state->game_state = GAME_OVER;
+  }
 
   return false;
 }
