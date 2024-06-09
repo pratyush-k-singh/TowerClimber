@@ -482,6 +482,9 @@ void create_jump_power_up(state_t *state) {
   state->jump_powerup_jumps = 0;
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
+  create_collision(state->scene, state->user, powerup,
+                       (collision_handler_t)jump_powerup_collision, 
+                        state, POWERUP_ELASTICITY);
 }
 
 /**
@@ -496,6 +499,9 @@ void create_health_power_up(state_t *state) {
   state->health_powerup_index = list_size(state->body_assets);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
+  create_collision(state->scene, state->user, powerup,
+                  (collision_handler_t)health_powerup_collision, 
+                  state, POWERUP_ELASTICITY);
 }
 
 /**
@@ -790,14 +796,6 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body,
                        (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
-    case JUMP_POWER:
-      create_collision(state->scene, state->user, body,
-                       (collision_handler_t)jump_powerup_collision, state, POWERUP_ELASTICITY);
-      break;
-    case HEALTH_POWER:
-      create_collision(state->scene, state->user, body,
-                       (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
-      break;
     case GAS:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
@@ -862,6 +860,7 @@ void restart_button_handler(state_t *state) {
   }
   if (!contains_jump){
     create_jump_power_up(state);
+    
   }
   if (!contains_health){
     create_health_power_up(state);
