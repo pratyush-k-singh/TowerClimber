@@ -100,14 +100,13 @@ const double ISLAND_LEVEL = 0;
 const double ISLAND_MASS = INFINITY;
 const double ISLAND_ELASTICITY = 0.36;
 
-
-
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_LENGTH = {0, 2000};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
 const double WALL_ELASTICITY = 0;
+const rgb_color_t WALL_COLOR = (rgb_color_t) {255, 255, 255};
 const size_t TEMP_LENGTH = 3;
 const double NORMAL_SCALING = 1;
 const double PLATFORM_SCALING = 5;
@@ -128,8 +127,8 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 
 // powerup constants
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
-const size_t JUMP_POWERUP_LOC = (size_t) 2 * MAX.y;
-const size_t HEALTH_POWERUP_LOC = (size_t) 3 * MAX.y;
+const size_t JUMP_POWERUP_LOC = (size_t) 3 * MAX.y;
+const size_t HEALTH_POWERUP_LOC = (size_t) 4 * MAX.y;
 const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
@@ -655,8 +654,6 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
     if (state -> user_health >= 1){
       state -> user_health --;
       sdl_play_sound(get_sound(state, GHOST_IMPACT));
-    } else {
-      //body_remove(user);
     }
     state -> user_immunity = 0;
   }
