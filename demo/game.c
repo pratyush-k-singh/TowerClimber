@@ -169,7 +169,7 @@ typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER,
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER } game_state_t;
 typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
-typedef struct sound {s
+typedef struct sound {
   Mix_Chunk *player;
   sound_type_t *info;
 } sound_t;
@@ -490,7 +490,7 @@ void create_health_power_up(state_t *state) {
 void create_portal(state_t *state) {
 
   list_t *points = make_circle(VEC_ZERO, make_type_info(PORTAL), ZERO_SEED);
-   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
+  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                         make_type_info(HEALTH_POWER), NULL);
 }
 
