@@ -50,7 +50,7 @@ const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
 const double USER_MASS = 5;
 const double USER_ROTATION = 0;
 const size_t USER_NUM_POINTS = 20;
-const double USER_JUMP_HEIGHT = 1000;
+const double USER_JUMP_HEIGHT = 500;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const double RADIUS = 25;
 const double RESTING_SPEED = 200;
@@ -1019,7 +1019,7 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  printf("%lf", state->vertical_offset);
+  printf("%lf\n", state->vertical_offset);
 
   if (state->game_state == GAME_START && state->state_based_message_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
