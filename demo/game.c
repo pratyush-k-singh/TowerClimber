@@ -1038,10 +1038,10 @@ bool emscripten_main(state_t *state) {
     state->state_based_message_tracker = false;
   }
 
-  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && state->distance_based_message_tracker_halfpoint == false) {
+  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && state->distance_based_message_tracker_halfpoint == false && state->game_state == GAME_RUNNING) {
     printf("%s", PORTAL_SENSED_MESSAGE);
     state->distance_based_message_tracker_halfpoint = true;
-  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE && state->distance_based_message_tracker_portal == false) {
+  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE && state->distance_based_message_tracker_portal == false && state->game_state == GAME_RUNNING) {
     printf("%s", PORTAL_SEEN_MESSAGE);
     state->distance_based_message_tracker_portal = true;
   }
