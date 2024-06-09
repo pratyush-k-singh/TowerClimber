@@ -4,6 +4,7 @@
         "sdl_wrapper.h": "c",
         "state.h": "c",
         "stdlib.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "color.h": "c"
     }
 }
