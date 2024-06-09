@@ -116,7 +116,7 @@ void sdl_init(vector_t min, vector_t max) {
   SDL_Init(SDL_INIT_EVERYTHING);
   window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT,
-                            SDL_WINDOW_RESIZABLE);
+                            SDL_WINDOW_HIDDEN);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
   TTF_Init();
   if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {

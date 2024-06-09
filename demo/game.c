@@ -50,7 +50,7 @@ const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
 const double USER_MASS = 5;
 const double USER_ROTATION = 0;
 const size_t USER_NUM_POINTS = 20;
-const double USER_JUMP_HEIGHT = 400;
+const double USER_JUMP_HEIGHT = 300;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const double RADIUS = 25;
 const double RESTING_SPEED = 200;
@@ -100,14 +100,13 @@ const double ISLAND_LEVEL = 0;
 const double ISLAND_MASS = INFINITY;
 const double ISLAND_ELASTICITY = 0.36;
 
-
-
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_LENGTH = {0, 2000};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
-const double WALL_ELASTICITY = 0;
+const double ELASTICITY = 0;
+const rgb_color_t WALL_COLOR = (rgb_color_t) {255, 255, 255};
 const size_t TEMP_LENGTH = 3;
 const double NORMAL_SCALING = 1;
 const double PLATFORM_SCALING = 5;
@@ -128,8 +127,8 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 
 // powerup constants
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
-const size_t JUMP_POWERUP_LOC = (size_t) 2 * MAX.y;
-const size_t HEALTH_POWERUP_LOC = (size_t) 3 * MAX.y;
+const size_t JUMP_POWERUP_LOC = (size_t) 3 * MAX.y;
+const size_t HEALTH_POWERUP_LOC = (size_t) 4 * MAX.y;
 const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
@@ -166,7 +165,7 @@ const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are go
                               
                               "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
                               "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
-                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you soon.\n\n"
+                              "navigate your way past the obstacles with a two-time use double jump! Good luck ninja, I'll talk to you soon.\n\n"
                               "----------------------------------------------------------------\n\n";
 const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got you. The Goddess managed to save you though, so try again!\n\n"
                                "----------------------------------------------------------------\n\n";
@@ -180,7 +179,7 @@ const char* VICTORY_MESSAGE = "Thank you for helping the ninja climb to the top 
 // Game constants
 const size_t NUM_LEVELS = 3;
 const vector_t GRAVITY = {0, -1000};
-const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
+const size_t BODY_ASSETS = 3;
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
@@ -458,7 +457,7 @@ void create_walls_and_platforms(state_t *state) {
 
   for (size_t i = 0; i < NUM_PLATFORMS; i++){
     list_t *platform_points = make_rectangle(make_type_info(PLATFORM), i);
-    body_t *platform = body_init_with_info(platform_points, INFINITY, 
+    body_t *platform = body_init_with_info(platform_points, WALL_MASS, 
                                               USER_COLOR, make_type_info(PLATFORM), 
                                               NULL);
     scene_add_body(scene, platform);
@@ -481,12 +480,14 @@ void create_walls_and_platforms(state_t *state) {
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const) {
   state_t *state = aux;
-  body_remove(body2);
-  list_remove(state->body_assets, state->health_powerup_index);
 
   // add to health only if health is not full
   if (state->user_health < FULL_HEALTH) {
+      body_remove(body2);
+      list_remove(state->body_assets, state->health_powerup_index);
       state->user_health++;
+  } else {
+    return;
   }
 
   if (state->jump_powerup_index > state->health_powerup_index) {
@@ -655,8 +656,6 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
     if (state -> user_health >= 1){
       state -> user_health --;
       sdl_play_sound(get_sound(state, GHOST_IMPACT));
-    } else {
-      //body_remove(user);
     }
     state -> user_immunity = 0;
   }
@@ -677,9 +676,9 @@ void spawn_ghost(state_t *state) {
                                       make_type_info(GHOST), NULL);
   scene_add_body(state -> scene, ghost);
   asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, VERTICAL_OFFSET);
-  list_add(state->body_assets, ghost_asset);
   create_collision(state->scene, state->user, ghost,
-                      (collision_handler_t)damaging_collision, state, 0);
+                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+  list_add(state->body_assets, ghost_asset);
   state -> ghost_counter++;
   state -> ghost_timer = 0;
 }
@@ -788,15 +787,15 @@ void add_force_creators(state_t *state) {
     switch (get_type(body)) {
     case LEFT_WALL:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
+                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case RIGHT_WALL:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
+                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case PLATFORM:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
+                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case GAS:
       create_collision(state->scene, state->user, body, 
@@ -804,12 +803,15 @@ void add_force_creators(state_t *state) {
       break;
     case PORTAL:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)portal_collision, state, WALL_ELASTICITY);
+                      (collision_handler_t)portal_collision, state, ELASTICITY);
       break;
     case ISLAND:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)sticky_collision, state, ISLAND_ELASTICITY);
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
+    case GHOST:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
     default:
       break;
     }
