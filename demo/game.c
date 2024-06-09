@@ -188,7 +188,7 @@ struct state {
 
   asset_t *start_button;
   asset_t *game_title;
-  bool welcome_message;
+  bool message;
   asset_t *pause_button;
   asset_t *restart_button;
   game_state_t game_state;
