@@ -96,6 +96,10 @@ const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_FRICTION = .85;
 const size_t PLATFORM_LEVEL = 0;
+const size_t NUM_PLATFORMS = 5;
+const double GAP_DISTANCE = 800;
+const size_t MIDDLE = 1;
+
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -323,7 +327,15 @@ list_t *make_rectangle(void *wall_info, size_t level) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.y + WALL_LENGTH.y * level};
   }
   if (*info == PLATFORM) {
-    corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
+    double x_offset = 0;
+    size_t middle = 0;
+    if (level > 0){
+      x_offset = GAP_DISTANCE/2;
+      middle = MIDDLE;
+    }
+    corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset - 
+                        PLATFORM_WIDTH.x/2 * middle, PLATFORM_HEIGHT + 
+                        level * WALL_LENGTH.y/2};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
@@ -399,15 +411,18 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_rectangle(make_type_info(PLATFORM), PLATFORM_LEVEL);
-  body_t *platform = body_init_with_info(platform_points, INFINITY, 
-                                            USER_COLOR, make_type_info(PLATFORM), 
-                                            NULL);
-  scene_add_body(scene, platform);
-  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
-  list_add(state->body_assets, wall_asset_platform);
 
-  state->collided_obj = platform; // inital start location
+  for (size_t i = 0; i < NUM_PLATFORMS; i++){
+    list_t *platform_points = make_rectangle(make_type_info(PLATFORM), i);
+    body_t *platform = body_init_with_info(platform_points, INFINITY, 
+                                              USER_COLOR, make_type_info(PLATFORM), 
+                                              NULL);
+    scene_add_body(scene, platform);
+    asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
+    list_add(state->body_assets, wall_asset_platform);
+    state->collided_obj = platform; // inital start location
+  }
+
 }
 
 /**
@@ -817,16 +832,6 @@ void update_buffers(state_t *state, double dt){
   state->colliding_buffer += dt;
 }
 
-
-/**
- * Check conditions to see if game is over. Game is over if the user has no more health
- * (loss), the user falls off the map (loss), or the user reaches the top of the map (win).
- *
- * @param state a pointer to a state object representing the current demo state
- */
-bool game_over(state_t *state) {
-  return false;
-} 
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
