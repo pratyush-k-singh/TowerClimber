@@ -908,16 +908,14 @@ bool emscripten_main(state_t *state) {
   if (state->game_state == GAME_START && state->message == false) {
     printf("%s", WELCOME_MESSAGE);
     state->message = true;
-  }
-
-  if (state->game_state == GAME_OVER && state->message == false) {
+  } else if (state->game_state == GAME_OVER && state->message == false) {
     printf("%s", FAILIURE_MESSAGE);
     state->message = true;
-  }
-
-  if (state->game_state == GAME_PAUSED && state->message == false) {
+  } else if (state->game_state == GAME_PAUSED && state->message == false) {
     printf("%s", PAUSE_MESSAGE);
     state->message = true;
+  } else if (state->game_state == GAME_RUNNING) {
+    state->message = false
   }
 
   double dt = time_since_last_tick();
@@ -929,7 +927,6 @@ bool emscripten_main(state_t *state) {
   if (state->game_state == GAME_RUNNING) {
     scene_tick(scene, dt);
     body_tick(user, dt);
-    state->message = false;
   }
 
   sdl_clear();
