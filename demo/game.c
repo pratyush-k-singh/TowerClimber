@@ -142,7 +142,7 @@ const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
 
 // Button and Title Constans
-const vector_t TITLE_OFFSETS = {0, 100};
+const vector_t TITLE_OFFSETS = {0, 75};
 const vector_t VICTORY_OFFSETS = {0, 150};
 const vector_t BUTTON_OFFSETS = {0, 275};
 const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
@@ -957,7 +957,7 @@ state_t *emscripten_init() {
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
   state->game_title = asset_make_image(TITLE_PATH, game_title_box);
 
-  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
+  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
   state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
   SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
