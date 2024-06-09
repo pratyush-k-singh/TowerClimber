@@ -142,7 +142,7 @@ const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are go
                               
                               "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
                               "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
-                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you at the top."
+                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you at the top.";
 
 // Game constants
 const size_t NUM_LEVELS = 3;
