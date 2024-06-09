@@ -285,7 +285,7 @@ list_t *make_circle(vector_t center, void *info, size_t idx) {
     center_body = (vector_t){x, y}; //first spike coorder: (700, 800)
   } else if (*(body_type_t *)info == PORTAL){
     radius = PORTAL_RADIUS;
-    double y = WALL_LENGTH * NUM_LEVELS;
+    double y = WALL_LENGTH.y * NUM_LEVELS;
     double x = GAP_DISTANCE / 2;
     center_body = (vector_t){x, y};
   }
