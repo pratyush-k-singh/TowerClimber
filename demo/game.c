@@ -23,6 +23,7 @@ const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
 const char *RESTART_BUTTON_PATH = "assets/restart_button.png";
 const char *START_BUTTON_PATH = "assets/start_button.png";
 const char *TITLE_PATH = "assets/title.png";
+const char *WELCOME_MESSAGE_PATH = "texts/welcome_message.txt";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.png";
 const char *PLATFORM_PATH = "assets/platform.png";
@@ -817,16 +818,25 @@ void update_buffers(state_t *state, double dt){
   state->colliding_buffer += dt;
 }
 
+void print_welcome_message() {
+  FILE *file = fopen(WELCOME_MESSAGE_PATH, "r");
+  if (file == NULL) {
+      perror("Failed to open file");
+      return;
+  }
 
-/**
- * Check conditions to see if game is over. Game is over if the user has no more health
- * (loss), the user falls off the map (loss), or the user reaches the top of the map (win).
- *
- * @param state a pointer to a state object representing the current demo state
- */
-bool game_over(state_t *state) {
-  return false;
-} 
+  fseek(file, 0, SEEK_END);
+  long file_size = ftell(file);
+  fseek(file, 0, SEEK_SET);
+  char *buffer = malloc(file_size + 1);
+
+  fread(buffer, 1, file_size, file);
+  buffer[file_size] = '\0';
+  printf("%s", buffer);
+
+  free(buffer);
+  fclose(file);
+}
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
@@ -853,7 +863,6 @@ state_t *emscripten_init() {
   // Initialize health bar
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
-  update_health_bar(state);
 
   // Initialize user
   create_user(state);
@@ -901,6 +910,10 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
+  if (state->game_state == GAME_START) {
+    print_welcome_message();
+  }
+
   double dt = time_since_last_tick();
   update_buffers(state, dt);
   
