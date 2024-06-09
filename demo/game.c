@@ -456,6 +456,7 @@ void update_health_bar(state_t *state) {
   } else if (state->user_health == 0) {
     health_bar_asset = asset_make_image(HEALTH_BAR_0_PATH, HEALTH_BAR_BOX);
   }
+
   state->health_bar = health_bar_asset;
 }
 
@@ -541,11 +542,11 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
  * @param body1 the user
  * @param body2 the body with which the user is colliding
  */
-void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
+void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
                 double force_const){
   state_t *state = aux;
   if (state -> user_immunity > IMMUNITY){
-    if (state -> user_health > 1){
+    if (state -> user_health >= 1){
       state -> user_health --;
       update_health_bar(state);
       sdl_play_sound(get_sound(state, GHOST_IMPACT));
@@ -573,7 +574,7 @@ void spawn_ghost(state_t *state) {
   asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, VERTICAL_OFFSET);
   list_add(state->body_assets, ghost_asset);
   create_collision(state->scene, state->user, ghost,
-                      (collision_handler_t)ghost_collision, state, 0);
+                      (collision_handler_t)damaging_collision, state, 0);
   state -> ghost_counter++;
   state -> ghost_timer = 0;
 }
@@ -702,7 +703,7 @@ void add_force_creators(state_t *state) {
       break;
     case SPIKE:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)ghost_collision, state, GHOST_ELASTICITY);
+                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
     default:
       break;
     }
