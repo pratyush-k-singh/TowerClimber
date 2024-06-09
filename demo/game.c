@@ -104,8 +104,8 @@ SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y,
 
 // powerup constants
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
-const size_t JUMP_POWERUP_LOC = (size_t) 2 * (MAX.y / 3);
-const size_t HEALTH_POWERUP_LOC = (size_t) (MAX.y / 3);
+const size_t JUMP_POWERUP_LOC = (size_t) 2 * MAX.y;
+const size_t HEALTH_POWERUP_LOC = (size_t) 3 * MAX.y);
 const double POWERUP_LENGTH = 18;
 const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
