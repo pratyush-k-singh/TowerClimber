@@ -16,8 +16,9 @@
 
 const vector_t MIN = {0, 0};
 const vector_t MAX = {1000, 1000};
+const double HALFWAY_VERTICAL_DISTANCE = 2600;
 
-// File paths
+// Filepaths
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *VICTORY_BACKGROUND_PATH = "assets/victory_background.png";
 const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
@@ -46,11 +47,11 @@ const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
 const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
 
-// User constants
+// User Constants
 const double USER_MASS = 5;
 const double USER_ROTATION = 0;
 const size_t USER_NUM_POINTS = 20;
-const double USER_JUMP_HEIGHT = 500;
+const double USER_JUMP_HEIGHT = 300;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const double RADIUS = 25;
 const double RESTING_SPEED = 200;
@@ -60,7 +61,7 @@ const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const size_t FULL_HEALTH = 3;
 const size_t ZERO_SEED;
 
-// Ghost constants
+// Ghost Constants
 const double GHOST_RADIUS = 30;
 const double GHOST_NUM = 3; // Total number of ghosts to be spawned 
 const double GHOST_MASS = 5;
@@ -80,7 +81,7 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 const double RESTART_BUFFER = 5;
 
-// Obstacle constants
+// Obstacle Constants
 const double GAS_RADIUS = 250;
 const vector_t GAS_MIN = {150, 500};
 const vector_t GAS_MAX = {600, 0};
@@ -88,19 +89,21 @@ const double GAS_MASS = 5;
 const size_t GAS_NUM = 6;
 const double GAS_OFFSET = 220;
 
-// Portal constants
+// Portal Constants
 const double PORTAL_RADIUS = 350;
 const double PORTAL_MASS = 10;
 const double PORTAL_ROTATION = 0.05;
 const double PORTAL_OFFSET = 300;
+const double PORTAL_HEIGHT = 300;
+const double PORTAL_VERTICAL_DISTANCE = 5050;
 
-// Island constants
+// Island Constants
 const vector_t ISLAND_LENGTH = {0, 800};
 const double ISLAND_LEVEL = 0;
 const double ISLAND_MASS = INFINITY;
 const double ISLAND_ELASTICITY = 0.36;
 
-// Wall constants
+// Wall Constants
 const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_LENGTH = {0, 2000};
 const size_t WALL_POINTS = 4;
@@ -119,13 +122,13 @@ const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
 const size_t MIDDLE = 1;
 
-// health bar location
+// Health Bar Location
 const vector_t HEALTH_BAR_MIN = {15, 15};
 const vector_t HEALTH_BAR_MAX = {90, 30};
 SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                            .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
-// powerup constants
+// Power-up Constants
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const size_t JUMP_POWERUP_LOC = (size_t) 3 * MAX.y;
 const size_t HEALTH_POWERUP_LOC = (size_t) 4 * MAX.y;
@@ -134,7 +137,7 @@ const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
 const size_t JUMP_POWERUP_JUMPS = 2;
 
-// Sound constants
+// Sound Constants
 const size_t SOUND_SIZE = 5;
 const double HIT_BUFFER = 0.3;
 const double COLLIDING_BUFFER = 0.36;
@@ -148,7 +151,7 @@ const size_t AUDIO_BUFFER = 2048;
 const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
 
-// Button and Title Constans
+// Button and Title Constants
 const vector_t TITLE_OFFSETS = {0, 75};
 const vector_t VICTORY_OFFSETS = {0, 150};
 const vector_t BUTTON_OFFSETS = {0, 300};
@@ -1019,8 +1022,6 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  printf("%lf\n", state->vertical_offset);
-
   if (state->game_state == GAME_START && state->state_based_message_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
     state->state_based_message_tracker = true;
@@ -1037,10 +1038,10 @@ bool emscripten_main(state_t *state) {
     state->state_based_message_tracker = false;
   }
 
-  if (state->vertical_offset >= 2700 && state->distance_based_message_tracker_halfpoint == false) {
+  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && state->distance_based_message_tracker_halfpoint == false) {
     printf("%s", PORTAL_SENSED_MESSAGE);
     state->distance_based_message_tracker_halfpoint = true;
-  } else if (state->vertical_offset >= 5300 && state->distance_based_message_tracker_portal == false) {
+  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE && state->distance_based_message_tracker_portal == false) {
     printf("%s", PORTAL_SEEN_MESSAGE);
     state->distance_based_message_tracker_portal = true;
   }
