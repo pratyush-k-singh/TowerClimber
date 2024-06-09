@@ -141,7 +141,6 @@ const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER } game_state_t;
-
 typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
@@ -175,6 +174,7 @@ struct state {
 
   asset_t *start_button;
   asset_t *game_title;
+  bool welcome_message;
   asset_t *pause_button;
   asset_t *restart_button;
   game_state_t game_state;
@@ -897,6 +897,7 @@ state_t *emscripten_init() {
 
   // Initialize miscellaneous state values
   state->game_state = GAME_START;
+  state->welcome_message = false;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
@@ -910,7 +911,7 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START) {
+  if (state->game_state == GAME_START && state->welcome_message == false) {
     printf("Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
            "mysterious path to the Realm of Evil awaits. The Evil King has left ghosts and floating obstacles in the way, in an attempt "
            "to stop your ascent, but I doubt they'll stop you. Still, that doesn't mean it will be easy, so here is a refresher on how "
@@ -920,6 +921,7 @@ bool emscripten_main(state_t *state) {
            "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
            "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
            "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you at the top.");
+    state->welcome_message == true;
   }
 
 
