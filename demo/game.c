@@ -19,10 +19,12 @@ const vector_t MAX = {1000, 1000};
 
 // File paths
 const char *BACKGROUND_PATH = "assets/background.png";
+const char *VICTORY_BACKGROUND_PATH = "assets/victory_background.png";
 const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
 const char *RESTART_BUTTON_PATH = "assets/restart_button.png";
 const char *START_BUTTON_PATH = "assets/start_button.png";
 const char *TITLE_PATH = "assets/title.png";
+const char *VICTORY_TEXT_PATH = "assets/victory_text.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.png";
 const char *PLATFORM_PATH = "assets/platform.png";
@@ -138,7 +140,7 @@ const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
 const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
-                              "mysterious path to the Realm of Evil awaits. The Evil King has left ghosts and poisonous clouds in the way, in an attempt "
+                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and poisonous clouds in the way, in an attempt "
                               "to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
                               "to climb:\n\n"
 
@@ -153,6 +155,10 @@ const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got y
                                "----------------------------------------------------------------\n\n";
 const char* PAUSE_MESSAGE = "Hey, the Goddess froze time so you could do whatever you need to do!\n\n"
                             "----------------------------------------------------------------\n\n";
+const char* VICTORY_MESSAGE = "Thank you for helping the ninja climb to the top of the tower and enter the portal! Unforutnately interdimensional travel is rather slow "
+                              "but once he arrives in the REALM OF EVIL we will call on you once more. Until then, if you have the time, we request that "
+                              "you help more ninjas like this poor soul climb the tower. After all, the more heroes we can send to the REALM OF EVIL, the better!\n\n"
+                            "----------------------------------------------------------------\n\n";
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -162,7 +168,7 @@ const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
-typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER } game_state_t;
+typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER, GAME_VICTORY } game_state_t;
 typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
@@ -196,10 +202,13 @@ struct state {
 
   asset_t *start_button;
   asset_t *game_title;
-  bool message;
+  asset_t *victory_background
+  asset_t *victory_text;
   asset_t *pause_button;
   asset_t *restart_button;
   game_state_t game_state;
+
+  bool message_tracker;
 
   list_t *sounds;
   Mix_Music *music;
@@ -870,9 +879,11 @@ state_t *emscripten_init() {
   Mix_PlayChannel(WIND_CHANNEL, get_sound(state, WIND), LOOPS);
   state->music = Mix_LoadMUS(MUSIC_PATH);
   
-  // Initialize background
+  // Initialize backgrounds
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
   state->background_asset = asset_make_image(BACKGROUND_PATH, background_box);
+  SDL_Rect victory_background_box = {.x = MIN.x, .y = MIN.y / 2, .w = MAX.x, .h = MAX.y / 2};
+  state->victory_background = asset_make_image(VICTORY_BACKGROUND_PATH, victory_background_box);
 
   // Initialize health bar
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
@@ -893,13 +904,16 @@ state_t *emscripten_init() {
   // Initialize obstacles
   spawn_spike(state);
 
-  // Initialize buttons and title
+  // Initialize buttons and in-game text
+  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
+  state->game_title = asset_make_image(TITLE_PATH, game_title_box);
+
+  SDL_Rect victory_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 250};
+  state->victory_text = asset_make_image(VICTORY_TEXT_PATH, game_title_box);
+
   SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
   state->start_button = asset_make_button(start_button_box, asset_make_image(START_BUTTON_PATH, start_button_box), NULL, (button_handler_t)start_button_handler);
   asset_cache_register_button(state->start_button);
-
-  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
-  state->game_title = asset_make_image(TITLE_PATH, game_title_box);
 
   SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
   state->pause_button = asset_make_button(pause_button_box, asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), NULL, (button_handler_t)pause_button_handler);
@@ -911,7 +925,7 @@ state_t *emscripten_init() {
 
   // Initialize miscellaneous state values
   state->game_state = GAME_START;
-  state->message = false;
+  state->message_tracker = false;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
@@ -925,17 +939,20 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && state->message == false) {
+  if (state->game_state == GAME_START && state->message_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
-    state->message = true;
-  } else if (state->game_state == GAME_OVER && state->message == false) {
+    state->message_tracker = true;
+  } else if (state->game_state == GAME_OVER && state->message_tracker == false) {
     printf("%s", FAILIURE_MESSAGE);
-    state->message = true;
-  } else if (state->game_state == GAME_PAUSED && state->message == false) {
+    state->message_tracker = true;
+  } else if (state->game_state == GAME_PAUSED && state->message_tracker == false) {
     printf("%s", PAUSE_MESSAGE);
-    state->message = true;
+    state->message_tracker = true;
+  } else if (state->game_state == GAME_VICTORY && state->message_tracker == false) {
+    printf("%s", VICTORY_MESSAGE);
+    state->message_tracker = true;
   } else if (state->game_state == GAME_RUNNING) {
-    state->message = false;
+    state->message_tracker = false;
   }
 
   double dt = time_since_last_tick();
@@ -981,9 +998,12 @@ bool emscripten_main(state_t *state) {
     asset_render(state->restart_button, state->vertical_offset);
   } else if (state->game_state == GAME_OVER) {
     asset_render(state->restart_button, state->vertical_offset);
+  } else if (state->game_state == GAME_VICTORY) {
+    asset_render(state->victory_text, state->vertical_offset);
+    asset_render(state->victory_backgroun, state->vertical_offset);
   }
 
-  if (state->game_state == GAME_RUNNING) {
+  if (state->game_state == GAME_RUNNING) {  
     if (Mix_PlayingMusic() == 0) {
       Mix_PlayMusic(state->music, -1); // Play the music in a loop
     }
