@@ -805,6 +805,9 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
+    case GHOST:
+      create_collision(state->scene, state->user, ghost,
+                      (collision_handler_t)damaging_collision, state, WALL_ELASTICITY);
     default:
       break;
     }
