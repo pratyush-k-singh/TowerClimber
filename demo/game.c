@@ -461,7 +461,8 @@ void create_user(state_t *state) {
  * 
 */
 void create_walls_and_platforms(state_t *state) {
-  scene_t *scene = state -> scene;
+  scene_t *scene = state->scene;
+
   for (size_t i = 0; i < NUM_LEVELS; i++){
     list_t *left_points = make_rectangle(make_type_info(LEFT_WALL), i);
     list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL), i);
@@ -569,7 +570,9 @@ void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                         make_type_info(HEALTH_POWER), NULL);
-  asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
+  asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, 
+                                                      powerup, 
+                                                      state->vertical_offset);
   state->health_powerup_index = list_size(state->body_assets);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
@@ -640,8 +643,8 @@ void update_health_bar(state_t *state) {
 }
 
 /**
- * Check whether two bodies are colliding and applies a sticky collision between them
- * and to be called every tick
+ * Check whether two bodies are colliding and 
+ * applies a sticky collision between them
  *
  * @param body1 the user
  * @param body2 the body with which the user is colliding
@@ -666,22 +669,24 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 
 
 /**
- * Check whether two bodies are colliding and applies a sticky collision between them
- * and to be called every tick
+ * Check whether two bodies are colliding and applies a 
+ * damaging collision between them
  *
  * @param state state object representing the current demo state
  * @param body1 the user
  * @param body2 the body with which the user is colliding
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
  */
 void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
                 double force_const){
   state_t *state = aux;
-  if (state -> user_immunity > IMMUNITY){
-    if (state -> user_health >= 1){
-      state -> user_health --;
+  if (state->user_immunity > IMMUNITY){
+    if (state->user_health >= 1){
+      state->user_health --;
       sdl_play_sound(get_sound(state, GHOST_IMPACT));
     }
-    state -> user_immunity = 0;
+    state->user_immunity = 0;
   }
 }
 
@@ -689,39 +694,45 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
 /**
  * Spawns a ghost on the screen at fixed y value and at a random x value
  * that is within the bounds of the window
- * 
+ * @param state pointer to the current demo state
  */
 void spawn_ghost(state_t *state) {
-  vector_t max = {MAX.x, 0};
+  vector_t max = {MAX.x, VEC_ZERO.y};
   double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
   vector_t ghost_center = {x, Y_OFFSET_GHOST};
   list_t *c = make_circle(ghost_center, make_type_info(GHOST), ZERO_SEED);
   body_t *ghost = body_init_with_info(c, GHOST_MASS, GHOST_COLOUR, 
                                       make_type_info(GHOST), NULL);
-  scene_add_body(state -> scene, ghost);
-  asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, VERTICAL_OFFSET);
+  scene_add_body(state->scene, ghost);
+  asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, 
+                                                    VERTICAL_OFFSET);
   create_collision(state->scene, state->user, ghost,
-                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+                  (collision_handler_t)damaging_collision, 
+                  state, GHOST_ELASTICITY);
   list_add(state->body_assets, ghost_asset);
-  state -> ghost_counter++;
-  state -> ghost_timer = 0;
+  state->ghost_counter++;
+  state->ghost_timer = 0;
 }
 
 /**
  * Spawns a ghost on the screen at fixed y value and at a random x value
  * that is within the bounds of the window
+ * @param state pointer to the current state of the game
  */
 void ghost_move(state_t *state){
   scene_t *scene = state->scene;
   size_t num_bodies = scene_bodies(scene);
   for (size_t i = 0; i < num_bodies; i++){
     body_t *body = scene_get_body(scene, i);
-    if (get_type(body) == GHOST && (state->velocity_timer > VELOCITY_BUFFER)){
+    if (get_type(body) == GHOST && 
+    (state->velocity_timer > VELOCITY_BUFFER)){
       vector_t user_center = body_get_centroid(state->user);
       vector_t ghost_center = body_get_centroid(body);
-      vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
+      vector_t direction = vec_unit(vec_add(user_center, 
+                                    vec_negate(ghost_center)));
       vector_t velocity = vec_multiply(GHOST_SPEED, direction);
-      vector_t rand_add = rand_vec(vec_negate(RAND_VELOCITY), RAND_VELOCITY, i);
+      vector_t rand_add = rand_vec(vec_negate(RAND_VELOCITY), 
+                                  RAND_VELOCITY, i);
       vector_t rand_velocity = vec_add(velocity, rand_add);
       body_set_velocity(body, rand_velocity);
       if (i == num_bodies - 1){
@@ -741,8 +752,9 @@ void spawn_gas(state_t *state) {
     list_t *c = make_circle(VEC_ZERO, make_type_info(GAS), i);
     body_t *gas = body_init_with_info(c, GAS_MASS, GHOST_COLOUR, 
                                         make_type_info(GAS), NULL);
-    scene_add_body(state -> scene, gas);
-    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, gas, VERTICAL_OFFSET);
+    scene_add_body(state->scene, gas);
+    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, gas, 
+                                                    VERTICAL_OFFSET);
     list_add(state->body_assets, gas_asset);
   }
 }
@@ -809,19 +821,21 @@ void add_force_creators(state_t *state) {
     switch (get_type(body)) {
     case LEFT_WALL:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, ELASTICITY);
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case RIGHT_WALL:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, ELASTICITY);
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case PLATFORM:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, ELASTICITY);
+                      (collision_handler_t)sticky_collision, 
+                      state, ELASTICITY);
       break;
     case GAS:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)damaging_collision, state, ELASTICITY);
+                      (collision_handler_t)damaging_collision, 
+                      state, ELASTICITY);
       break;
     case PORTAL:
       create_collision(state->scene, state->user, body, 
@@ -833,7 +847,8 @@ void add_force_creators(state_t *state) {
       break;
     case GHOST:
       create_collision(state->scene, state->user, body,
-                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+                      (collision_handler_t)damaging_collision, state, 
+                      GHOST_ELASTICITY);
     default:
       break;
     }
@@ -974,18 +989,24 @@ state_t *emscripten_init() {
   state->music = Mix_LoadMUS(MUSIC_PATH);
   
   // Initialize backgrounds
-  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
-  state->background_asset = asset_make_image(BACKGROUND_PATH, background_box);
-  SDL_Rect victory_background_box = {.x = MIN.x, .y = MIN.y / 2, .w = MAX.x, .h = MAX.y / 2};
-  state->victory_background = asset_make_image(VICTORY_BACKGROUND_PATH, victory_background_box);
+  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, 
+                            .w = MAX.x, .h = MAX.y};
+  state->background_asset = asset_make_image(BACKGROUND_PATH, 
+                                              background_box);
+  SDL_Rect victory_background_box = {.x = MIN.x, .y = MIN.y / 2, 
+                                    .w = MAX.x, .h = MAX.y / 2};
+  state->victory_background = asset_make_image(VICTORY_BACKGROUND_PATH, 
+                                                victory_background_box);
 
   // Initialize health bar
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, 
+                                              HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 
   // Initialize user
   create_user(state);
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, 
+                                                  state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
   // Intialize walls and platforms
