@@ -857,6 +857,7 @@ void reset_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
   state->restart_buffer = 0;
+  state->distance_based_message_tracker_halfpoint = false;
 
   bool contains_jump = false;
   bool contains_health = false;
