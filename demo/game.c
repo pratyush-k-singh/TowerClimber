@@ -121,6 +121,7 @@ const size_t PLATFORM_LEVEL = 0;
 const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
 const size_t MIDDLE = 1;
+const size_t WALL_TYPES = 2;
 
 // Health Bar Location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -464,7 +465,7 @@ void create_walls_and_platforms(state_t *state) {
   scene_t *scene = state->scene;
   body_type_t *info = NULL;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    for (size_t j = 0; i < WALL_TYPES; i++){
+    for (size_t j = 0; j < WALL_TYPES; j++){
       if (j == 0){
         info = make_type_info(LEFT_WALL);
       } else {
