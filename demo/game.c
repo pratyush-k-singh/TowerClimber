@@ -87,6 +87,8 @@ const double GAS_OFFSET = 220;
 
 // Portal constants
 const double PORTAL_RADIUS = 350;
+const double PORTAL_MASS = 10;
+const double PORTAL_ROTATION = 0.05;
 
 
 // Wall constants
