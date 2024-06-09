@@ -503,7 +503,6 @@ void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void 
   // add to health only if health is not full
   if (state->user_health < FULL_HEALTH) {
       state->user_health++;
-      update_health_bar(state);
   }
 
   if (state->jump_powerup_index > state->health_powerup_index) {
@@ -548,7 +547,6 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
   if (state -> user_immunity > IMMUNITY){
     if (state -> user_health >= 1){
       state -> user_health --;
-      update_health_bar(state);
       sdl_play_sound(get_sound(state, GHOST_IMPACT));
     } else {
       //body_remove(user);
