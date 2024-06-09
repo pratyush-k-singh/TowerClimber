@@ -665,8 +665,8 @@ void spawn_gas(state_t *state) {
     list_t *c = make_circle(VEC_ZERO, make_type_info(GAS), i);
     body_t *gas = body_init_with_info(c, GAS_MASS, GHOST_COLOUR, 
                                         make_type_info(GAS), NULL);
-    scene_add_body(state -> scene, GAS);
-    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, GAS, VERTICAL_OFFSET);
+    scene_add_body(state -> scene, gas);
+    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, gas, VERTICAL_OFFSET);
     list_add(state->body_assets, gas_asset);
   }
 }
