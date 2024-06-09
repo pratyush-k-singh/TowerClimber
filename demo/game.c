@@ -788,6 +788,7 @@ void add_force_creators(state_t *state) {
     case GAS:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+      break;
     case PORTAL:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)portal_collision, state, WALL_ELASTICITY);
