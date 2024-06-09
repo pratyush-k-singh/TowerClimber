@@ -97,7 +97,7 @@ const double PORTAL_OFFSET = 300;
 const double PORTAL_HEIGHT = 300;
 const double PORTAL_VERTICAL_DISTANCE = 5050;
 
-// Island Constants
+// Quicksand Island Constants
 const vector_t ISLAND_LENGTH = {0, 800};
 const double ISLAND_LEVEL = 0;
 const double ISLAND_MASS = INFINITY;
@@ -159,8 +159,8 @@ const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
 const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
-                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and poisonous clouds in the way, in an attempt "
-                              "to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
+                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and poisonous clouds in the way above, and a strange quicksand island below "
+                              "in an attempt to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
                               "to climb:\n\n"
 
                               "- Horizontal Navigation: Left/Right Arrow Keys\n"
@@ -191,7 +191,7 @@ const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
-              HEALTH_POWER, GHOST, GAS, PORTAL, ISLAND, NONE } body_type_t;
+              HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND, NONE } body_type_t;
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER, GAME_VICTORY } game_state_t;
 typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
@@ -391,7 +391,7 @@ list_t *make_rectangle(body_type_t *wall_info, size_t level) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset - 
                         PLATFORM_WIDTH.x/2 * middle, PLATFORM_HEIGHT + 
                         level * WALL_LENGTH.y/2};
-  } else if (*info == ISLAND) {
+  } else if (*info == QUICKSAND_ISLAND) {
     corner = (vector_t){MIN.x, MIN.y - ISLAND_LENGTH.y};
   }
   list_t *c = list_init(WALL_POINTS, free);
@@ -595,9 +595,9 @@ void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
  * @param state the current state of the demo
 */
 void create_island(state_t *state) {
-  list_t *points = make_rectangle(make_type_info(ISLAND), ISLAND_LEVEL);
+  list_t *points = make_rectangle(make_type_info(QUICKSAND_ISLAND), ISLAND_LEVEL);
   body_t *island = body_init_with_info(points, ISLAND_MASS, USER_COLOR, 
-                                        make_type_info(ISLAND), NULL);
+                                        make_type_info(QUICKSAND_ISLAND), NULL);
   asset_t *island_asset = asset_make_image_with_body(ISLAND_PATH, island, state->vertical_offset);
   list_add(state->body_assets, island_asset);
   scene_add_body(state->scene, island);
@@ -814,7 +814,7 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)portal_collision, state, ELASTICITY);
       break;
-    case ISLAND:
+    case QUICKSAND_ISLAND:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
