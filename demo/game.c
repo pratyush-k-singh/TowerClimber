@@ -934,7 +934,7 @@ bool emscripten_main(state_t *state) {
 
   if (state->game_state == GAME_START && state->welcome_message == false) {
     char *welcome_message = parse_message(WELCOME_MESSAGE_PATH);
-    printf("%s", welcome_message);
+    printf(welcome_message);
     state->welcome_message = true;
   }
 
