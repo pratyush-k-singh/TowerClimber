@@ -916,11 +916,14 @@ bool emscripten_main(state_t *state) {
            "mysterious path to the Realm of Evil awaits. The Evil King has left ghosts and floating obstacles in the way, in an attempt "
            "to stop your ascent, but I doubt they'll stop you. Still, that doesn't mean it will be easy, so here is a refresher on how "
            "to climb:\n\n"
+
            "- Horizontal Navigation: Left/Right Arrow Keys\n"
            "- Jumping: Up Arrow Key\n\n"
+
            "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
            "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
            "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you at the top.");
+    
     state->welcome_message = true;
   }
 
