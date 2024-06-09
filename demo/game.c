@@ -409,7 +409,7 @@ void create_walls_and_platforms(state_t *state) {
 
 
   for (size_t i = 0; i < NUM_PLATFORMS; i++){
-    list_t *platform_points = make_rectangle(make_type_info(PLATFORM), PLATFORM_LEVEL);
+    list_t *platform_points = make_rectangle(make_type_info(PLATFORM), i);
     body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                               USER_COLOR, make_type_info(PLATFORM), 
                                               NULL);
