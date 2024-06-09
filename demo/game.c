@@ -1038,7 +1038,7 @@ bool emscripten_main(state_t *state) {
   if (state->vertical_offset >= 3000 && state->distance_based_message_tracker_halfpoint == false) {
     printf("%s", PORTAL_SENSED_MESSAGE);
     state->distance_based_message_tracker_halfpoint = true;
-  } else if (state->vertical_offset >= 5000 && state->distance_based_message_tracker_portal == false) {
+  } else if (state->vertical_offset >= 6000 && state->distance_based_message_tracker_portal == false) {
     printf("%s", PORTAL_SEEN_MESSAGE);
     state->distance_based_message_tracker_portal = true;
   }
