@@ -33,13 +33,13 @@ const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *HEALTH_BAR_0_PATH = "assets/health_bar_0.png";
 const char *GHOST_PATH = "assets/ghost.png";  
-const char *SPIKE_PATH = "assets/spike.png";
+const char *GAS_PATH = "assets/obstacle.png";
 const char *PORTAL_PATH = "assets/portal.png";
 const char *ISLAND_PATH = "assets/island.png";
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
-const char *SPIKE_IMPACT_PATH = "assets/spike_impact.wav";
+const char *GAS_IMPACT_PATH = "assets/gas_impact.wav";
 const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
 const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
@@ -78,12 +78,12 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
-const double SPIKE_RADIUS = 250;
-const vector_t SPIKE_MIN = {150, 500};
-const vector_t SPIKE_MAX = {600, 0};
-const double SPIKE_MASS = 5;
-const size_t SPIKE_NUM = 6;
-const double SPIKE_OFFSET = 220;
+const double GAS_RADIUS = 250;
+const vector_t GAS_MIN = {150, 500};
+const vector_t GAS_MAX = {600, 0};
+const double GAS_MASS = 5;
+const size_t GAS_NUM = 6;
+const double GAS_OFFSET = 220;
 
 // Portal constants
 const double PORTAL_RADIUS = 350;
@@ -165,9 +165,9 @@ const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
-              HEALTH_POWER, GHOST, SPIKE, PORTAL, ISLAND, NONE } body_type_t;
+              HEALTH_POWER, GHOST, GAS, PORTAL, ISLAND, NONE } body_type_t;
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER } game_state_t;
-typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
+typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
   Mix_Chunk *player;
@@ -217,7 +217,7 @@ void sound_free(sound_t *sound){
 
 void sound_init(state_t *state){
   list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
-  const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, SPIKE_IMPACT_PATH, 
+  const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, GAS_IMPACT_PATH, 
                         PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = malloc(sizeof(sound_t));
@@ -276,13 +276,13 @@ body_type_t *make_type_info(body_type_t type) {
 list_t *make_circle(vector_t center, void *info, size_t idx) {
   double radius = RADIUS;
   vector_t center_body = center;
-  if (*(body_type_t *)info == SPIKE){
-    radius = SPIKE_RADIUS;
-    double y = (WALL_LENGTH.y/2) * (idx+1) - SPIKE_OFFSET;
-    size_t position = idx % (SPIKE_NUM / NUM_LEVELS);
-    double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
+  if (*(body_type_t *)info == GAS){
+    radius = GAS_RADIUS;
+    double y = (WALL_LENGTH.y/2) * (idx+1) - GAS_OFFSET;
+    size_t position = idx % (GAS_NUM / NUM_LEVELS);
+    double x = WALL_WIDTH.x + GAS_RADIUS * pow((-1), position + 1)
              + GAP_DISTANCE * (1 - position);
-    center_body = (vector_t){x, y}; //first spike coorder: (700, 800)
+    center_body = (vector_t){x, y}; //first GAS coorder: (700, 800)
   } else if (*(body_type_t *)info == PORTAL){
     radius = PORTAL_RADIUS;
     double y = WALL_LENGTH.y * NUM_LEVELS;
@@ -657,17 +657,17 @@ void ghost_move(state_t *state){
 
 
 /**
- * Spawns spikes on the screen at random y value and at a random x value
+ * Spawns GASs on the screen at random y value and at a random x value
  * that is within the bounds wall height and the space in between
  */
-void spawn_spike(state_t *state) {
-  for (size_t i = 0; i < SPIKE_NUM; i++){
-    list_t *c = make_circle(VEC_ZERO, make_type_info(SPIKE), i);
-    body_t *spike = body_init_with_info(c, SPIKE_MASS, GHOST_COLOUR, 
-                                        make_type_info(SPIKE), NULL);
-    scene_add_body(state -> scene, spike);
-    asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, VERTICAL_OFFSET);
-    list_add(state->body_assets, spike_asset);
+void spawn_gas(state_t *state) {
+  for (size_t i = 0; i < GAS_NUM; i++){
+    list_t *c = make_circle(VEC_ZERO, make_type_info(GAS), i);
+    body_t *gas = body_init_with_info(c, GAS_MASS, GHOST_COLOUR, 
+                                        make_type_info(GAS), NULL);
+    scene_add_body(state -> scene, GAS);
+    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, GAS, VERTICAL_OFFSET);
+    list_add(state->body_assets, gas_asset);
   }
 }
 
@@ -753,7 +753,7 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body,
                        (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
       break;
-    case SPIKE:
+    case GAS:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
     default:
@@ -910,7 +910,7 @@ state_t *emscripten_init() {
   create_jump_power_up(state);
 
   // Initialize obstacles
-  spawn_spike(state);
+  spawn_gas(state);
 
   // Initialize buttons and title
   SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
