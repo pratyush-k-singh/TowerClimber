@@ -1054,6 +1054,7 @@ bool emscripten_main(state_t *state) {
   } else if (state->game_state == GAME_VICTORY) {
     asset_render(state->victory_background, state->vertical_offset);
     asset_render(state->victory_text, state->vertical_offset);
+    asset_render(state->restart_button, state->vertical_offset);
   }
 
   if (Mix_PlayingMusic() == 0) {
