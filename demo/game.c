@@ -807,7 +807,7 @@ void add_force_creators(state_t *state) {
       break;
     case GHOST:
       create_collision(state->scene, state->user, body,
-                      (collision_handler_t)damaging_collision, state, ELASTICITY);
+                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
     default:
       break;
     }
