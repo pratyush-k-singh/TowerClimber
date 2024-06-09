@@ -905,6 +905,7 @@ state_t *emscripten_init() {
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   update_buffers(state, dt);
+  update_health_bar(state);
   
   body_t *user = state->user;
   scene_t *scene = state->scene;
