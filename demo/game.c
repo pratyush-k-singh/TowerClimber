@@ -250,15 +250,16 @@ body_type_t *make_type_info(body_type_t type) {
  * 
  * @return list_t containing the points of the shape
 */
-list_t *make_user(vector_t center, void *info, size_t seed) {
+list_t *make_user(vector_t center, void *info, size_t idx) {
   double radius = RADIUS;
   vector_t center_body = center;
   if (*(body_type_t *)info == SPIKE){
     radius = SPIKE_RADIUS;
-    vector_t spike_max = {SPIKE_MAX.x, SPIKE_MAX.y + 
-                          WALL_LENGTH.y * NUM_LEVELS};
-    center_body = rand_vec(SPIKE_MIN, spike_max, seed);
-
+    double y = (WALL_LENGTH.y/2) * idx;
+    size_t position = idx % (SPIKE_NUM / NUM_LEVELS);
+    double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
+             + GAP_DISTANCE * position;
+    center_body = {x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
