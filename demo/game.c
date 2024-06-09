@@ -894,11 +894,11 @@ bool emscripten_main(state_t *state) {
   ghost_move(state);
 
   // Render assets
+  asset_render(state->background_asset, state->vertical_offset);
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
   asset_render(state->health_bar, state->vertical_offset);
-  asset_render(state->background_asset, state->vertical_offset);
 
   // Render buttons and/or title based on game state
   if (state->game_state == GAME_START) {
