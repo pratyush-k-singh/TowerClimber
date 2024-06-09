@@ -1060,14 +1060,8 @@ bool emscripten_main(state_t *state) {
     asset_render(state->victory_background, state->vertical_offset);
   }
 
-  if (state->game_state == GAME_RUNNING) {  
-    if (Mix_PlayingMusic() == 0) {
-      Mix_PlayMusic(state->music, -1); // Play the music in a loop
-    }
-  } else {
-    if (Mix_PlayingMusic() != 0) {
-      Mix_PauseMusic();
-    }
+  if (Mix_PlayingMusic() == 0) {
+    Mix_PlayMusic(state->music, -1);
   }
 
   sdl_show(state->vertical_offset);
