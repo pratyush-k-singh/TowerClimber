@@ -21,7 +21,7 @@ const vector_t MAX = {1000, 1000};
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *VICTORY_BACKGROUND_PATH = "assets/victory_background.png";
 const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
-const char *RESTART_BUTTON_PATH = "assets/restart_button.png";
+const char *RESET_BUTTON_PATH = "assets/reset_button.png";
 const char *START_BUTTON_PATH = "assets/start_button.png";
 const char *TITLE_PATH = "assets/title.png";
 const char *VICTORY_TEXT_PATH = "assets/victory_text.png";
@@ -119,13 +119,13 @@ const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
 const size_t MIDDLE = 1;
 
-// health bar location
+// Health Bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
 const vector_t HEALTH_BAR_MAX = {90, 30};
 SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                            .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
-// powerup constants
+// Power-up Constants
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const size_t JUMP_POWERUP_LOC = (size_t) 3 * MAX.y;
 const size_t HEALTH_POWERUP_LOC = (size_t) 4 * MAX.y;
@@ -134,7 +134,7 @@ const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
 const size_t JUMP_POWERUP_JUMPS = 2;
 
-// Sound constants
+// Sound Constants
 const size_t SOUND_SIZE = 5;
 const double HIT_BUFFER = 0.3;
 const double COLLIDING_BUFFER = 0.36;
@@ -151,12 +151,12 @@ const size_t LOOPS = 20;
 // Button and Title Constans
 const vector_t TITLE_OFFSETS = {0, 75};
 const vector_t VICTORY_OFFSETS = {0, 150};
-const vector_t BUTTON_OFFSETS = {0, 275};
+const vector_t BUTTON_OFFSETS = {0, 290};
 const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
 const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
-                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and poisonous clouds in the way, in an attempt "
+                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and clouds of EVIL gas in the way, in an attempt "
                               "to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
                               "to climb:\n\n"
 
@@ -171,6 +171,10 @@ const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got y
                                "----------------------------------------------------------------\n\n";
 const char* PAUSE_MESSAGE = "Hey, the Goddess froze time so you could do whatever you need to do!\n\n"
                             "----------------------------------------------------------------\n\n";
+const char* PORTAL_SENSED_MESSAGE = "The Goddess can sense the aura of the portal, we're more than halfway there!\n\n"
+                                    "----------------------------------------------------------------\n\n";
+const char* PORTAL_SEEN_MESSAGE = "That's the portal right there!\n\n"
+                                  "----------------------------------------------------------------\n\n";
 const char* VICTORY_MESSAGE = "Thank you for helping the ninja climb to the top of the tower and enter the portal! Unforutnately interdimensional travel is rather slow "
                               "but once he arrives in the REALM OF EVIL we will call on you once more. Until then, if you have the time, we request that "
                               "you help more ninjas like this poor soul climb the tower. After all, the more heroes we can send to the REALM OF EVIL, the better!\n\n"
@@ -223,7 +227,7 @@ struct state {
   asset_t *victory_background;
   asset_t *victory_text;
   asset_t *pause_button;
-  asset_t *restart_button;
+  asset_t *reset_button;
   game_state_t game_state;
 
   bool message_tracker;
@@ -640,6 +644,53 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->colliding_buffer = 0;
 }
 
+/**
+ * Collision handler for health powerups
+ *
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ * @param axis the axis of collision
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
+ */
+void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
+  state_t *state = aux;
+  body_remove(body2);
+  list_remove(state->body_assets, state->health_powerup_index);
+
+  // add to health only if health is not full
+  if (state->user_health < FULL_HEALTH) {
+      state->user_health++;
+  }
+
+  if (state->jump_powerup_index > state->health_powerup_index) {
+    state->jump_powerup_index--;
+  }
+}
+
+/**
+ * Collision handler for jump powerups
+ *
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ * @param axis the axis of collision
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
+ */
+void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
+  state_t *state = aux;
+  body_remove(body2);
+  list_remove(state->body_assets, state->jump_powerup_index);
+
+  // set number of extra jumps the user can take
+  state->jump_powerup_jumps = JUMP_POWERUP_JUMPS;
+
+  if (state->health_powerup_index > state->jump_powerup_index) {
+    state->health_powerup_index--;
+  }
+}
 
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
@@ -830,7 +881,7 @@ void pause_button_handler(state_t *state) {
   }
 }
 
-void restart_button_handler(state_t *state) {
+void reset_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
   state->restart_buffer = 0;
@@ -983,17 +1034,16 @@ state_t *emscripten_init() {
   SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
   state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
-  SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
-  state->start_button = asset_make_button(start_button_box, asset_make_image(START_BUTTON_PATH, start_button_box), NULL, (button_handler_t)start_button_handler);
+  SDL_Rect button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 160, .h = 80};
+  state->start_button = asset_make_button(button_box, asset_make_image(START_BUTTON_PATH, button_box), NULL, (button_handler_t)start_button_handler);
   asset_cache_register_button(state->start_button);
+
+  state->reset_button = asset_make_button(button_box, asset_make_image(RESET_BUTTON_PATH, button_box), NULL, (button_handler_t)reset_button_handler);
+  asset_cache_register_button(state->reset_button);
 
   SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
   state->pause_button = asset_make_button(pause_button_box, asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), NULL, (button_handler_t)pause_button_handler);
   asset_cache_register_button(state->pause_button);
-
-  SDL_Rect restart_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
-  state->restart_button = asset_make_button(restart_button_box, asset_make_image(RESTART_BUTTON_PATH, start_button_box), NULL, (button_handler_t)restart_button_handler);
-  asset_cache_register_button(state->restart_button);
 
   // Initialize miscellaneous state values
   state->game_state = GAME_START;
@@ -1071,12 +1121,13 @@ bool emscripten_main(state_t *state) {
     asset_render(state->pause_button, state->vertical_offset);
   } else if (state->game_state == GAME_PAUSED) {
     asset_render(state->pause_button, state->vertical_offset);
-    asset_render(state->restart_button, state->vertical_offset);
+    asset_render(state->reset_button, state->vertical_offset);
   } else if (state->game_state == GAME_OVER) {
-    asset_render(state->restart_button, state->vertical_offset);
+    asset_render(state->reset_button, state->vertical_offset);
   } else if (state->game_state == GAME_VICTORY) {
     asset_render(state->victory_background, state->vertical_offset);
     asset_render(state->victory_text, state->vertical_offset);
+    asset_render(state->reset_button, state->vertical_offset);
   }
 
   if (Mix_PlayingMusic() == 0) {
