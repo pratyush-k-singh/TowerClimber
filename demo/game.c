@@ -32,7 +32,7 @@ const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *HEALTH_BAR_0_PATH = "assets/health_bar_0.png";
-const char *GHOST_PATH = "assets/ghost.png";
+const char *GHOST_PATH = "assets/ghost.png";  
 const char *SPIKE_PATH = "assets/spike.png";
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
