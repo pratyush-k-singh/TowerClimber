@@ -326,10 +326,12 @@ list_t *make_rectangle(void *wall_info, size_t level) {
   }
   if (*info == PLATFORM) {
     double x_offset = 0;
+    size_t middle = 1;
     if (level > 0){
       x_offset = GAP_DISTANCE/2;
+      middle = 0;
     }
-    corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset, 
+    corner = (vector_t){MIN.x + WALL_WIDTH.x * middle + x_offset, 
                         PLATFORM_HEIGHT + level * WALL_LENGTH.y/2};
   }
   list_t *c = list_init(WALL_POINTS, free);
