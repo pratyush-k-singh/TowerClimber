@@ -470,6 +470,55 @@ void create_walls_and_platforms(state_t *state) {
 }
 
 /**
+ * Collision handler for health powerups
+ *
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ * @param axis the axis of collision
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
+ */
+void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
+  state_t *state = aux;
+  body_remove(body2);
+  list_remove(state->body_assets, state->health_powerup_index);
+
+  // add to health only if health is not full
+  if (state->user_health < FULL_HEALTH) {
+      state->user_health++;
+  }
+
+  if (state->jump_powerup_index > state->health_powerup_index) {
+    state->jump_powerup_index--;
+  }
+}
+
+/**
+ * Collision handler for jump powerups
+ *
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ * @param axis the axis of collision
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
+ */
+void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
+                double force_const) {
+  state_t *state = aux;
+  body_remove(body2);
+  list_remove(state->body_assets, state->jump_powerup_index);
+
+  // set number of extra jumps the user can take
+  state->jump_powerup_jumps = JUMP_POWERUP_JUMPS;
+
+  if (state->health_powerup_index > state->jump_powerup_index) {
+    state->health_powerup_index--;
+  }
+}
+
+
+/**
  * Creates a jump power up and adds to state
  * @param state the current state of the demo
 */
@@ -590,53 +639,6 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   state->colliding_buffer = 0;
 }
 
-/**
- * Collision handler for health powerups
- *
- * @param body1 the user
- * @param body2 the body with which the user is colliding
- * @param axis the axis of collision
- * @param aux information about the state of the collision
- * @param force_const the force constant to be applied to the collision
- */
-void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const) {
-  state_t *state = aux;
-  body_remove(body2);
-  list_remove(state->body_assets, state->health_powerup_index);
-
-  // add to health only if health is not full
-  if (state->user_health < FULL_HEALTH) {
-      state->user_health++;
-  }
-
-  if (state->jump_powerup_index > state->health_powerup_index) {
-    state->jump_powerup_index--;
-  }
-}
-
-/**
- * Collision handler for jump powerups
- *
- * @param body1 the user
- * @param body2 the body with which the user is colliding
- * @param axis the axis of collision
- * @param aux information about the state of the collision
- * @param force_const the force constant to be applied to the collision
- */
-void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const) {
-  state_t *state = aux;
-  body_remove(body2);
-  list_remove(state->body_assets, state->jump_powerup_index);
-
-  // set number of extra jumps the user can take
-  state->jump_powerup_jumps = JUMP_POWERUP_JUMPS;
-
-  if (state->health_powerup_index > state->jump_powerup_index) {
-    state->health_powerup_index--;
-  }
-}
 
 /**
  * Check whether two bodies are colliding and applies a sticky collision between them
