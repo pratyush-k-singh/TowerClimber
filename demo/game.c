@@ -66,21 +66,22 @@ const double GHOST_SPEED = 130;
 const double SPAWN_TIMER = 3;
 const size_t INITIAL_GHOST = 1;
 const double Y_OFFSET_GHOST = -100;
-const double VELOCITY_BUFFER = 0.8;
+const double VELOCITY_BUFFER = 0.66;
 const double GHOST_ELASTICITY = 1;
 const double TRANSLATE_SCALE = 800;
 const double GHOST_RAND_MAX = 20;
 const size_t Y_RAND = 413;
 const double RAND_SPEED = 80;
-const vector_t RAND_VELOCITY = {90, 90};
+const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
-const double SPIKE_RADIUS = 120;
+const double SPIKE_RADIUS = 250;
 const vector_t SPIKE_MIN = {150, 500};
 const vector_t SPIKE_MAX = {600, 0};
 const double SPIKE_MASS = 5;
 const size_t SPIKE_NUM = 6;
+const double SPIKE_OFFSET = 220;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -96,6 +97,10 @@ const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_FRICTION = .85;
 const size_t PLATFORM_LEVEL = 0;
+const size_t NUM_PLATFORMS = 5;
+const double GAP_DISTANCE = 800;
+const size_t MIDDLE = 1;
+
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -261,15 +266,16 @@ body_type_t *make_type_info(body_type_t type) {
  * 
  * @return list_t containing the points of the shape
 */
-list_t *make_user(vector_t center, void *info, size_t seed) {
+list_t *make_user(vector_t center, void *info, size_t idx) {
   double radius = RADIUS;
   vector_t center_body = center;
   if (*(body_type_t *)info == SPIKE){
     radius = SPIKE_RADIUS;
-    vector_t spike_max = {SPIKE_MAX.x, SPIKE_MAX.y + 
-                          WALL_LENGTH.y * NUM_LEVELS};
-    center_body = rand_vec(SPIKE_MIN, spike_max, seed);
-
+    double y = (WALL_LENGTH.y/2) * (idx+1) - SPIKE_OFFSET;
+    size_t position = idx % (SPIKE_NUM / NUM_LEVELS);
+    double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
+             + GAP_DISTANCE * (1 - position);
+    center_body = (vector_t){x, y}; //first spike coorder: (700, 800)
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
@@ -338,7 +344,15 @@ list_t *make_rectangle(void *wall_info, size_t level) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.y + WALL_LENGTH.y * level};
   }
   if (*info == PLATFORM) {
-    corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
+    double x_offset = 0;
+    size_t middle = 0;
+    if (level > 0){
+      x_offset = GAP_DISTANCE/2;
+      middle = MIDDLE;
+    }
+    corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset - 
+                        PLATFORM_WIDTH.x/2 * middle, PLATFORM_HEIGHT + 
+                        level * WALL_LENGTH.y/2};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
@@ -414,15 +428,18 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_rectangle(make_type_info(PLATFORM), PLATFORM_LEVEL);
-  body_t *platform = body_init_with_info(platform_points, INFINITY, 
-                                            USER_COLOR, make_type_info(PLATFORM), 
-                                            NULL);
-  scene_add_body(scene, platform);
-  asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
-  list_add(state->body_assets, wall_asset_platform);
 
-  state->collided_obj = platform; // inital start location
+  for (size_t i = 0; i < NUM_PLATFORMS; i++){
+    list_t *platform_points = make_rectangle(make_type_info(PLATFORM), i);
+    body_t *platform = body_init_with_info(platform_points, INFINITY, 
+                                              USER_COLOR, make_type_info(PLATFORM), 
+                                              NULL);
+    scene_add_body(scene, platform);
+    asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
+    list_add(state->body_assets, wall_asset_platform);
+    state->collided_obj = platform; // inital start location
+  }
+
 }
 
 /**
@@ -606,7 +623,7 @@ void ghost_move(state_t *state){
       vector_t ghost_center = body_get_centroid(body);
       vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
       vector_t velocity = vec_multiply(GHOST_SPEED, direction);
-      vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY, i);
+      vector_t rand_add = rand_vec(vec_negate(RAND_VELOCITY), RAND_VELOCITY, i);
       vector_t rand_velocity = vec_add(velocity, rand_add);
       body_set_velocity(body, rand_velocity);
       if (i == num_bodies - 1){
