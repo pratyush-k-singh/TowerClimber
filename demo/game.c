@@ -469,7 +469,7 @@ void create_walls_and_platforms(state_t *state) {
       if (j == 0){
         info = make_type_info(LEFT_WALL);
       } else {
-        info = make_type_info(LEFT_WALL);
+        info = make_type_info(RIGHT_WALL);
       }
       list_t *points = make_rectangle(info, i);
       body_t *wall = body_init_with_info(points, WALL_MASS, 
