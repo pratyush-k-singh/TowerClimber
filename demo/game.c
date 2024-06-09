@@ -830,22 +830,6 @@ void update_buffers(state_t *state, double dt){
   state->colliding_buffer += dt;
 }
 
-void print_welcome_message() {
-  FILE *file = fopen(WELCOME_MESSAGE_PATH, "r");
-
-  fseek(file, 0, SEEK_END);
-  long file_size = ftell(file);
-  fseek(file, 0, SEEK_SET);
-  char *buffer = malloc(file_size + 1);
-
-  fread(buffer, 1, file_size, file);
-  buffer[file_size] = '\0';
-  printf("%s", buffer);
-
-  free(buffer);
-  fclose(file);
-}
-
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   asset_cache_init();
