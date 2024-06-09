@@ -98,6 +98,7 @@ const double PLATFORM_FRICTION = .85;
 const size_t PLATFORM_LEVEL = 0;
 const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
+const size_t MIDDLE = 1;
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -326,13 +327,14 @@ list_t *make_rectangle(void *wall_info, size_t level) {
   }
   if (*info == PLATFORM) {
     double x_offset = 0;
-    size_t middle = 1;
+    size_t middle = 0;
     if (level > 0){
       x_offset = GAP_DISTANCE/2;
-      middle = 0;
+      middle = MIDDLE;
     }
-    corner = (vector_t){MIN.x + WALL_WIDTH.x * middle + x_offset, 
-                        PLATFORM_HEIGHT + level * WALL_LENGTH.y/2};
+    corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset - 
+                        PLATFORM_WIDTH/2 * middle, PLATFORM_HEIGHT + 
+                        level * WALL_LENGTH.y/2};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
