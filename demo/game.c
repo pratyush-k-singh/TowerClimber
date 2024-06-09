@@ -875,6 +875,10 @@ bool emscripten_main(state_t *state) {
   body_t *user = state->user;
   scene_t *scene = state->scene;
 
+  if (state->user_health == 0) {
+    state->game_state == GAME_OVER;
+  }
+
   if (state->game_state == GAME_RUNNING) {
     scene_tick(scene, dt);
     body_tick(user, dt);
@@ -924,10 +928,6 @@ bool emscripten_main(state_t *state) {
   }
 
   sdl_show(state->vertical_offset);
-
-  if (state->user_health == 0) {
-    state->game_state = GAME_OVER;
-  }
 
   return false;
 }
