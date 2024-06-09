@@ -151,7 +151,7 @@ const size_t LOOPS = 20;
 // Button and Title Constans
 const vector_t TITLE_OFFSETS = {0, 75};
 const vector_t VICTORY_OFFSETS = {0, 150};
-const vector_t BUTTON_OFFSETS = {0, 275};
+const vector_t BUTTON_OFFSETS = {0, 300};
 const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
@@ -989,7 +989,7 @@ state_t *emscripten_init() {
   SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
   state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
-  SDL_Rect button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
+  SDL_Rect button_box = {.x = MAX.x / 2 - 100, .y = BUTTON_OFFSETS.y, .w = 200, .h = 100};
   state->start_button = asset_make_button(button_box, asset_make_image(START_BUTTON_PATH, button_box), NULL, (button_handler_t)start_button_handler);
   asset_cache_register_button(state->start_button);
 
@@ -1019,6 +1019,8 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
+  printf("%s", state->vertical_offset);
+
   if (state->game_state == GAME_START && state->state_based_message_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
     state->state_based_message_tracker = true;
