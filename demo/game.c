@@ -81,7 +81,7 @@ const vector_t SPIKE_MIN = {150, 500};
 const vector_t SPIKE_MAX = {600, 0};
 const double SPIKE_MASS = 5;
 const size_t SPIKE_NUM = 6;
-const double SPIKE_OFFSET = 250;
+const double SPIKE_OFFSET = 220;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
