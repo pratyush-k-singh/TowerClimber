@@ -1019,7 +1019,7 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  printf("%s", state->vertical_offset);
+  printf("%lf", state->vertical_offset);
 
   if (state->game_state == GAME_START && state->state_based_message_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
