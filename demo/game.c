@@ -256,7 +256,7 @@ list_t *make_user(vector_t center, void *info, size_t idx) {
   vector_t center_body = center;
   if (*(body_type_t *)info == SPIKE){
     radius = SPIKE_RADIUS;
-    double y = (WALL_LENGTH.y/2) * (idx+1);
+    double y = (WALL_LENGTH.y/2) * (idx+1) - SPIKE_OFFSET;
     size_t position = idx % (SPIKE_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
              + GAP_DISTANCE * (1 - position);
