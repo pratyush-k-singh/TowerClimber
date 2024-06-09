@@ -15,7 +15,7 @@
 #include "vector.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {1000, 1000};
+const vector_t MAX = {1500, 1000};
 
 // File paths
 const char *BACKGROUND_PATH = "assets/background.png";
@@ -50,7 +50,7 @@ const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
 const double USER_MASS = 5;
 const double USER_ROTATION = 0;
 const size_t USER_NUM_POINTS = 20;
-const double USER_JUMP_HEIGHT = 200;
+const double USER_JUMP_HEIGHT = 300;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const double RADIUS = 25;
 const double RESTING_SPEED = 200;
