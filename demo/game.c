@@ -92,7 +92,7 @@ const double GAS_OFFSET = 220;
 const double PORTAL_RADIUS = 350;
 const double PORTAL_MASS = 10;
 const double PORTAL_ROTATION = 0.05;
-
+const double PORTAL_OFFSET = 300;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
@@ -302,7 +302,7 @@ list_t *make_circle(vector_t center, void *info, size_t idx) {
   } else if (*(body_type_t *)info == PORTAL){
     radius = PORTAL_RADIUS;
     double y = WALL_LENGTH.y * NUM_LEVELS + PORTAL_OFFSET;
-    double x = GAP_DISTANCE / 2 + WALL_WIDTH;
+    double x = GAP_DISTANCE / 2 + WALL_WIDTH.x;
     center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
