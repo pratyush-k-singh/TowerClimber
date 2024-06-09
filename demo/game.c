@@ -202,7 +202,7 @@ struct state {
 
   asset_t *start_button;
   asset_t *game_title;
-  asset_t *victory_background
+  asset_t *victory_background;
   asset_t *victory_text;
   asset_t *pause_button;
   asset_t *restart_button;
@@ -1000,7 +1000,7 @@ bool emscripten_main(state_t *state) {
     asset_render(state->restart_button, state->vertical_offset);
   } else if (state->game_state == GAME_VICTORY) {
     asset_render(state->victory_text, state->vertical_offset);
-    asset_render(state->victory_backgroun, state->vertical_offset);
+    asset_render(state->victory_background, state->vertical_offset);
   }
 
   if (state->game_state == GAME_RUNNING) {  
