@@ -105,7 +105,7 @@ const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_LENGTH = {0, 2000};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
-const double WALL_ELASTICITY = 0;
+const double ELASTICITY = 0;
 const rgb_color_t WALL_COLOR = (rgb_color_t) {255, 255, 255};
 const size_t TEMP_LENGTH = 3;
 const double NORMAL_SCALING = 1;
@@ -783,15 +783,15 @@ void add_force_creators(state_t *state) {
     switch (get_type(body)) {
     case LEFT_WALL:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
+                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case RIGHT_WALL:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
+                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case PLATFORM:
       create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
+                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case GAS:
       create_collision(state->scene, state->user, body, 
@@ -799,15 +799,15 @@ void add_force_creators(state_t *state) {
       break;
     case PORTAL:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)portal_collision, state, WALL_ELASTICITY);
+                      (collision_handler_t)portal_collision, state, ELASTICITY);
       break;
     case ISLAND:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
     case GHOST:
-      create_collision(state->scene, state->user, ghost,
-                      (collision_handler_t)damaging_collision, state, WALL_ELASTICITY);
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)damaging_collision, state, ELASTICITY);
     default:
       break;
     }
