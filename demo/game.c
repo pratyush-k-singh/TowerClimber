@@ -329,7 +329,8 @@ list_t *make_rectangle(void *wall_info, size_t level) {
     if (level > 0){
       x_offset = GAP_DISTANCE/2;
     }
-    corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset, PLATFORM_HEIGHT + NUM_LEVELS};
+    corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset, 
+                        PLATFORM_HEIGHT + level * WALL_LENGTH/2};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
@@ -406,6 +407,7 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_r);
   }
 
+
   for (size_t i = 0; i < NUM_PLATFORMS; i++){
     list_t *platform_points = make_rectangle(make_type_info(PLATFORM), PLATFORM_LEVEL);
     body_t *platform = body_init_with_info(platform_points, INFINITY, 
@@ -414,8 +416,9 @@ void create_walls_and_platforms(state_t *state) {
     scene_add_body(scene, platform);
     asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_platform);
+    state->collided_obj = platform; // inital start location
   }
-  state->collided_obj = platform; // inital start location
+  
 }
 
 /**
