@@ -142,7 +142,7 @@ const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are go
                               
                               "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
                               "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
-                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you soon.\n\n";
+                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you soon.\n";
 const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got you. The Goddess managed to save you though, so try again!";
 const char* PAUSE_MESSAGE = "Hey, the Goddess froze time so you could do whatever you need to do!";
 
@@ -915,7 +915,7 @@ bool emscripten_main(state_t *state) {
     state->message = true;
   }
 
-  if (state->game_state == GAME_OVER && state->message == false) {
+  if (state->game_state == GAME_PAUSED && state->message == false) {
     printf("%s", PAUSE_MESSAGE);
     state->message = true;
   }
