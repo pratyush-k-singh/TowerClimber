@@ -675,8 +675,6 @@ void spawn_ghost(state_t *state) {
   scene_add_body(state -> scene, ghost);
   asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, VERTICAL_OFFSET);
   list_add(state->body_assets, ghost_asset);
-  create_collision(state->scene, state->user, ghost,
-                      (collision_handler_t)damaging_collision, state, 0);
   state -> ghost_counter++;
   state -> ghost_timer = 0;
 }
