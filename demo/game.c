@@ -76,7 +76,7 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 
 // Obstacle constants
-const double SPIKE_RADIUS = 120;
+const double SPIKE_RADIUS = 200;
 const vector_t SPIKE_MIN = {150, 500};
 const vector_t SPIKE_MAX = {600, 0};
 const double SPIKE_MASS = 5;
@@ -257,8 +257,8 @@ list_t *make_user(vector_t center, void *info, size_t idx) {
     radius = SPIKE_RADIUS;
     double y = (WALL_LENGTH.y/2) * (idx+1);
     size_t position = idx % (SPIKE_NUM / NUM_LEVELS);
-    double x = WALL_WIDTH.x - SPIKE_RADIUS * pow((-1), position + 1)
-             + GAP_DISTANCE * position;
+    double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
+             + GAP_DISTANCE * (1 - position);
     center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
