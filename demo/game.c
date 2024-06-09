@@ -171,6 +171,10 @@ const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got y
                                "----------------------------------------------------------------\n\n";
 const char* PAUSE_MESSAGE = "Hey, the Goddess froze time so you could do whatever you need to do!\n\n"
                             "----------------------------------------------------------------\n\n";
+const char* PORTAL_SENSED_MESSAGE = "The Goddess can sense the aura of the portal, we're more than halfway there!\n\n"
+                                    "----------------------------------------------------------------\n\n";
+const char* PORTAL_SEEN_MESSAGE = "That's the portal right there!\n\n"
+                                  "----------------------------------------------------------------\n\n";
 const char* VICTORY_MESSAGE = "Thank you for helping the ninja climb to the top of the tower and enter the portal! Unforutnately interdimensional travel is rather slow "
                               "but once he arrives in the REALM OF EVIL we will call on you once more. Until then, if you have the time, we request that "
                               "you help more ninjas like this poor soul climb the tower. After all, the more heroes we can send to the REALM OF EVIL, the better!\n\n"
@@ -226,7 +230,9 @@ struct state {
   asset_t *reset_button;
   game_state_t game_state;
 
-  bool message_tracker;
+  bool state_based_message_tracker;
+  bool distance_based_message_tracker_halfpoint;
+  bool distance_based_message_tracker_portal;
 
   list_t *sounds;
   Mix_Music *music;
@@ -996,7 +1002,9 @@ state_t *emscripten_init() {
 
   // Initialize miscellaneous state values
   state->game_state = GAME_START;
-  state->message_tracker = false;
+  state->state_based_message_tracker = false;
+  state->distance_based_message_tracker_halfpoint = false;
+  state->distance_based_message_tracker_portal = false;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
@@ -1011,20 +1019,28 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && state->message_tracker == false) {
+  if (state->game_state == GAME_START && state->state_based_message_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
-    state->message_tracker = true;
-  } else if (state->game_state == GAME_OVER && state->message_tracker == false) {
+    state->state_based_message_tracker = true;
+  } else if (state->game_state == GAME_OVER && state->state_based_message_tracker == false) {
     printf("%s", FAILIURE_MESSAGE);
-    state->message_tracker = true;
-  } else if (state->game_state == GAME_PAUSED && state->message_tracker == false) {
+    state->state_based_message_tracker = true;
+  } else if (state->game_state == GAME_PAUSED && state->state_based_message_tracker == false) {
     printf("%s", PAUSE_MESSAGE);
-    state->message_tracker = true;
-  } else if (state->game_state == GAME_VICTORY && state->message_tracker == false) {
+    state->state_based_message_tracker = true;
+  } else if (state->game_state == GAME_VICTORY && state->state_based_message_tracker == false) {
     printf("%s", VICTORY_MESSAGE);
-    state->message_tracker = true;
+    state->state_based_message_tracker = true;
   } else if (state->game_state == GAME_RUNNING) {
-    state->message_tracker = false;
+    state->state_based_message_tracker = false;
+  }
+
+  if (state->vertical_offset >= 400 && state->distance_based_message_tracker_halfpoint = false) {
+    printf("%s", PORTAL_SENSED_MESSAGE);
+    state->distance_based_message_tracker_halfpoint = true;
+  } else if (state->vertical_offset >= 700 && state->distance_based_message_tracker_portal = false) {
+    printf("%s", PORTAL_SEEN_MESSAGE);
+    state->distance_based_message_tracker_portal = true;
   }
 
   double dt = time_since_last_tick();
@@ -1074,6 +1090,8 @@ bool emscripten_main(state_t *state) {
   } else if (state->game_state == GAME_OVER) {
     asset_render(state->reset_button, state->vertical_offset);
   } else if (state->game_state == GAME_VICTORY) {
+    state->distance_based_message_tracker_halfpoint = false;
+    state->distance_based_message_tracker_portal = false;
     asset_render(state->victory_background, state->vertical_offset);
     asset_render(state->reset_button, state->vertical_offset);
     asset_render(state->victory_text, state->vertical_offset);
