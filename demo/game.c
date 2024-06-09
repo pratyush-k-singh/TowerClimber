@@ -724,7 +724,7 @@ void pause_button_handler(state_t *state) {
 void restart_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
-  vector_t user_center = vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
+  vector_t user_center = {MIN.x + RADIUS + WALL_WIDTH.x, 
                     MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
   
 
