@@ -191,9 +191,14 @@ const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
-              HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND, NONE } body_type_t;
-typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER, GAME_VICTORY } game_state_t;
-typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
+              HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND,
+              NONE } body_type_t;
+
+typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, 
+              GAME_OVER, GAME_VICTORY } game_state_t;
+
+typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, 
+              PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
   Mix_Chunk *player;
