@@ -725,6 +725,39 @@ void pause_button_handler(state_t *state) {
 void restart_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
+
+  bool contains_jump = false;
+  bool contains_health = false;
+
+  // Update user and ghost centers
+  vector_t user_center = {MIN.x + RADIUS + WALL_WIDTH.x, 
+                    MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
+  body_set_centroid(state->user, user_center);
+
+  // Update ghost centers
+  size_t num_bodies = scene_bodies(state->scene);
+  vector_t max = {MAX.x, 0};
+  
+  for (size_t i = 0; i < num_bodies; i++){
+    body_t *body = scene_get_body(state->scene, i);
+    if (get_type(body) == GHOST){
+      double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
+      vector_t ghost_center = {x, Y_OFFSET_GHOST};
+      body_set_centroid(body, ghost_center);
+    }
+    if (get_type(body) == JUMP_POWER){
+      contains_jump = true;
+    }
+    if (get_type(body) == HEALTH_POWER){
+      contains_health = true;
+    }
+  }
+  if (!contains_jump){
+    create_jump_power_up(state);
+  }
+  if (!contains_health){
+    create_health_power_up(state);
+  }
 }
 
 /**
