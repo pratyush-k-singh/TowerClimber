@@ -40,6 +40,7 @@ const char *WIND_PATH = "assets/wind.wav";
 const char *SPIKE_IMPACT_PATH = "assets/spike_impact.wav";
 const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
+const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
 
 // User constants
 const double USER_MASS = 5;
@@ -178,6 +179,7 @@ struct state {
   game_state_t game_state;
 
   list_t *sounds;
+  Mix_Music *music;
   double colliding_buffer;
 };
 
@@ -237,7 +239,6 @@ body_type_t *make_type_info(body_type_t type) {
   *info = type;
   return info;
 }
-
 
 
 /**
@@ -795,7 +796,6 @@ bool game_over(state_t *state) {
   return false;
 } 
 
-
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   asset_cache_init();
@@ -806,14 +806,13 @@ state_t *emscripten_init() {
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
 
-  // Initialize sound
+  // Initialize sound and music
   Mix_OpenAudio(FREQUENCY, MIX_DEFAULT_FORMAT, STEREO, AUDIO_BUFFER);
   Mix_Volume(DEFAULT_CHANNEL, MIX_MAX_VOLUME/2);
   sound_init(state);
   state->colliding_buffer = 0;
   Mix_PlayChannel(WIND_CHANNEL, get_sound(state, WIND), LOOPS);
-  
-
+  state->music = Mix_LoadMUS(MUSIC_PATH);
   
   // Initialize background
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
@@ -902,7 +901,7 @@ bool emscripten_main(state_t *state) {
   }
   asset_render(state->health_bar, state->vertical_offset);
 
-    // Render buttons and/or title based on game state
+  // Render buttons and/or title based on game state
   if (state->game_state == GAME_START) {
     asset_render(state->game_title, state->vertical_offset);
     asset_render(state->start_button, state->vertical_offset);
@@ -913,6 +912,16 @@ bool emscripten_main(state_t *state) {
     asset_render(state->restart_button, state->vertical_offset);
   } else if (state->game_state == GAME_OVER) {
     asset_render(state->restart_button, state->vertical_offset);
+  }
+
+  if (state->game_state == GAME_RUNNING) {
+    if (Mix_PlayingMusic() == 0) {
+      Mix_PlayMusic(state->music, -1); // Play the music in a loop
+    }
+  } else {
+    if (Mix_PlayingMusic() != 0) {
+      Mix_PauseMusic();
+    }
   }
 
   sdl_show(state->vertical_offset);
@@ -927,6 +936,7 @@ bool emscripten_main(state_t *state) {
 void emscripten_free(state_t *state) {
   TTF_Quit();
   list_free(state->sounds);
+  Mix_FreeMusic(state->music);
   scene_free(state->scene);
   list_free(state->body_assets);
   body_free(state->user);
