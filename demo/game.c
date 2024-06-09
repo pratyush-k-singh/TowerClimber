@@ -16,8 +16,9 @@
 
 const vector_t MIN = {0, 0};
 const vector_t MAX = {1000, 1000};
+const double HALFWAY_VERTICAL_DISTANCE = 2600;
 
-// File paths
+// Filepaths
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *VICTORY_BACKGROUND_PATH = "assets/victory_background.png";
 const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
@@ -46,11 +47,11 @@ const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
 const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
 
-// User constants
+// User Constants
 const double USER_MASS = 5;
 const double USER_ROTATION = 0;
 const size_t USER_NUM_POINTS = 20;
-const double USER_JUMP_HEIGHT = 300;
+const double USER_JUMP_HEIGHT = 350;
 const rgb_color_t USER_COLOR = (rgb_color_t){0, 0, 0};
 const double RADIUS = 25;
 const double RESTING_SPEED = 200;
@@ -60,7 +61,7 @@ const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const size_t FULL_HEALTH = 3;
 const size_t ZERO_SEED;
 
-// Ghost constants
+// Ghost Constants
 const double GHOST_RADIUS = 30;
 const double GHOST_NUM = 3; // Total number of ghosts to be spawned 
 const double GHOST_MASS = 5;
@@ -80,7 +81,7 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 const double RESTART_BUFFER = 5;
 
-// Obstacle constants
+// Obstacle Constants
 const double GAS_RADIUS = 250;
 const vector_t GAS_MIN = {150, 500};
 const vector_t GAS_MAX = {600, 0};
@@ -88,19 +89,21 @@ const double GAS_MASS = 5;
 const size_t GAS_NUM = 6;
 const double GAS_OFFSET = 220;
 
-// Portal constants
+// Portal Constants
 const double PORTAL_RADIUS = 350;
 const double PORTAL_MASS = 10;
 const double PORTAL_ROTATION = 0.05;
 const double PORTAL_OFFSET = 300;
+const double PORTAL_HEIGHT = 300;
+const double PORTAL_VERTICAL_DISTANCE = 5050;
 
-// Island constants
+// Quicksand Island Constants
 const vector_t ISLAND_LENGTH = {0, 800};
 const double ISLAND_LEVEL = 0;
 const double ISLAND_MASS = INFINITY;
 const double ISLAND_ELASTICITY = 0.36;
 
-// Wall constants
+// Wall Constants
 const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_LENGTH = {0, 2000};
 const size_t WALL_POINTS = 4;
@@ -119,13 +122,13 @@ const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
 const size_t MIDDLE = 1;
 
-// health bar location
+// Health Bar Location
 const vector_t HEALTH_BAR_MIN = {15, 15};
 const vector_t HEALTH_BAR_MAX = {90, 30};
 SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                            .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
-// powerup constants
+// Power-up Constants
 const size_t POWERUP_LOC = 50; // radius from tower center where powerups generated
 const size_t JUMP_POWERUP_LOC = (size_t) 3 * MAX.y;
 const size_t HEALTH_POWERUP_LOC = (size_t) 4 * MAX.y;
@@ -134,7 +137,7 @@ const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
 const size_t JUMP_POWERUP_JUMPS = 2;
 
-// Sound constants
+// Sound Constants
 const size_t SOUND_SIZE = 5;
 const double HIT_BUFFER = 0.3;
 const double COLLIDING_BUFFER = 0.36;
@@ -148,16 +151,16 @@ const size_t AUDIO_BUFFER = 2048;
 const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
 
-// Button and Title Constans
+// Button and Title Constants
 const vector_t TITLE_OFFSETS = {0, 75};
 const vector_t VICTORY_OFFSETS = {0, 150};
-const vector_t BUTTON_OFFSETS = {0, 275};
+const vector_t BUTTON_OFFSETS = {0, 300};
 const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
 const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
-                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and poisonous clouds in the way, in an attempt "
-                              "to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
+                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and poisonous clouds in the way above, and a strange quicksand island below "
+                              "in an attempt to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
                               "to climb:\n\n"
 
                               "- Horizontal Navigation: Left/Right Arrow Keys\n"
@@ -171,6 +174,10 @@ const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got y
                                "----------------------------------------------------------------\n\n";
 const char* PAUSE_MESSAGE = "Hey, the Goddess froze time so you could do whatever you need to do!\n\n"
                             "----------------------------------------------------------------\n\n";
+const char* PORTAL_SENSED_MESSAGE = "The Goddess can sense the aura of the portal, we're more than halfway there!\n\n"
+                                    "----------------------------------------------------------------\n\n";
+const char* PORTAL_SEEN_MESSAGE = "That's the portal right there!\n\n"
+                                  "----------------------------------------------------------------\n\n";
 const char* VICTORY_MESSAGE = "Thank you for helping the ninja climb to the top of the tower and enter the portal! Unforutnately interdimensional travel is rather slow "
                               "but once he arrives in the REALM OF EVIL we will call on you once more. Until then, if you have the time, we request that "
                               "you help more ninjas like this poor soul climb the tower. After all, the more heroes we can send to the REALM OF EVIL, the better!\n\n"
@@ -184,7 +191,7 @@ const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
-              HEALTH_POWER, GHOST, GAS, PORTAL, ISLAND, NONE } body_type_t;
+              HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND, NONE } body_type_t;
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER, GAME_VICTORY } game_state_t;
 typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
@@ -226,7 +233,9 @@ struct state {
   asset_t *reset_button;
   game_state_t game_state;
 
-  bool message_tracker;
+  bool state_based_message_tracker;
+  bool distance_based_message_tracker_halfpoint;
+  bool distance_based_message_tracker_portal;
 
   list_t *sounds;
   Mix_Music *music;
@@ -382,7 +391,7 @@ list_t *make_rectangle(body_type_t *wall_info, size_t level) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset - 
                         PLATFORM_WIDTH.x/2 * middle, PLATFORM_HEIGHT + 
                         level * WALL_LENGTH.y/2};
-  } else if (*info == ISLAND) {
+  } else if (*info == QUICKSAND_ISLAND) {
     corner = (vector_t){MIN.x, MIN.y - ISLAND_LENGTH.y};
   }
   list_t *c = list_init(WALL_POINTS, free);
@@ -586,9 +595,9 @@ void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
  * @param state the current state of the demo
 */
 void create_island(state_t *state) {
-  list_t *points = make_rectangle(make_type_info(ISLAND), ISLAND_LEVEL);
+  list_t *points = make_rectangle(make_type_info(QUICKSAND_ISLAND), ISLAND_LEVEL);
   body_t *island = body_init_with_info(points, ISLAND_MASS, USER_COLOR, 
-                                        make_type_info(ISLAND), NULL);
+                                        make_type_info(QUICKSAND_ISLAND), NULL);
   asset_t *island_asset = asset_make_image_with_body(ISLAND_PATH, island, state->vertical_offset);
   list_add(state->body_assets, island_asset);
   scene_add_body(state->scene, island);
@@ -805,7 +814,7 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)portal_collision, state, ELASTICITY);
       break;
-    case ISLAND:
+    case QUICKSAND_ISLAND:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
@@ -983,7 +992,7 @@ state_t *emscripten_init() {
   SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
   state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
-  SDL_Rect button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
+  SDL_Rect button_box = {.x = MAX.x / 2 - 100, .y = BUTTON_OFFSETS.y, .w = 200, .h = 100};
   state->start_button = asset_make_button(button_box, asset_make_image(START_BUTTON_PATH, button_box), NULL, (button_handler_t)start_button_handler);
   asset_cache_register_button(state->start_button);
 
@@ -996,7 +1005,9 @@ state_t *emscripten_init() {
 
   // Initialize miscellaneous state values
   state->game_state = GAME_START;
-  state->message_tracker = false;
+  state->state_based_message_tracker = false;
+  state->distance_based_message_tracker_halfpoint = false;
+  state->distance_based_message_tracker_portal = false;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
@@ -1011,20 +1022,28 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && state->message_tracker == false) {
+  if (state->game_state == GAME_START && state->state_based_message_tracker == false) {
     printf("%s", WELCOME_MESSAGE);
-    state->message_tracker = true;
-  } else if (state->game_state == GAME_OVER && state->message_tracker == false) {
+    state->state_based_message_tracker = true;
+  } else if (state->game_state == GAME_OVER && state->state_based_message_tracker == false) {
     printf("%s", FAILIURE_MESSAGE);
-    state->message_tracker = true;
-  } else if (state->game_state == GAME_PAUSED && state->message_tracker == false) {
+    state->state_based_message_tracker = true;
+  } else if (state->game_state == GAME_PAUSED && state->state_based_message_tracker == false) {
     printf("%s", PAUSE_MESSAGE);
-    state->message_tracker = true;
-  } else if (state->game_state == GAME_VICTORY && state->message_tracker == false) {
+    state->state_based_message_tracker = true;
+  } else if (state->game_state == GAME_VICTORY && state->state_based_message_tracker == false) {
     printf("%s", VICTORY_MESSAGE);
-    state->message_tracker = true;
+    state->state_based_message_tracker = true;
   } else if (state->game_state == GAME_RUNNING) {
-    state->message_tracker = false;
+    state->state_based_message_tracker = false;
+  }
+
+  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && state->distance_based_message_tracker_halfpoint == false && state->game_state == GAME_RUNNING) {
+    printf("%s", PORTAL_SENSED_MESSAGE);
+    state->distance_based_message_tracker_halfpoint = true;
+  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE && state->distance_based_message_tracker_portal == false && state->game_state == GAME_RUNNING) {
+    printf("%s", PORTAL_SEEN_MESSAGE);
+    state->distance_based_message_tracker_portal = true;
   }
 
   double dt = time_since_last_tick();
@@ -1074,6 +1093,8 @@ bool emscripten_main(state_t *state) {
   } else if (state->game_state == GAME_OVER) {
     asset_render(state->reset_button, state->vertical_offset);
   } else if (state->game_state == GAME_VICTORY) {
+    state->distance_based_message_tracker_halfpoint = false;
+    state->distance_based_message_tracker_portal = false;
     asset_render(state->victory_background, state->vertical_offset);
     asset_render(state->reset_button, state->vertical_offset);
     asset_render(state->victory_text, state->vertical_offset);
