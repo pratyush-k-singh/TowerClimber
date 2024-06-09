@@ -301,8 +301,8 @@ list_t *make_circle(vector_t center, void *info, size_t idx) {
     center_body = (vector_t){x, y}; //first GAS coorder: (700, 800)
   } else if (*(body_type_t *)info == PORTAL){
     radius = PORTAL_RADIUS;
-    double y = WALL_LENGTH.y * NUM_LEVELS;
-    double x = GAP_DISTANCE / 2;
+    double y = WALL_LENGTH.y * NUM_LEVELS + PORTAL_OFFSET;
+    double x = GAP_DISTANCE / 2 + WALL_WIDTH;
     center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
