@@ -1032,9 +1032,6 @@ bool emscripten_main(state_t *state) {
     ghost_move(state);
   }
   
-
-
-
   // Render assets
   asset_render(state->background_asset, state->vertical_offset);
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
@@ -1055,8 +1052,8 @@ bool emscripten_main(state_t *state) {
   } else if (state->game_state == GAME_OVER) {
     asset_render(state->restart_button, state->vertical_offset);
   } else if (state->game_state == GAME_VICTORY) {
-    asset_render(state->victory_text, state->vertical_offset);
     asset_render(state->victory_background, state->vertical_offset);
+    asset_render(state->victory_text, state->vertical_offset);
   }
 
   if (Mix_PlayingMusic() == 0) {
