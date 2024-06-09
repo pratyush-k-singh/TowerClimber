@@ -31,6 +31,7 @@ const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
+const char *HEALTH_BAR_0_PATH = "assets/no_health_bar.png";
 const char *GHOST_PATH = "assets/ghost.png";
 const char *SPIKE_PATH = "assets/spike.png";
 
@@ -451,6 +452,8 @@ void update_health_bar(state_t *state) {
     health_bar_asset = asset_make_image(HEALTH_BAR_1_PATH, HEALTH_BAR_BOX);
   } else if (state->user_health == 2) {
     health_bar_asset = asset_make_image(HEALTH_BAR_2_PATH, HEALTH_BAR_BOX);
+  } else if (state->user_health == 0) {
+    health_bar_asset = asset_make_image(HEALTH_BAR_0_PATH, HEALTH_BAR_BOX);
   }
   state->health_bar = health_bar_asset;
 }
