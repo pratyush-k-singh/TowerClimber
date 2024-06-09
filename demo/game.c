@@ -770,7 +770,7 @@ void check_jump(state_t *state) {
         break;
       }
     }
-    
+
     // determines whether the user has fallen and can no longer jump
     if (is_collided == false) {
       double user_xpos = body_get_centroid(state->user).x;
@@ -820,7 +820,7 @@ void add_force_creators(state_t *state) {
       break;
     case GAS:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+                      (collision_handler_t)damaging_collision, state, ELASTICITY);
       break;
     case PORTAL:
       create_collision(state->scene, state->user, body, 
@@ -999,21 +999,32 @@ state_t *emscripten_init() {
   create_island(state);
 
   // Initialize buttons and in-game text
-  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
+  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, 
+                            .w = 500, .h = 100};
   state->game_title = asset_make_image(TITLE_PATH, game_title_box);
 
-  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
+  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, 
+                              .w = 400, .h = 200};
   state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
-  SDL_Rect button_box = {.x = MAX.x / 2 - 100, .y = BUTTON_OFFSETS.y, .w = 200, .h = 100};
-  state->start_button = asset_make_button(button_box, asset_make_image(START_BUTTON_PATH, button_box), NULL, (button_handler_t)start_button_handler);
+  SDL_Rect button_box = {.x = MAX.x / 2 - 100, .y = BUTTON_OFFSETS.y, 
+                        .w = 200, .h = 100};
+
+  state->start_button = asset_make_button(button_box, 
+                        asset_make_image(START_BUTTON_PATH, button_box),
+                        NULL, (button_handler_t)start_button_handler);
   asset_cache_register_button(state->start_button);
 
-  state->reset_button = asset_make_button(button_box, asset_make_image(RESET_BUTTON_PATH, button_box), NULL, (button_handler_t)reset_button_handler);
+  state->reset_button = asset_make_button(button_box, 
+                        asset_make_image(RESET_BUTTON_PATH, button_box), 
+                        NULL, (button_handler_t)reset_button_handler);
   asset_cache_register_button(state->reset_button);
 
-  SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
-  state->pause_button = asset_make_button(pause_button_box, asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), NULL, (button_handler_t)pause_button_handler);
+  SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, 
+                              .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
+  state->pause_button = asset_make_button(pause_button_box, 
+                        asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), 
+                        NULL, (button_handler_t)pause_button_handler);
   asset_cache_register_button(state->pause_button);
 
   // Initialize miscellaneous state values
