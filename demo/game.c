@@ -96,6 +96,8 @@ const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_FRICTION = .85;
 const size_t PLATFORM_LEVEL = 0;
+const size_t NUM_PLATFORMS = 5;
+const double GAP_DISTANCE = 800;
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -323,7 +325,11 @@ list_t *make_rectangle(void *wall_info, size_t level) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.y + WALL_LENGTH.y * level};
   }
   if (*info == PLATFORM) {
-    corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
+    double x_offset = 0;
+    if (level > 0){
+      x_offset = GAP_DISTANCE/2;
+    }
+    corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset, PLATFORM_HEIGHT + NUM_LEVELS};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
@@ -399,6 +405,8 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
+
+  for (size_t i = 0; i < NUM_PLATFORMS; )
   list_t *platform_points = make_rectangle(make_type_info(PLATFORM), PLATFORM_LEVEL);
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
@@ -580,8 +588,7 @@ void spawn_ghost(state_t *state) {
 }
 
 /**
- * Spawns a ghost on the screen at fixed y value and at a random x value
- * that is within the bounds of the window
+ * Moves a 
  */
 void ghost_move(state_t *state){
   scene_t *scene = state->scene;
