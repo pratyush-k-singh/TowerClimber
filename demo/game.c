@@ -1137,7 +1137,7 @@ bool emscripten_main(state_t *state) {
   }
 
   if (Mix_PlayingMusic() == 0) {
-    Mix_PlayMusic(state->music, 0.2);
+    Mix_PlayMusic(state->music, 5);
   }
 
   sdl_show(state->vertical_offset);
