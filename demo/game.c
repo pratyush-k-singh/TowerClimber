@@ -17,13 +17,12 @@
 const vector_t MIN = {0, 0};
 const vector_t MAX = {1000, 1000};
 
-// File paths and constants
+// File paths
 const char *BACKGROUND_PATH = "assets/background.png";
 const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
 const char *RESTART_BUTTON_PATH = "assets/restart_button.png";
 const char *START_BUTTON_PATH = "assets/start_button.png";
 const char *TITLE_PATH = "assets/title.png";
-const char *WELCOME_MESSAGE_PATH = "texts/welcome_message.txt";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.png";
 const char *PLATFORM_PATH = "assets/platform.png";
@@ -35,7 +34,6 @@ const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *HEALTH_BAR_0_PATH = "assets/health_bar_0.png";
 const char *GHOST_PATH = "assets/ghost.png";  
 const char *SPIKE_PATH = "assets/spike.png";
-const size_t MAX_LINE_LENGTH = 150;
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
@@ -132,6 +130,19 @@ const size_t LOOPS = 20;
 const vector_t TITLE_OFFSETS = {475, 150};
 const vector_t BUTTON_OFFSETS = {425, 275};
 const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
+
+// Messages
+const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
+                              "mysterious path to the Realm of Evil awaits. The Evil King has left ghosts and floating obstacles in the way, in an attempt "
+                              "to stop your ascent, but I doubt they'll stop you. Still, that doesn't mean it will be easy, so here is a refresher on how "
+                              "to climb:\n\n"
+
+                              "- Horizontal Navigation: Left/Right Arrow Keys\n"
+                              "- Jumping: Up Arrow Key\n\n"
+                              
+                              "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
+                              "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
+                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you at the top."
 
 // Game constants
 const size_t NUM_LEVELS = 3;
@@ -819,38 +830,20 @@ void update_buffers(state_t *state, double dt){
   state->colliding_buffer += dt;
 }
 
-char *parse_message(const char *filename) {
-  FILE *file = fopen(filename, "r");
-  if (file == NULL) {
-      perror("Error opening file");
-      return NULL;
-  }
+void print_welcome_message() {
+  FILE *file = fopen(WELCOME_MESSAGE_PATH, "r");
 
   fseek(file, 0, SEEK_END);
   long file_size = ftell(file);
   fseek(file, 0, SEEK_SET);
-
   char *buffer = malloc(file_size + 1);
-  if (buffer == NULL) {
-      fclose(file);
-      return NULL;
-  }
 
   fread(buffer, 1, file_size, file);
   buffer[file_size] = '\0';
+  printf("%s", buffer);
 
+  free(buffer);
   fclose(file);
-
-  char *line = strtok(buffer, "\n");
-  char *result = malloc(strlen(buffer) + 1);
-  strcpy(result, buffer);
-
-  while (line != NULL) {
-      strcat(result, "\n");
-      line = strtok(NULL, "\n");
-  }
-
-  return result;
 }
 
 state_t *emscripten_init() {
@@ -926,17 +919,16 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
+  if (state->game_state == GAME_START && state->welcome_message == false) {
+    printf("%s", WELCOME_MESSAGE);
+    state->welcome_message = true;
+  }
+
   double dt = time_since_last_tick();
   update_buffers(state, dt);
   
   body_t *user = state->user;
   scene_t *scene = state->scene;
-
-  if (state->game_state == GAME_START && state->welcome_message == false) {
-    char *welcome_message = parse_message(WELCOME_MESSAGE_PATH);
-    printf(welcome_message);
-    state->welcome_message = true;
-  }
 
   if (state->game_state == GAME_RUNNING) {
     scene_tick(scene, dt);
