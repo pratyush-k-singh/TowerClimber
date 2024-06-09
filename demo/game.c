@@ -165,7 +165,7 @@ const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are go
                               
                               "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
                               "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
-                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you soon.\n\n"
+                              "navigate your way past the obstacles with a two-time use double jump! Good luck ninja, I'll talk to you soon.\n\n"
                               "----------------------------------------------------------------\n\n";
 const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got you. The Goddess managed to save you though, so try again!\n\n"
                                "----------------------------------------------------------------\n\n";
@@ -179,7 +179,7 @@ const char* VICTORY_MESSAGE = "Thank you for helping the ninja climb to the top 
 // Game constants
 const size_t NUM_LEVELS = 3;
 const vector_t GRAVITY = {0, -1000};
-const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
+const size_t BODY_ASSETS = 3;
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
@@ -480,12 +480,14 @@ void create_walls_and_platforms(state_t *state) {
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
                 double force_const) {
   state_t *state = aux;
-  body_remove(body2);
-  list_remove(state->body_assets, state->health_powerup_index);
 
   // add to health only if health is not full
   if (state->user_health < FULL_HEALTH) {
+      body_remove(body2);
+      list_remove(state->body_assets, state->health_powerup_index);
       state->user_health++;
+  } else {
+    return;
   }
 
   if (state->jump_powerup_index > state->health_powerup_index) {
