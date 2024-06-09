@@ -10,6 +10,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
+#include <SDL2/SDL_mixer.h>
+
 
 
 
@@ -65,6 +67,16 @@ bool sdl_is_done(void *state);
  * Clears the screen. Should be called before drawing polygons in each frame.
  */
 void sdl_clear(void);
+
+/**
+ * 
+ */
+Mix_Chunk *sdl_load_sound(const char *file);
+
+/**
+ * 
+ */
+void sdl_play_sound(Mix_Chunk *sound);
 
 /**
  * Draws a polygon from the given list of vertices and a color.

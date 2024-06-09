@@ -1,11 +1,13 @@
 #include "sdl_wrapper.h"
 #include "asset_cache.h"
 #include <SDL2/SDL.h>
+
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <SDL2/SDL_mixer.h>
 
 const char WINDOW_TITLE[] = "CS 3";
 const int WINDOW_WIDTH = 1000;
@@ -116,6 +118,11 @@ void sdl_init(vector_t min, vector_t max) {
                             SDL_WINDOW_RESIZABLE);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
   TTF_Init();
+  if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+    printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    exit(1);
+  }
+  Mix_Volume(-1, MIX_MAX_VOLUME); 
 }
 
 bool sdl_is_done(void *state) {
@@ -160,6 +167,19 @@ void sdl_clear(void) {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderClear(renderer);
 }
+
+Mix_Chunk *sdl_load_sound(const char *file){
+  Mix_Chunk *sound = Mix_LoadWAV(file);
+  if (!sound){
+    exit(0);
+  }
+  return sound;
+}
+
+void sdl_play_sound(Mix_Chunk *sound){
+  Mix_PlayChannel(-1, sound, 0);
+}
+
 
 void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset) {
   list_t *points = polygon_get_points(poly);

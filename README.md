@@ -1,7 +1,7 @@
 # Game Design Document
 
 ## Section 0: Summary
-Title: Tower Hopper
+Title: Tower Climber
 
 Team Members: Tommaso Colombo, Pratysuh Singh, Karen Zhou
 
@@ -38,7 +38,7 @@ Priority 2 Features
 Priority 3 Features:
 - Damaging Obstacles (Tommaso)
 - Power-Ups (Karen)
-- Text-based Cues/Story (Pratyush)
+- Generate Text Based on Cues (Pratyush)
 
 Priority 4 Features:
 - Music (Pratyush)
@@ -80,8 +80,8 @@ Priority 4 Features:
 - Power-Ups + Health bar (Karen): 
     - Add power ups to the game that gives advantages to the user upon collection
     - Implement health bar that allows the user to see how they are doing and if they will die upon collision with an obstacle/ghost
-- Text-based Cues/Story + Music (Pratyush):
-    - Write a text based story
+- Generate Text Based on Cues + Music (Pratyush):
+    - As the character reaches points of their climb up the tower, generate relevant text
     - Add background music to the game depending on the scene
 
 ## Section 4: Disaster Recovery

@@ -15,10 +15,14 @@
 #include "vector.h"
 
 const vector_t MIN = {0, 0};
-const vector_t MAX = {750, 1000};
+const vector_t MAX = {1000, 1000};
 
 // File paths
 const char *BACKGROUND_PATH = "assets/background.png";
+const char *PAUSE_BUTTON_PATH = "assets/pause_button.png";
+const char *RESTART_BUTTON_PATH = "assets/restart_button.png";
+const char *START_BUTTON_PATH = "assets/start_button.png";
+const char *TITLE_PATH = "assets/title.png";
 const char *USER_PATH = "assets/body.png";
 const char *WALL_PATH = "assets/wall.png";
 const char *PLATFORM_PATH = "assets/platform.png";
@@ -27,6 +31,14 @@ const char *HEALTH_POWERUP_PATH = "assets/health_powerup.png";
 const char *FULL_HEALTH_BAR_PATH = "assets/health_bar_3.png";
 const char *HEALTH_BAR_2_PATH = "assets/health_bar_2.png";
 const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
+const char *GHOST_PATH = "assets/ghost.png";
+const char *SPIKE_PATH = "assets/spike.png";
+
+const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
+const char *WIND_PATH = "assets/wind.wav";
+const char *SPIKE_IMPACT_PATH = "assets/spike_impact.wav";
+const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
+const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
 
 // User constants
 const double USER_MASS = 5;
@@ -40,9 +52,37 @@ const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
 const size_t FULL_HEALTH = 3;
+const size_t ZERO_SEED;
+
+// Ghost constants
+const double GHOST_RADIUS = 30;
+const double GHOST_NUM = 3; // Total number of ghosts to be spawned 
+const double GHOST_MASS = 5;
+const rgb_color_t GHOST_COLOUR = (rgb_color_t){0, 0, 0};
+const double GHOST_OFFSET = 50;
+const double GHOST_SPEED = 130;
+const double SPAWN_TIMER = 3;
+const size_t INITIAL_GHOST = 1;
+const double Y_OFFSET_GHOST = -100;
+const double VELOCITY_BUFFER = 0.8;
+const double GHOST_ELASTICITY = 1;
+const double TRANSLATE_SCALE = 800;
+const double GHOST_RAND_MAX = 20;
+const size_t Y_RAND = 413;
+const double RAND_SPEED = 80;
+const vector_t RAND_VELOCITY = {90, 90};
+const size_t IMMUNITY = 3;
+
+// Obstacle constants
+const double SPIKE_RADIUS = 120;
+const vector_t SPIKE_MIN = {150, 500};
+const vector_t SPIKE_MAX = {600, 0};
+const double SPIKE_MASS = 5;
+const size_t SPIKE_NUM = 6;
 
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
+const vector_t WALL_LENGTH = {0, 2000};
 const size_t WALL_POINTS = 4;
 const double WALL_MASS = INFINITY;
 const double WALL_ELASTICITY = 0;
@@ -53,6 +93,7 @@ const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_FRICTION = .85;
+const size_t PLATFORM_LEVEL = 0;
 
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -69,14 +110,41 @@ const double POWERUP_MASS = .0001;
 const double POWERUP_ELASTICITY = 1;
 const size_t JUMP_POWERUP_JUMPS = 2;
 
+// Sound constants
+const size_t SOUND_SIZE = 5;
+const double HIT_BUFFER = 0.3;
+const double COLLIDING_BUFFER = 0.36;
+const double FALL_BUFFER = 0.2;
+const double FALL_THRESHOLD = 50;
+const size_t WIND_CHANNEL = 1;
+const size_t IMPACT_CHANNEL = 2;
+const size_t FREQUENCY = 44100;
+const size_t STEREO = 2;
+const size_t AUDIO_BUFFER = 2048;
+const size_t DEFAULT_CHANNEL = -1;
+const size_t LOOPS = 20;
+
+// Button and Title Constans
+const vector_t TITLE_OFFSETS = {475, 150};
+const vector_t BUTTON_OFFSETS = {425, 275};
+const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
+
 // Game constants
-const size_t NUM_LEVELS = 1;
+const size_t NUM_LEVELS = 3;
 const vector_t GRAVITY = {0, -1000};
 const size_t BODY_ASSETS = 3; // total assets, 2 walls and 1 platform
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
 
-typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, NONE } body_type_t;
+typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
+typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER } game_state_t;
+
+typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
+
+typedef struct sound {
+  Mix_Chunk *player;
+  sound_type_t *info;
+} sound_t;
 
 struct state {
   scene_t *scene;
@@ -86,11 +154,13 @@ struct state {
   
   size_t user_health;
   asset_t *health_bar;
+  double user_immunity;
 
   size_t ghost_counter;
   double ghost_timer;
+  double velocity_timer;
+
   double vertical_offset;
-  bool game_over;
   
   bool jumping; // determines whether up button can be pressed
   body_t *collided_obj; // the object that the user is collided with
@@ -99,7 +169,47 @@ struct state {
 
   size_t jump_powerup_index;
   size_t health_powerup_index;
+
+  asset_t *start_button;
+  asset_t *game_title;
+  asset_t *pause_button;
+  asset_t *restart_button;
+  game_state_t game_state;
+
+  list_t *sounds;
+  double colliding_buffer;
 };
+
+void sound_free(sound_t *sound){
+  Mix_FreeChunk(sound->player);
+  free(sound);
+}
+
+void sound_init(state_t *state){
+  list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
+  const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, SPIKE_IMPACT_PATH, 
+                        PLATFORM_IMPACT_PATH, WALL_IMPACT_PATH};
+  for (size_t i = 0; i < SOUND_SIZE; i++){
+    sound_t *sound = malloc(sizeof(sound_t));
+    sound_type_t *info = malloc(sizeof(sound_type_t));
+    *info = i;
+    sound->info = info;
+    sound->player = sdl_load_sound(paths[i]);
+    list_add(sounds, sound);
+  }
+  state->sounds = sounds;
+}
+
+Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
+  list_t* sounds = state->sounds;
+  for (size_t i = 0; i < SOUND_SIZE; i++){
+    sound_t *sound = list_get(sounds, i);
+    if (*(sound->info) == sound_type){
+      return sound->player;
+    }
+  }
+  return NULL;
+}
 
 
 /**
@@ -127,21 +237,30 @@ body_type_t *make_type_info(body_type_t type) {
   return info;
 }
 
+
+
 /**
  * Creates user shape.
  * 
  * @return list_t containing the points of the shape
 */
-list_t *make_user() {
-  vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
-                    MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
+list_t *make_user(vector_t center, void *info, size_t seed) {
+  double radius = RADIUS;
+  vector_t center_body = center;
+  if (*(body_type_t *)info == SPIKE){
+    radius = SPIKE_RADIUS;
+    vector_t spike_max = {SPIKE_MAX.x, SPIKE_MAX.y + 
+                          WALL_LENGTH.y * NUM_LEVELS};
+    center_body = rand_vec(SPIKE_MIN, spike_max, seed);
+
+  }
   list_t *c = list_init(USER_NUM_POINTS, free);
   for (size_t i = 0; i < USER_NUM_POINTS; i++) {
     double angle = 2 * M_PI * i / USER_NUM_POINTS;
     vector_t *v = malloc(sizeof(*v));
     assert(v);
-    *v = (vector_t){center.x + RADIUS * cos(angle),
-                    center.y + RADIUS * sin(angle)};
+    *v = (vector_t){center_body.x + radius * cos(angle),
+                    center_body.y + radius * sin(angle)};
     list_add(c, v);
   }
   return c;
@@ -155,9 +274,13 @@ list_t *make_user() {
  * the wall
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
-void make_rectangle_points(vector_t corner, list_t *points){
-  vector_t wall_length = {MIN.y, MAX.y};
-  vector_t temp[] = {wall_length, vec_multiply(1, WALL_WIDTH), vec_negate(wall_length)};
+void make_rectangle_points(vector_t corner, list_t *points, bool platform){
+  vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
+  if (!platform){
+    temp[0] = WALL_LENGTH;
+    temp[1] = WALL_WIDTH;
+    temp[2] = vec_negate(WALL_LENGTH);
+  }
   vector_t *v_1 = malloc(sizeof(*v_1));
   *v_1 = corner;
   list_add(points, v_1);
@@ -179,18 +302,7 @@ void make_rectangle_points(vector_t corner, list_t *points){
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
 void make_platform_points(vector_t corner, list_t *points){
-  
-  vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
-  vector_t *v_1 = malloc(sizeof(*v_1));
-  *v_1 = corner;
-  list_add(points, v_1);
-  assert(v_1);
-  for (size_t i = 0; i < WALL_POINTS-1; i++){
-    vector_t *v = malloc(sizeof(*v));
-    *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
-    assert(v);
-    list_add(points, v);
-  }
+  make_rectangle_points(corner, points, true);
 }
 
 /**
@@ -198,22 +310,22 @@ void make_platform_points(vector_t corner, list_t *points){
  * 
  * @param wall_info the object type of the body
 */
-list_t *make_rectangle(void *wall_info) {
+list_t *make_rectangle(void *wall_info, size_t level) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
 
   if (*info == LEFT_WALL) {
-    corner = MIN;
+    corner = (vector_t){MIN.x, MIN.y + WALL_LENGTH.y * level};
   } 
   if (*info == RIGHT_WALL) {
-    corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.x};
+    corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.y + WALL_LENGTH.y * level};
   }
   if (*info == PLATFORM) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x, PLATFORM_HEIGHT};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
-    make_rectangle_points(corner, c);
+    make_rectangle_points(corner, c, false);
   } else {
     make_platform_points(corner, c);
   }
@@ -250,9 +362,11 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
 }
 
 void create_user(state_t *state) {
-  list_t *points = make_user();
+  vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
+                    MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
+  list_t *points = make_user(center,  make_type_info(USER), ZERO_SEED);
   body_t *user = body_init_with_info(points, USER_MASS, USER_COLOR, 
-                                     make_type_info(USER), NULL);
+                                    make_type_info(USER), NULL);
   state->user = user;
   body_add_force(user, GRAVITY);
   state->jumping = false;
@@ -268,12 +382,12 @@ void create_user(state_t *state) {
 void create_walls_and_platforms(state_t *state) {
   scene_t *scene = state -> scene;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL));
-    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL));
+    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL), i);
+    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL), i);
     body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(LEFT_WALL), 
                                             NULL);
-    body_t *right_wall = body_init_with_info(right_points, INFINITY, 
+    body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
                                             USER_COLOR, make_type_info(RIGHT_WALL), 
                                             NULL);
     scene_add_body(scene, left_wall);
@@ -283,7 +397,7 @@ void create_walls_and_platforms(state_t *state) {
     list_add(state->body_assets, wall_asset_l);
     list_add(state->body_assets, wall_asset_r);
   }
-  list_t *platform_points = make_rectangle(make_type_info(PLATFORM));
+  list_t *platform_points = make_rectangle(make_type_info(PLATFORM), PLATFORM_LEVEL);
   body_t *platform = body_init_with_info(platform_points, INFINITY, 
                                             USER_COLOR, make_type_info(PLATFORM), 
                                             NULL);
@@ -359,6 +473,11 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
   
   state->jumping = false;
   state->collided_obj = body2;
+  if (state->colliding_buffer > COLLIDING_BUFFER){
+    Mix_PlayChannel(IMPACT_CHANNEL, get_sound(state, PLATFORM_IMPACT), 0);
+  }
+
+  state->colliding_buffer = 0;
 }
 
 /**
@@ -407,6 +526,91 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
 
   if (state->health_powerup_index > state->jump_powerup_index) {
     state->health_powerup_index--;
+  }
+}
+
+/**
+ * Check whether two bodies are colliding and applies a sticky collision between them
+ * and to be called every tick
+ *
+ * @param state state object representing the current demo state
+ * @param body1 the user
+ * @param body2 the body with which the user is colliding
+ */
+void ghost_collision(body_t *user, body_t *body, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  if (state -> user_immunity > IMMUNITY){
+    if (state -> user_health > 1){
+      state -> user_health --;
+      update_health_bar(state);
+      sdl_play_sound(get_sound(state, GHOST_IMPACT));
+    } else {
+      //body_remove(user);
+    }
+    state -> user_immunity = 0;
+  }
+}
+
+
+/**
+ * Spawns a ghost on the screen at fixed y value and at a random x value
+ * that is within the bounds of the window
+ * 
+ */
+void spawn_ghost(state_t *state) {
+  vector_t max = {MAX.x, 0};
+  double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
+  vector_t ghost_center = {x, Y_OFFSET_GHOST};
+  list_t *c = make_user(ghost_center, make_type_info(GHOST), ZERO_SEED);
+  body_t *ghost = body_init_with_info(c, GHOST_MASS, GHOST_COLOUR, 
+                                      make_type_info(GHOST), NULL);
+  scene_add_body(state -> scene, ghost);
+  asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, VERTICAL_OFFSET);
+  list_add(state->body_assets, ghost_asset);
+  create_collision(state->scene, state->user, ghost,
+                      (collision_handler_t)ghost_collision, state, 0);
+  state -> ghost_counter++;
+  state -> ghost_timer = 0;
+}
+
+/**
+ * Spawns a ghost on the screen at fixed y value and at a random x value
+ * that is within the bounds of the window
+ */
+void ghost_move(state_t *state){
+  scene_t *scene = state->scene;
+  size_t num_bodies = scene_bodies(scene);
+  for (size_t i = 0; i < num_bodies; i++){
+    body_t *body = scene_get_body(scene, i);
+    if (get_type(body) == GHOST && (state->velocity_timer > VELOCITY_BUFFER)){
+      vector_t user_center = body_get_centroid(state->user);
+      vector_t ghost_center = body_get_centroid(body);
+      vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
+      vector_t velocity = vec_multiply(GHOST_SPEED, direction);
+      vector_t rand_add = rand_vec(VEC_ZERO, RAND_VELOCITY, i);
+      vector_t rand_velocity = vec_add(velocity, rand_add);
+      body_set_velocity(body, rand_velocity);
+      if (i == num_bodies - 1){
+        state->velocity_timer = 0;
+      }
+    }
+  }
+}
+
+
+/**
+ * Spawns spikes on the screen at random y value and at a random x value
+ * that is within the bounds wall height and the space in between
+ */
+void spawn_spike(state_t *state) {
+  for (size_t i = 0; i < SPIKE_NUM; i++){
+    list_t *c = make_user(VEC_ZERO, make_type_info(SPIKE), i);
+    body_t *spike = body_init_with_info(c, SPIKE_MASS, GHOST_COLOUR, 
+                                        make_type_info(SPIKE), NULL);
+    scene_add_body(state -> scene, spike);
+    asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, VERTICAL_OFFSET);
+    list_add(state->body_assets, spike_asset);
   }
 }
 
@@ -492,10 +696,30 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body,
                        (collision_handler_t)health_powerup_collision, state, POWERUP_ELASTICITY);
       break;
+    case SPIKE:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)ghost_collision, state, GHOST_ELASTICITY);
     default:
       break;
     }
   }
+}
+
+void start_button_handler(state_t *state) {
+  state->game_state = GAME_RUNNING;
+}
+
+void pause_button_handler(state_t *state) {
+  if (state->game_state == GAME_RUNNING) {
+    state->game_state = GAME_PAUSED;
+  } else if (state->game_state == GAME_PAUSED) {
+    state->game_state = GAME_RUNNING;
+  }
+}
+
+void restart_button_handler(state_t *state) {
+  state->user_health = FULL_HEALTH;
+  state->game_state = GAME_RUNNING;
 }
 
 /**
@@ -513,8 +737,9 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
 
+
   if (type == KEY_PRESSED) {
-      switch (key) {
+    switch (key) {
       case LEFT_ARROW: {
         if (get_type(state->collided_obj) != LEFT_WALL) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
@@ -545,6 +770,19 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 /**
+ * Updates all the buffers in the main loop
+ * 
+ * @param dt the time between each tick
+ */
+void update_buffers(state_t *state, double dt){
+  state->ghost_timer += dt;
+  state->velocity_timer += dt;
+  state->user_immunity += dt;
+  state->colliding_buffer += dt;
+}
+
+
+/**
  * Check conditions to see if game is over. Game is over if the user has no more health
  * (loss), the user falls off the map (loss), or the user reaches the top of the map (win).
  *
@@ -553,6 +791,7 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 bool game_over(state_t *state) {
   return false;
 } 
+
 
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
@@ -563,6 +802,15 @@ state_t *emscripten_init() {
   // Initialize scene
   state->scene = scene_init();
   state->body_assets = list_init(BODY_ASSETS, (free_func_t)asset_destroy);
+
+  // Initialize sound
+  Mix_OpenAudio(FREQUENCY, MIX_DEFAULT_FORMAT, STEREO, AUDIO_BUFFER);
+  Mix_Volume(DEFAULT_CHANNEL, MIX_MAX_VOLUME/2);
+  sound_init(state);
+  state->colliding_buffer = 0;
+  Mix_PlayChannel(WIND_CHANNEL, get_sound(state, WIND), LOOPS);
+  
+
   
   // Initialize background
   SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
@@ -586,9 +834,33 @@ state_t *emscripten_init() {
   create_health_power_up(state);
   create_jump_power_up(state);
 
+  // Initialize obstacles
+  spawn_spike(state);
+
+  // Initialize buttons and title
+  SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
+  state->start_button = asset_make_button(start_button_box, asset_make_image(START_BUTTON_PATH, start_button_box), NULL, (button_handler_t)start_button_handler);
+  asset_cache_register_button(state->start_button);
+
+  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
+  state->game_title = asset_make_image(TITLE_PATH, game_title_box);
+
+  SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
+  state->pause_button = asset_make_button(pause_button_box, asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), NULL, (button_handler_t)pause_button_handler);
+  asset_cache_register_button(state->pause_button);
+
+  SDL_Rect restart_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
+  state->restart_button = asset_make_button(restart_button_box, asset_make_image(RESTART_BUTTON_PATH, start_button_box), NULL, (button_handler_t)restart_button_handler);
+  asset_cache_register_button(state->restart_button);
+  
+
   // Initialize miscellaneous state values
-  state->game_over = false;
+  state->game_state = GAME_START;
   state->vertical_offset = 0;
+  state->velocity_timer = 0;
+  state->ghost_counter = 0;
+  state->user_immunity = 0;
+  state->ghost_timer = 0;
   
   add_force_creators(state);
   sdl_on_key((key_handler_t)on_key);
@@ -598,10 +870,16 @@ state_t *emscripten_init() {
 
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
+  update_buffers(state, dt);
+  
   body_t *user = state->user;
   scene_t *scene = state->scene;
-  scene_tick(scene, dt);
-  body_tick(user, dt);
+
+  if (state->game_state == GAME_RUNNING) {
+    scene_tick(scene, dt);
+    body_tick(user, dt);
+  }
+
   sdl_clear();
 
   check_gravity_and_friction(state);
@@ -609,19 +887,43 @@ bool emscripten_main(state_t *state) {
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
-  // render assets
+  // spawn and move ghosts
+  if (state->ghost_timer > SPAWN_TIMER && state->ghost_counter <= GHOST_NUM){
+    spawn_ghost(state);
+  }
+  ghost_move(state);
+
+  // Render assets
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
   asset_render(state->health_bar, state->vertical_offset);
 
+    // Render buttons and/or title based on game state
+  if (state->game_state == GAME_START) {
+    asset_render(state->game_title, state->vertical_offset);
+    asset_render(state->start_button, state->vertical_offset);
+  } else if (state->game_state == GAME_RUNNING) {
+    asset_render(state->pause_button, state->vertical_offset);
+  } else if (state->game_state == GAME_PAUSED) {
+    asset_render(state->pause_button, state->vertical_offset);
+    asset_render(state->restart_button, state->vertical_offset);
+  } else if (state->game_state == GAME_OVER) {
+    asset_render(state->restart_button, state->vertical_offset);
+  }
+
   sdl_show(state->vertical_offset);
 
-  return game_over(state);
+  if (state->user_health == 0) {
+    state->game_state = GAME_OVER;
+  }
+
+  return false  ;
 }
 
 void emscripten_free(state_t *state) {
   TTF_Quit();
+  list_free(state->sounds);
   scene_free(state->scene);
   list_free(state->body_assets);
   body_free(state->user);
