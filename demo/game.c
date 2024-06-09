@@ -457,7 +457,7 @@ void create_walls_and_platforms(state_t *state) {
 
   for (size_t i = 0; i < NUM_PLATFORMS; i++){
     list_t *platform_points = make_rectangle(make_type_info(PLATFORM), i);
-    body_t *platform = body_init_with_info(platform_points, INFINITY, 
+    body_t *platform = body_init_with_info(platform_points, WALL_MASS, 
                                               USER_COLOR, make_type_info(PLATFORM), 
                                               NULL);
     scene_add_body(scene, platform);
@@ -805,7 +805,7 @@ void add_force_creators(state_t *state) {
       break;
     case ISLAND:
       create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)sticky_collision, state, ISLAND_ELASTICITY);
+                      (collision_handler_t)sticky_collision, state, WALL_ELASTICITY);
       break;
     default:
       break;
