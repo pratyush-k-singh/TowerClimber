@@ -330,7 +330,7 @@ list_t *make_rectangle(void *wall_info, size_t level) {
       x_offset = GAP_DISTANCE/2;
     }
     corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset, 
-                        PLATFORM_HEIGHT + level * WALL_LENGTH/2};
+                        PLATFORM_HEIGHT + level * WALL_LENGTH.y/2};
   }
   list_t *c = list_init(WALL_POINTS, free);
   if (*info == LEFT_WALL || *info == RIGHT_WALL){
