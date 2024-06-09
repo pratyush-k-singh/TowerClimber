@@ -462,22 +462,22 @@ void create_user(state_t *state) {
 */
 void create_walls_and_platforms(state_t *state) {
   scene_t *scene = state->scene;
-
+  body_type_t *info = NULL;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL), i);
-    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL), i);
-    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
-                                            USER_COLOR, make_type_info(LEFT_WALL), 
-                                            NULL);
-    body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
-                                            USER_COLOR, make_type_info(RIGHT_WALL), 
-                                            NULL);
-    scene_add_body(scene, left_wall);
-    scene_add_body(scene, right_wall);
-    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
-    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
-    list_add(state->body_assets, wall_asset_l);
-    list_add(state->body_assets, wall_asset_r);
+    for (size_t j = 0; i < WALL_TYPES; i++){
+      if (j == 0){
+        info = make_type_info(LEFT_WALL);
+      } else {
+        info = make_type_info(LEFT_WALL);
+      }
+      list_t *points = make_rectangle(info, i);
+      body_t *wall = body_init_with_info(points, WALL_MASS, 
+                                              USER_COLOR, info, 
+                                              NULL);
+      scene_add_body(scene, wall);
+      asset_t *wall_asset = asset_make_image_with_body(WALL_PATH, wall, VERTICAL_OFFSET);
+      list_add(state->body_assets, wall_asset);
+    }
   }
 
   for (size_t i = 0; i < NUM_PLATFORMS; i++){
