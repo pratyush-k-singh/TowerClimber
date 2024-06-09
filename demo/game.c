@@ -488,10 +488,29 @@ void create_health_power_up(state_t *state) {
  * @param state the current state of the demo
 */
 void create_portal(state_t *state) {
-
   list_t *points = make_circle(VEC_ZERO, make_type_info(PORTAL), ZERO_SEED);
-  body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                        make_type_info(HEALTH_POWER), NULL);
+  body_t *portal = body_init_with_info(points, PORTAL_MASS, USER_COLOR, 
+                                        make_type_info(PORTAL), NULL);
+  asset_t *portal_asset = asset_make_image_with_body(PORTAL_PATH, portal, state->vertical_offset);
+  list_add(state->body_assets, portal_asset);
+  scene_add_body(state->scene, portal);
+}
+
+/**
+ * Rotates portal
+ * @param state the current state of the demo
+*/
+void rotate_portal(state_t *state) {
+  scene_t *scene = state->scene;
+  for (size_t i = 0; i < scene_bodies(scene); i++){
+    body_t *portal = scene_get_body(scene, i);
+    if (get_type(portal) == PORTAL){
+      double rotation = body_get_rotation(portal);
+      body_set_rotation(portal, PORTAL_ROTATION + rotation);
+    }
+  }
+
+  
 }
 
 
@@ -911,6 +930,7 @@ state_t *emscripten_init() {
 
   // Initialize obstacles
   spawn_gas(state);
+  create_portal(state);
 
   // Initialize buttons and title
   SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
@@ -980,6 +1000,9 @@ bool emscripten_main(state_t *state) {
     spawn_ghost(state);
   }
   ghost_move(state);
+
+  rotate_portal(state);
+
 
   // Render assets
   asset_render(state->background_asset, state->vertical_offset);
