@@ -499,20 +499,17 @@ void create_portal(state_t *state) {
 }
 
 /**
- * Rotates portal
- * @param state the current state of the demo
-*/
-void rotate_portal(state_t *state) {
-  scene_t *scene = state->scene;
-  for (size_t i = 0; i < scene_bodies(scene); i++){
-    body_t *portal = scene_get_body(scene, i);
-    if (get_type(portal) == PORTAL){
-      double rotation = body_get_rotation(portal);
-      body_set_rotation(portal, PORTAL_ROTATION + rotation);
-    }
-  }
-
-  
+ * Check whether two bodies are colliding and applies a collision between
+ * portal and body
+ *
+ * @param state state object representing the current demo state
+ * @param body1 the user
+ * @param body2 the portal
+ */
+void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  state->game_state = GAME_VICTORY;
 }
 
 
@@ -777,6 +774,9 @@ void add_force_creators(state_t *state) {
     case GAS:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+    case PORTAL:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)portal_collision, state, WALL_ELASTICITY);
     default:
       break;
     }
