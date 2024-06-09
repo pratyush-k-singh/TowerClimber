@@ -94,6 +94,14 @@ const double PORTAL_MASS = 10;
 const double PORTAL_ROTATION = 0.05;
 const double PORTAL_OFFSET = 300;
 
+// Island constants
+const vector_t ISLAND_LENGTH = {0, 800};
+const double ISLAND_LEVEL = 0;
+const double ISLAND_MASS = INFINITY;
+const double ISLAND_ELASTICITY = 0.36;
+
+
+
 // Wall constants
 const vector_t WALL_WIDTH = {100, 0};
 const vector_t WALL_LENGTH = {0, 2000};
@@ -325,9 +333,16 @@ list_t *make_circle(vector_t center, void *info, size_t idx) {
  * the wall
  * @param points an empty list to add the points to, the points are pointers to vectors
  */
-void make_rectangle_points(vector_t corner, list_t *points, bool platform){
-  vector_t temp[] = {PLATFORM_LENGTH, PLATFORM_WIDTH, vec_negate(PLATFORM_LENGTH)};
-  if (!platform){
+void make_rectangle_points(vector_t corner, list_t *points, body_type_t *info){
+  vector_t gap = {MAX.x, 0};
+  vector_t temp[] = {ISLAND_LENGTH, gap, vec_negate(ISLAND_LENGTH)};
+  if (*info == PLATFORM){
+    temp[0] = PLATFORM_LENGTH;
+    temp[1] = PLATFORM_WIDTH;
+    temp[2] = vec_negate(PLATFORM_LENGTH);
+    
+  }
+  if (*info == LEFT_WALL || *info == RIGHT_WALL){
     temp[0] = WALL_LENGTH;
     temp[1] = WALL_WIDTH;
     temp[2] = vec_negate(WALL_LENGTH);
@@ -344,34 +359,21 @@ void make_rectangle_points(vector_t corner, list_t *points, bool platform){
   }
 }
 
-/**
- * Generates the list of points for a platform shape given the vector of the bottom left
- * corner of the platform
- *
- * @param corner a vector that contains the coordinates of the bottom left corner of
- * the platform
- * @param points an empty list to add the points to, the points are pointers to vectors
- */
-void make_platform_points(vector_t corner, list_t *points){
-  make_rectangle_points(corner, points, true);
-}
 
 /**
  * Initializes a single wall or platform given the info about the body
  * 
  * @param wall_info the object type of the body
 */
-list_t *make_rectangle(void *wall_info, size_t level) {
+list_t *make_rectangle(body_type_t *wall_info, size_t level) {
   vector_t corner = VEC_ZERO;
   body_type_t *info = wall_info;
 
   if (*info == LEFT_WALL) {
     corner = (vector_t){MIN.x, MIN.y + WALL_LENGTH.y * level};
-  } 
-  if (*info == RIGHT_WALL) {
+  } else if (*info == RIGHT_WALL) {
     corner = (vector_t){MAX.x - WALL_WIDTH.x, MIN.y + WALL_LENGTH.y * level};
-  }
-  if (*info == PLATFORM) {
+  } else if (*info == PLATFORM) {
     double x_offset = 0;
     size_t middle = 0;
     if (level > 0){
@@ -381,14 +383,11 @@ list_t *make_rectangle(void *wall_info, size_t level) {
     corner = (vector_t){MIN.x + WALL_WIDTH.x + x_offset - 
                         PLATFORM_WIDTH.x/2 * middle, PLATFORM_HEIGHT + 
                         level * WALL_LENGTH.y/2};
+  } else if (*info == ISLAND) {
+    corner = (vector_t){MIN.x, MIN.y - ISLAND_LENGTH.y};
   }
   list_t *c = list_init(WALL_POINTS, free);
-  if (*info == LEFT_WALL || *info == RIGHT_WALL){
-    make_rectangle_points(corner, c, false);
-  } else {
-    make_platform_points(corner, c);
-  }
-  
+  make_rectangle_points(corner, c, info);
   return c;
 }
 
@@ -525,6 +524,20 @@ void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
   state_t *state = aux;
   state->game_state = GAME_VICTORY;
 }
+
+/**
+ * Creates an island and adds to state
+ * @param state the current state of the demo
+*/
+void create_island(state_t *state) {
+  list_t *points = make_rectangle(make_type_info(ISLAND), ISLAND_LEVEL);
+  body_t *island = body_init_with_info(points, ISLAND_MASS, USER_COLOR, 
+                                        make_type_info(ISLAND), NULL);
+  asset_t *island_asset = asset_make_image_with_body(ISLAND_PATH, island, state->vertical_offset);
+  list_add(state->body_assets, island_asset);
+  scene_add_body(state->scene, island);
+}
+
 
 
 /**
@@ -792,6 +805,11 @@ void add_force_creators(state_t *state) {
     case PORTAL:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)portal_collision, state, WALL_ELASTICITY);
+      break;
+    case ISLAND:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)sticky_collision, state, ISLAND_ELASTICITY);
+      break;
     default:
       break;
     }
@@ -950,9 +968,10 @@ state_t *emscripten_init() {
   create_health_power_up(state);
   create_jump_power_up(state);
 
-  // Initialize obstacles
+  // Initialize obstacles, portal and island
   spawn_gas(state);
   create_portal(state);
+  create_island(state);
 
   // Initialize buttons and in-game text
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
