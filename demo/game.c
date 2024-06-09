@@ -112,7 +112,6 @@ const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
 const size_t MIDDLE = 1;
 
-
 // health bar location
 const vector_t HEALTH_BAR_MIN = {15, 15};
 const vector_t HEALTH_BAR_MAX = {90, 30};
@@ -143,8 +142,9 @@ const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
 
 // Button and Title Constans
-const vector_t TITLE_OFFSETS = {475, 150};
-const vector_t BUTTON_OFFSETS = {425, 275};
+const vector_t TITLE_OFFSETS = {0, 75};
+const vector_t VICTORY_OFFSETS = {0, 150};
+const vector_t BUTTON_OFFSETS = {0, 275};
 const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
@@ -958,7 +958,7 @@ state_t *emscripten_init() {
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
   state->game_title = asset_make_image(TITLE_PATH, game_title_box);
 
-  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 250};
+  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
   state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
   SDL_Rect start_button_box = {.x = MAX.x / 2 - 50, .y = BUTTON_OFFSETS.y, .w = 100, .h = 50};
@@ -1033,9 +1033,6 @@ bool emscripten_main(state_t *state) {
     ghost_move(state);
   }
   
-
-
-
   // Render assets
   asset_render(state->background_asset, state->vertical_offset);
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
@@ -1056,8 +1053,8 @@ bool emscripten_main(state_t *state) {
   } else if (state->game_state == GAME_OVER) {
     asset_render(state->restart_button, state->vertical_offset);
   } else if (state->game_state == GAME_VICTORY) {
-    asset_render(state->victory_text, state->vertical_offset);
     asset_render(state->victory_background, state->vertical_offset);
+    asset_render(state->victory_text, state->vertical_offset);
   }
 
   if (Mix_PlayingMusic() == 0) {
