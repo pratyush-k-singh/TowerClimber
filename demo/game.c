@@ -832,6 +832,7 @@ void restart_button_handler(state_t *state) {
       double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
       vector_t ghost_center = {x, Y_OFFSET_GHOST};
       body_set_centroid(body, ghost_center);
+      body_set_velocity(body, VEC_ZERO);
     }
     if (get_type(body) == JUMP_POWER){
       contains_jump = true;
