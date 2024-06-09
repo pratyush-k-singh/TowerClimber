@@ -35,7 +35,7 @@ const char *HEALTH_BAR_1_PATH = "assets/health_bar_1.png";
 const char *HEALTH_BAR_0_PATH = "assets/health_bar_0.png";
 const char *GHOST_PATH = "assets/ghost.png";  
 const char *SPIKE_PATH = "assets/spike.png";
-const size_t MAX_LINE_LENGTH = 150;
+const char **MESSAGE = "";
 
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
@@ -819,15 +819,36 @@ void update_buffers(state_t *state, double dt){
   state->colliding_buffer += dt;
 }
 
-void print_message(const char *filename) {
-    FILE *file = fopen(filename, "r");
+void parse_message_text(const char *file_path, char **output_string) {
+  FILE *file = fopen(file_path, "r");
+  if (file == NULL) {
+      perror("Error opening file");
+      return;
+  }
 
-    char line[MAX_LINE_LENGTH];
-    while (fgets(line, sizeof(line), file) != NULL) {
-        printf("%s", line);
-    }
+  fseek(file, 0, SEEK_END);
+  long file_size = ftell(file);
+  fseek(file, 0, SEEK_SET);
 
-    fclose(file);
+  char *buffer = malloc(file_size + 1);
+  if (buffer == NULL) {
+      fclose(file);
+      return;
+  }
+
+  fread(buffer, 1, file_size, file);
+  buffer[file_size] = '\0';
+
+  fclose(file);
+
+  char *line = strtok(buffer, "\n");
+  while (line != NULL) {
+      strcat(*output_string, line);
+      strcat(*output_string, "\n");
+      line = strtok(NULL, "\n");
+  }
+
+  free(buffer);
 }
 
 state_t *emscripten_init() {
@@ -910,7 +931,8 @@ bool emscripten_main(state_t *state) {
   scene_t *scene = state->scene;
 
   if (state->game_state == GAME_START && state->welcome_message == false) {
-    print_message(WELCOME_MESSAGE_PATH);
+    parse_message_text(WELCOME_MESSAGE_PATH, MESSAGE);
+    printf("%s", MESSAGE);
     state->welcome_message = true;
   }
 
