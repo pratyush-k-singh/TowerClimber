@@ -903,7 +903,6 @@ state_t *emscripten_init() {
 bool emscripten_main(state_t *state) {
   double dt = time_since_last_tick();
   update_buffers(state, dt);
-  update_health_bar(state);
   
   body_t *user = state->user;
   scene_t *scene = state->scene;
@@ -931,6 +930,7 @@ bool emscripten_main(state_t *state) {
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
+  update_health_bar(state);
   asset_render(state->health_bar, state->vertical_offset);
 
   // Render buttons and/or title based on game state
