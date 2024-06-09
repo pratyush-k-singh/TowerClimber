@@ -136,6 +136,21 @@ const vector_t TITLE_OFFSETS = {475, 150};
 const vector_t BUTTON_OFFSETS = {425, 275};
 const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
+// Messages
+const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
+                              "mysterious path to the Realm of Evil awaits. The Evil King has left ghosts and floating obstacles in the way, in an attempt "
+                              "to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
+                              "to climb:\n\n"
+
+                              "- Horizontal Navigation: Left/Right Arrow Keys\n"
+                              "- Jumping: Up Arrow Key\n\n"
+                              
+                              "Along the way the Goddess was able to scatter a few power-ups to help you. If you're ever injured, just jump into one of the "
+                              "floating red hearts to heal yourself. And if you're ever in a dicey situation, the yellow explosive circles might allow you to "
+                              "navigate your way past the obstacles with a one-time use double jump! Good luck ninja, I'll talk to you soon.\n";
+const char* FAILIURE_MESSAGE = "That was a good attempt, but the Evil King got you. The Goddess managed to save you though, so try again!";
+const char* PAUSE_MESSAGE = "Hey, the Goddess froze time so you could do whatever you need to do!";
+
 // Game constants
 const size_t NUM_LEVELS = 3;
 const vector_t GRAVITY = {0, -1000};
@@ -145,7 +160,6 @@ const double VERTICAL_OFFSET = 100;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, HEALTH_POWER, GHOST, SPIKE, NONE } body_type_t;
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER } game_state_t;
-
 typedef enum { GHOST_IMPACT, WIND, SPIKE_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
@@ -179,6 +193,7 @@ struct state {
 
   asset_t *start_button;
   asset_t *game_title;
+  bool message;
   asset_t *pause_button;
   asset_t *restart_button;
   game_state_t game_state;
@@ -834,7 +849,6 @@ void update_buffers(state_t *state, double dt){
   state->colliding_buffer += dt;
 }
 
-
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   asset_cache_init();
@@ -860,7 +874,6 @@ state_t *emscripten_init() {
   // Initialize health bar
   asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
-  update_health_bar(state);
 
   // Initialize user
   create_user(state);
@@ -895,6 +908,7 @@ state_t *emscripten_init() {
 
   // Initialize miscellaneous state values
   state->game_state = GAME_START;
+  state->message = false;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
@@ -908,6 +922,21 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
+  if (state->game_state == GAME_START && state->message == false) {
+    printf("%s", WELCOME_MESSAGE);
+    state->message = true;
+  }
+
+  if (state->game_state == GAME_OVER && state->message == false) {
+    printf("%s", FAILIURE_MESSAGE);
+    state->message = true;
+  }
+
+  if (state->game_state == GAME_PAUSED && state->message == false) {
+    printf("%s", PAUSE_MESSAGE);
+    state->message = true;
+  }
+
   double dt = time_since_last_tick();
   update_buffers(state, dt);
   
@@ -917,6 +946,7 @@ bool emscripten_main(state_t *state) {
   if (state->game_state == GAME_RUNNING) {
     scene_tick(scene, dt);
     body_tick(user, dt);
+    state->message = false;
   }
 
   sdl_clear();
