@@ -287,7 +287,6 @@ void sound_init(state_t *state){
   state->sounds = sounds;
 }
 
-
 /**
  * Gets the actual sound file from the state from
  * the type passed in
@@ -305,7 +304,6 @@ Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
   }
   return NULL;
 }
-
 
 /**
  * Get body_type_t type of body
@@ -332,7 +330,6 @@ body_type_t *make_type_info(body_type_t type) {
   *info = type;
   return info;
 }
-
 
 /**
  * Creates a circle shape
@@ -542,8 +539,6 @@ void create_walls_and_platforms(state_t *state) {
 void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, 
                               void *aux, double force_const) {
   state_t *state = aux;
-
-  // add to health only if health is not full
   if (state->user_health < FULL_HEALTH) {
       body_remove(body2);
       list_remove(state->body_assets, state->health_powerup_index);
@@ -588,7 +583,7 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis,
 void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                       make_type_info(JUMP_POWER), NULL);
+                                        make_type_info(JUMP_POWER), NULL);
   asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, 
                                                       powerup, 
                                                       state->vertical_offset);
@@ -597,7 +592,7 @@ void create_jump_power_up(state_t *state) {
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
   create_collision(state->scene, state->user, powerup,
-                       (collision_handler_t)jump_powerup_collision, 
+                  (collision_handler_t)jump_powerup_collision, 
                         state, POWERUP_ELASTICITY);
 }
 
@@ -810,13 +805,9 @@ void check_jump(state_t *state) {
   if (state->jumping) {
     state->collided_obj = NULL;
     body_add_force(state->user, GRAVITY);
-  } 
-
-  // removes gravity if user is not in the air
-  else {
+  } else {
     body_reset(state->user);
     bool is_collided = false;
-    // check if the user is still collided
     for (size_t i = 0; i < scene_bodies(state->scene); i++) {
       body_t *body = scene_get_body(state->scene, i);
       if (find_collision(state->user, body).collided) {
@@ -824,7 +815,6 @@ void check_jump(state_t *state) {
         break;
       }
     }
-
     // determines whether the user has fallen and can no longer jump
     if (is_collided == false) {
       double user_xpos = body_get_centroid(state->user).x;
