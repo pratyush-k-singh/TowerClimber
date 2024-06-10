@@ -116,7 +116,8 @@ const double PLATFORM_SCALING = 5;
 const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
-const double PLATFORM_FRICTION = .85;
+const double WALL_FRICTION = .95;
+const double PLATFORM_FRICTION = .90;
 const size_t PLATFORM_LEVEL = 0;
 const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
@@ -846,11 +847,13 @@ void check_jump(state_t *state) {
 */
 void check_gravity_and_friction(state_t *state) {
   check_jump(state);
+  vector_t v1 = body_get_velocity(state->user);
 
-  // add horizontal friction if the user is on the platform
   if (get_type(state->collided_obj) == PLATFORM) {
-    vector_t v1 = body_get_velocity(state->user);
     body_set_velocity(state->user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+  } else if (get_type(state->collided_obj == LEFT_WALL) || 
+             get_type(state->collided_obj == RIGHT_WALL)) {
+      body_set_velocity(state->user, (vector_t) {0, v1.y * WALL_FRICTION});
   }
 }
 
@@ -1227,7 +1230,7 @@ bool emscripten_main(state_t *state) {
   if (state->user_health == 0) {
     state->game_state = GAME_OVER;
   }
-  
+
   return false;
 }
 
