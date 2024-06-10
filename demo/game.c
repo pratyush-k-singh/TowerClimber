@@ -158,11 +158,12 @@ const size_t MUSIC_VOLUME = 50;
 const size_t SPIKE1_ENUM = 10;
 const size_t SPIKE_RADIUS = 150;
 const size_t SPIKE_MASS = 10;
-const size_t SPIKE_OFFSET = 100;
+const double SPIKE_OFFSET = 100;
 const size_t NUM_SPIKES = 3;
 const size_t SPIKE1_INDEX = 0;
 const size_t SPIKE2_INDEX = 1;
 const size_t SPIKE3_INDEX = 2;
+const double SPIKE_ELASTICITY = 0;
 
 // Button and Title Constants
 const vector_t TITLE_OFFSETS = {0, 75};
@@ -961,6 +962,10 @@ void reset_button_handler(state_t *state) {
   state->game_state = GAME_RUNNING;
   state->restart_buffer = 0;
   state->distance_halfpoint = false;
+  state->spieks = list_init(NUM_SPIKES, asset_destroy);
+  state->spike2_idx = SPIKE2_INDEX;
+  state->spike3_idx = SPIKE3_INDEX;
+  create_spikes(state);
 
   bool contains_jump = false;
   bool contains_health = false;
@@ -1202,6 +1207,7 @@ state_t *emscripten_init() {
   create_spikes(state);
 
   // Initialize spike idx
+  state->spieks = list_init(NUM_SPIKES, asset_destroy);
   state->spike2_idx = SPIKE2_INDEX;
   state->spike3_idx = SPIKE3_INDEX;
 
@@ -1281,7 +1287,7 @@ bool emscripten_main(state_t *state) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
   }
   for (size_t i = 0; i < list_size(state->spikes); i++) {
-    asset_render(list_get(state->state->spikes, i), state->vertical_offset);
+    asset_render(list_get(state->spikes, i), state->vertical_offset);
   }
   update_health_bar(state);
   asset_render(state->health_bar, state->vertical_offset);
