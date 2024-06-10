@@ -39,7 +39,6 @@ const char *GHOST_PATH = "assets/ghost.png";
 const char *GAS_PATH = "assets/obstacle.png";
 const char *PORTAL_PATH = "assets/portal.png";
 const char *ISLAND_PATH = "assets/island.png";
-
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
 const char *GAS_IMPACT_PATH = "assets/gas_impact.wav";
@@ -58,6 +57,7 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
+const size_t WALL_BUFFER = 40; // how many pixels away from wall can user move horizontally
 const size_t FULL_HEALTH = 3;
 const size_t ZERO_SEED;
 
@@ -81,7 +81,7 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 const double RESTART_BUFFER = 5;
 
-// Obstacle Constants
+// Gas Obstacle Constants
 const double GAS_RADIUS = 250;
 const vector_t GAS_MIN = {150, 500};
 const vector_t GAS_MAX = {600, 0};
@@ -630,20 +630,6 @@ void create_portal(state_t *state) {
 }
 
 /**
- * Check whether two bodies are colliding and applies a collision between
- * portal and body
- *
- * @param state state object representing the current demo state
- * @param body1 a pointer to the body of the user
- * @param portal a pointer to the body of the portal
- */
-void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
-                double force_const){
-  state_t *state = aux;
-  state->game_state = GAME_VICTORY;
-}
-
-/**
  * Creates an island and adds to state
  * @param state the current state of the demo
 */
@@ -656,8 +642,6 @@ void create_island(state_t *state) {
   list_add(state->body_assets, island_asset);
   scene_add_body(state->scene, island);
 }
-
-
 
 /**
  * Called whenever the user health changes so that the health bar asset can be updated
@@ -726,6 +710,19 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
   }
 }
 
+/**
+ * Check whether two bodies are colliding and applies a collision between
+ * portal and body
+ *
+ * @param state state object representing the current demo state
+ * @param user a pointer to the body of the user
+ * @param portal a pointer to the body of the portal
+ */
+void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  state->game_state = GAME_VICTORY;
+}
 
 /**
  * Spawns a ghost on the screen at fixed y value and at a random x value
@@ -795,6 +792,22 @@ void spawn_gas(state_t *state) {
   }
 }
 
+/** 
+ * spawn and move ghosts during the game
+ * 
+ * @param state the current demo of the state
+*/
+void spawn_and_move_ghosts(state_t *state) {
+  if (state->ghost_timer > SPAWN_TIMER && 
+      state->ghost_counter <= GHOST_NUM){
+    spawn_ghost(state);
+  }
+
+  if (state->restart_buffer > RESTART_BUFFER){
+    ghost_move(state);
+  }
+}
+
 /**
  * Helper function to check when gravity should be applied to the user
  * 
@@ -838,51 +851,6 @@ void check_gravity_and_friction(state_t *state) {
   if (get_type(state->collided_obj) == PLATFORM) {
     vector_t v1 = body_get_velocity(state->user);
     body_set_velocity(state->user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-  }
-}
-
-/**
- * Adds collision handler force creators between appropriate bodies.
- *
- * @param state the current state of the demo
- */
-void add_force_creators(state_t *state) { 
-  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-    body_t *body = scene_get_body(state->scene, i);
-    switch (get_type(body)) {
-    case LEFT_WALL:
-      create_collision(state->scene, state->user, body,
-                      (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case RIGHT_WALL:
-      create_collision(state->scene, state->user, body,
-                      (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case PLATFORM:
-      create_collision(state->scene, state->user, body,
-                      (collision_handler_t)sticky_collision, 
-                      state, ELASTICITY);
-      break;
-    case GAS:
-      create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)damaging_collision, 
-                      state, ELASTICITY);
-      break;
-    case PORTAL:
-      create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)portal_collision, state, ELASTICITY);
-      break;
-    case QUICKSAND_ISLAND:
-      create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case GHOST:
-      create_collision(state->scene, state->user, body,
-                      (collision_handler_t)damaging_collision, state, 
-                      GHOST_ELASTICITY);
-    default:
-      break;
-    }
   }
 }
 
@@ -965,6 +933,7 @@ void reset_button_handler(state_t *state) {
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user;
   vector_t cur_v = body_get_velocity(user);
+  vector_t cur_pos = body_get_centroid(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
 
@@ -972,13 +941,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
     switch (key) {
       case LEFT_ARROW: {
-        if (get_type(state->collided_obj) != LEFT_WALL) {
+        if (cur_pos.x > WALL_WIDTH.x + WALL_BUFFER) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
       }
       case RIGHT_ARROW: {
-        if (get_type(state->collided_obj) != RIGHT_WALL) {
+        if (cur_pos.x < MAX.x - WALL_WIDTH.x - WALL_BUFFER) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
@@ -1001,6 +970,51 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 /**
+ * Adds collision handler force creators between appropriate bodies.
+ *
+ * @param state the current state of the demo
+ */
+void add_force_creators(state_t *state) { 
+  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+    body_t *body = scene_get_body(state->scene, i);
+    switch (get_type(body)) {
+    case LEFT_WALL:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
+      break;
+    case RIGHT_WALL:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
+      break;
+    case PLATFORM:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)sticky_collision, 
+                      state, ELASTICITY);
+      break;
+    case GAS:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)damaging_collision, 
+                      state, ELASTICITY);
+      break;
+    case PORTAL:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)portal_collision, state, ELASTICITY);
+      break;
+    case QUICKSAND_ISLAND:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
+      break;
+    case GHOST:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)damaging_collision, state, 
+                      GHOST_ELASTICITY);
+    default:
+      break;
+    }
+  }
+}
+
+/**
  * Updates all the buffers in the main loop
  * 
  * @param dt the time between each tick
@@ -1012,6 +1026,47 @@ void update_buffers(state_t *state, double dt){
   state->user_immunity += dt;
   state->colliding_buffer += dt;
   state->restart_buffer += dt;
+}
+
+/**
+ * prints out storyline for game based on game_state
+ * 
+ * @param state the current demo state
+*/
+void print_story(state_t *state) {
+  if (state->game_state == GAME_START && 
+      state->state_msg_tracker == false) {
+    printf("%s", WELCOME_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_OVER && 
+             state->state_msg_tracker == false) {
+    printf("%s", FAILIURE_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_PAUSED && 
+             state->state_msg_tracker == false) {
+    printf("%s", PAUSE_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_VICTORY && 
+             state->state_msg_tracker == false) {
+    printf("%s", VICTORY_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_RUNNING) {
+    state->state_msg_tracker = false;
+  }
+
+  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && 
+      state->distance_halfpoint == false && 
+      state->game_state == GAME_RUNNING && 
+      state->restart_buffer >= RESTART_BUFFER) {
+    printf("%s", PORTAL_SENSED_MESSAGE);
+    state->distance_halfpoint = true;
+  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE &&
+             state->distance_portal == false && 
+             state->game_state == GAME_RUNNING &&
+             state->restart_buffer >= RESTART_BUFFER) {
+    printf("%s", PORTAL_SEEN_MESSAGE);
+    state->distance_portal = true;
+  }
 }
 
 state_t *emscripten_init() {
@@ -1113,39 +1168,7 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && 
-      state->state_msg_tracker == false) {
-    printf("%s", WELCOME_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_OVER && 
-            state->state_msg_tracker == false) {
-    printf("%s", FAILIURE_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_PAUSED && 
-            state->state_msg_tracker == false) {
-    printf("%s", PAUSE_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_VICTORY && 
-            state->state_msg_tracker == false) {
-    printf("%s", VICTORY_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_RUNNING) {
-    state->state_msg_tracker = false;
-  }
-
-  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && 
-      state->distance_halfpoint == false && 
-      state->game_state == GAME_RUNNING && 
-      state->restart_buffer >= RESTART_BUFFER) {
-    printf("%s", PORTAL_SENSED_MESSAGE);
-    state->distance_halfpoint = true;
-  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE &&
-            state->distance_portal == false && 
-            state->game_state == GAME_RUNNING &&
-            state->restart_buffer >= RESTART_BUFFER) {
-    printf("%s", PORTAL_SEEN_MESSAGE);
-    state->distance_portal = true;
-  }
+  print_story(state);
 
   double dt = time_since_last_tick();
   update_buffers(state, dt);
@@ -1165,15 +1188,7 @@ bool emscripten_main(state_t *state) {
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
-  // spawn and move ghosts
-  if (state->ghost_timer > SPAWN_TIMER && 
-      state->ghost_counter <= GHOST_NUM){
-    spawn_ghost(state);
-  }
-
-  if (state->restart_buffer > RESTART_BUFFER){
-    ghost_move(state);
-  }
+  spawn_and_move_ghosts(state);
   
   // Render assets
   asset_render(state->background_asset, state->vertical_offset);
@@ -1212,6 +1227,7 @@ bool emscripten_main(state_t *state) {
   if (state->user_health == 0) {
     state->game_state = GAME_OVER;
   }
+  
   return false;
 }
 
