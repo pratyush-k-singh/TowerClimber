@@ -126,7 +126,7 @@ const size_t WALL_TYPES = 2;
 
 // Health Bar Location
 const vector_t HEALTH_BAR_MIN = {15, 15};
-const vector_t HEALTH_BAR_MAX = {90, 30};
+const vector_t HEALTH_BAR_MAX = {105, 30};
 SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                            .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
