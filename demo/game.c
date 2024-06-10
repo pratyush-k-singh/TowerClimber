@@ -158,6 +158,11 @@ const size_t MUSIC_VOLUME = 50;
 const size_t SPIKE1_ENUM = 10;
 const size_t SPIKE_RADIUS = 150;
 const size_t SPIKE_MASS = 10;
+const size_t SPIKE_OFFSET = 100;
+const size_t NUM_SPIKES = 3;
+const size_t SPIKE1_INDEX = 0;
+const size_t SPIKE2_INDEX = 1;
+const size_t SPIKE3_INDEX = 2;
 
 // Button and Title Constants
 const vector_t TITLE_OFFSETS = {0, 75};
@@ -256,6 +261,8 @@ struct state {
   double colliding_buffer;
 
   list_t *spikes;
+  size_t spike2_idx;
+  size_t spike3_idx;
 };
 
 
@@ -731,7 +738,7 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
 */
 void create_spikes(state_t *state) {
   for (size_t i = 0; i < NUM_SPIKES; i++){
-    list_t *points = make_circle(VEC_ZERO, make_type_info(spike), i);
+    list_t *points = make_circle(VEC_ZERO, make_type_info(SPIKE1_ENUM + i), i);
     body_t *spike = body_init_with_info(points, SPIKE_MASS, USER_COLOR, 
                                           make_type_info(SPIKE1_ENUM + i), NULL);
     asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, 
@@ -759,14 +766,19 @@ void spike_collision(body_t *user, body_t *spike, vector_t axis, void *aux,
     sdl_play_sound(get_sound(state, GHOST_IMPACT));
   }
   switch (get_type(spike)) {
-    case SPIKE1:
+    case SPIKE1:{
       list_remove(state->spikes, SPIKE1_INDEX);
+      state->spike2_idx --;
+      state->spike3_idx --;
       break;
-    case SPIKE2:
-      list_remove(state->spikes, SPIKE2_INDEX);
+    }
+    case SPIKE2:{
+      list_remove(state->spikes, state->spike2_idx);
+      state->spike3_idx --;
+    }
       break;
     case SPIKE3:
-      list_remove(state->spikes, SPIKE3_INDEX);
+      list_remove(state->spikes, state->spike3_idx);
       break;
     default:
       break;
@@ -1189,6 +1201,10 @@ state_t *emscripten_init() {
   create_island(state);
   create_spikes(state);
 
+  // Initialize spike idx
+  state->spike2_idx = SPIKE2_INDEX;
+  state->spike3_idx = SPIKE3_INDEX;
+
   // Initialize buttons and in-game text
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, 
                             .w = 500, .h = 100};
@@ -1263,6 +1279,9 @@ bool emscripten_main(state_t *state) {
   asset_render(state->background_asset, state->vertical_offset);
   for (size_t i = 0; i < list_size(state->body_assets); i++) {
     asset_render(list_get(state->body_assets, i), state->vertical_offset);
+  }
+  for (size_t i = 0; i < list_size(state->spikes); i++) {
+    asset_render(list_get(state->state->spikes, i), state->vertical_offset);
   }
   update_health_bar(state);
   asset_render(state->health_bar, state->vertical_offset);
