@@ -256,13 +256,6 @@ void sdl_show(double vector_offset) {
            min = vec_subtract(center, max_diff);
   vector_t max_pixel = get_window_position(max, window_center, vector_offset),
            min_pixel = get_window_position(min, window_center, vector_offset);
-  SDL_Rect *boundary = malloc(sizeof(*boundary));
-  boundary->x = min_pixel.x;
-  boundary->y = max_pixel.y;
-  boundary->w = max_pixel.x - min_pixel.x;
-  boundary->h = min_pixel.y - max_pixel.y;
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  free(boundary);
 
   SDL_RenderPresent(renderer);
 }
