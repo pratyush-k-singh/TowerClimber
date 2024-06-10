@@ -965,6 +965,7 @@ void reset_button_handler(state_t *state) {
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user;
   vector_t cur_v = body_get_velocity(user);
+  vector_t cur_pos = body_get_centroid(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
 
@@ -972,13 +973,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
     switch (key) {
       case LEFT_ARROW: {
-        if (get_type(state->collided_obj) != LEFT_WALL) {
+        if (get_type(state->collided_obj) != LEFT_WALL && cur_pos.x > WALL_WIDTH.x) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
       }
       case RIGHT_ARROW: {
-        if (get_type(state->collided_obj) != RIGHT_WALL) {
+        if (get_type(state->collided_obj) != RIGHT_WALL && cur_pos.x < MAX.x - WALL_WIDTH.x) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
