@@ -12,16 +12,13 @@
 #include <stdbool.h>
 #include <SDL2/SDL_mixer.h>
 
-
-
-
 // Values passed to a key handler when the given arrow key is pressed
 typedef enum {
-  LEFT_ARROW = 1,
-  UP_ARROW = 2,
-  RIGHT_ARROW = 3,
-  DOWN_ARROW = 4,
-  SPACE_BAR = 5,
+    LEFT_ARROW = 1,
+    UP_ARROW = 2,
+    RIGHT_ARROW = 3,
+    DOWN_ARROW = 4,
+    SPACE_BAR = 5,
 } arrow_key_t;
 
 /**
@@ -42,9 +39,9 @@ typedef enum { KEY_PRESSED, KEY_RELEASED } key_event_type_t;
  * @param key a character indicating which key was pressed
  * @param type the type of key event (KEY_PRESSED or KEY_RELEASED)
  * @param held_time if a press event, the time the key has been held in seconds
+ * @param state a pointer to the current state
  */
-typedef void (*key_handler_t)(char key, key_event_type_t type, double held_time,
-                              void *state);
+typedef void (*key_handler_t)(char key, key_event_type_t type, double held_time, void *state);
 
 /**
  * Initializes the SDL window and renderer.
@@ -59,6 +56,7 @@ void sdl_init(vector_t min, vector_t max);
  * Processes all SDL events and returns whether the window has been closed.
  * This function must be called in order to handle inputs.
  *
+ * @param state a pointer to the current state
  * @return true if the window was closed, false otherwise
  */
 bool sdl_is_done(void *state);
@@ -69,12 +67,17 @@ bool sdl_is_done(void *state);
 void sdl_clear(void);
 
 /**
- * 
+ * Loads a sound from the specified file.
+ *
+ * @param file the path to the sound file
+ * @return a pointer to the loaded sound
  */
 Mix_Chunk *sdl_load_sound(const char *file);
 
 /**
- * 
+ * Plays the specified sound.
+ *
+ * @param sound a pointer to the sound to play
  */
 void sdl_play_sound(Mix_Chunk *sound);
 
@@ -83,12 +86,15 @@ void sdl_play_sound(Mix_Chunk *sound);
  *
  * @param poly a struct representing the polygon
  * @param color the color used to fill in the polygon
+ * @param vector_offset the vertical offset for the polygon position
  */
 void sdl_draw_polygon(polygon_t *poly, rgb_color_t color, double vector_offset);
 
 /**
  * Displays the rendered frame on the SDL window.
  * Must be called after drawing the polygons in order to show them.
+ *
+ * @param vector_offset the vertical offset for the scene
  */
 void sdl_show(double vector_offset);
 
@@ -99,6 +105,7 @@ void sdl_show(double vector_offset);
  *
  * @param scene the scene to draw
  * @param aux an additional body to draw (can be NULL if no additional bodies)
+ * @param vertical_offset the vertical offset for the scene
  */
 void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset);
 
@@ -108,7 +115,7 @@ void sdl_render_scene(scene_t *scene, void *aux, double vertical_offset);
  *
  * Example:
  * ```
- * void on_key(char key, key_event_type_t type, double held_time) {
+ * void on_key(char key, key_event_type_t type, double held_time, void *state) {
  *     if (type == KEY_PRESSED) {
  *         switch (key) {
  *             case 'a':
@@ -151,7 +158,7 @@ TTF_Font *sdl_load_font(const char *font_path, int8_t font_size);
  * Loads an image from the given file path.
  *
  * @param image_path the file path to the image file
- * @return a pointer to the loaded image surface, or NULL if loading fails
+ * @return a pointer to the loaded image texture, or NULL if loading fails
  */
 SDL_Texture *sdl_load_image(const char *image_path);
 
@@ -164,27 +171,25 @@ SDL_Texture *sdl_load_image(const char *image_path);
  * @param color the color of the text
  * @param font_size the font size to use for rendering
  */
-void sdl_render_font(TTF_Font *font, const char *text, vector_t position,
-                     SDL_Color color, int8_t font_size);
+void sdl_render_font(TTF_Font *font, const char *text, vector_t position, SDL_Color color, int8_t font_size);
 
 /**
  * Renders an image on the SDL window at the specified position with the
  * specified size.
  *
- * @param texture the SDL texture representing the image to render
- * @param loc the location at which to render the image
- * @param size the size of the image to render
+ * @param image_texture the SDL texture representing the image to render
+ * @param corner_loc the location at which to render the image
+ * @param image_size the size of the image to render
  */
-void sdl_render_image(SDL_Texture *image_texture, vector_t corner_loc,
-                      vector_t image_size);
+void sdl_render_image(SDL_Texture *image_texture, vector_t corner_loc, vector_t image_size);
 
 /**
  * Calculates the bounding box for a body and stores it in the given SDL_Rect.
  * The bounding box is the smallest rectangle that completely encloses the body.
  *
  * @param body the body for which to calculate the bounding box
- * @param bounding_box a pointer to an SDL_Rect where the bounding box will be
- * stored
+ * @param bounding_box a pointer to an SDL_Rect where the bounding box will be stored
+ * @param vertical_offset the vertical offset for the bounding box position
  */
 void get_body_bounding_box(body_t *body, SDL_Rect *bounding_box, double vertical_offset);
 

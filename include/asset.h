@@ -14,7 +14,8 @@ typedef struct asset asset_t;
 /**
  * Gets the `asset_type_t` of the asset.
  *
- * @return the type of the asset.
+ * @param asset a pointer to the asset
+ * @return the type of the asset
  */
 asset_type_t asset_get_type(asset_t *asset);
 
@@ -23,7 +24,7 @@ asset_type_t asset_get_type(asset_t *asset);
  *
  * @param filepath the filepath to the image file
  * @param bounding_box the bounding box containing the location and dimensions
- * of the text when it is rendered
+ * of the image when it is rendered
  * @return a pointer to the newly allocated image asset
  */
 asset_t *asset_make_image(const char *filepath, SDL_Rect bounding_box);
@@ -34,6 +35,7 @@ asset_t *asset_make_image(const char *filepath, SDL_Rect bounding_box);
  *
  * @param filepath the filepath to the image file
  * @param body the body to render the image on top of
+ * @param vertical_offset the vertical offset to apply to the bounding box of the body
  * @return a pointer to the newly allocated image asset
  */
 asset_t *asset_make_image_with_body(const char *filepath, body_t *body, double vertical_offset);
@@ -48,11 +50,10 @@ asset_t *asset_make_image_with_body(const char *filepath, body_t *body, double v
  * @param color the color of the text
  * @return a pointer to the newly allocated text asset
  */
-asset_t *asset_make_text(const char *filepath, SDL_Rect bounding_box,
-                         const char *text, rgb_color_t color);
+asset_t *asset_make_text(const char *filepath, SDL_Rect bounding_box, const char *text, rgb_color_t color);
 
 /**
- * A button handler.
+ * A button handler function pointer type.
  *
  * @param state the state of the game
  */
@@ -67,35 +68,37 @@ typedef void (*button_handler_t)(void *state);
  * Asserts that `text_asset` is NULL or has type `ASSET_FONT`.
  *
  * @param bounding_box the bounding box containing the area on the screen that
- * should activate the button handler.
- * @param image_asset the image that the button renders. Can be NULL.
- * @param text_asset the text that the button renders. Can be NULL.
- * @param handler the button handler that runs when the button is clicked.
+ * should activate the button handler
+ * @param image_asset the image that the button renders. Can be NULL
+ * @param text_asset the text that the button renders. Can be NULL
+ * @param handler the button handler that runs when the button is clicked
+ * @return a pointer to the newly allocated button asset
  */
-asset_t *asset_make_button(SDL_Rect bounding_box, asset_t *image_asset,
-                           asset_t *text_asset, button_handler_t handler);
+asset_t *asset_make_button(SDL_Rect bounding_box, asset_t *image_asset, asset_t *text_asset, button_handler_t handler);
 
 /**
- * Runs the button handler for `button` if
- *
- * 1. `x` and `y` are contained in the button's bounding box.
- * 2. AND `button` is currently rendered onto the screen.
+ * Runs the button handler for the button if the click is within the bounding box
+ * and the button is currently rendered.
  *
  * @param button the pointer to the button asset
  * @param state the game state
  * @param x the x position of the mouse click
  * @param y the y position of the mouse click
+ * @return true if the button was clicked, false otherwise
  */
 bool asset_on_button_click(asset_t *button, state_t *state, double x, double y);
 
 /**
  * Renders the asset to the screen.
+ *
  * @param asset the asset to render
+ * @param vertical_offset the vertical offset to apply during rendering
  */
 void asset_render(asset_t *asset, double vertical_offset);
 
 /**
  * Frees the memory allocated for the asset.
+ *
  * @param asset the asset to free
  */
 void asset_destroy(asset_t *asset);
