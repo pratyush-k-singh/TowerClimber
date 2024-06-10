@@ -1204,12 +1204,13 @@ state_t *emscripten_init() {
   spawn_gas(state);
   create_portal(state);
   create_island(state);
-  create_spikes(state);
+  
 
   // Initialize spike idx
   state->spikes = list_init(NUM_SPIKES, (free_func_t) asset_destroy);
   state->spike2_idx = SPIKE2_INDEX;
   state->spike3_idx = SPIKE3_INDEX;
+  create_spikes(state);
 
   // Initialize buttons and in-game text
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, 
