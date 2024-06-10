@@ -174,7 +174,7 @@ const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
 const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
-                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts, poisonous clouds, and explosive spikes in the way above, and a strange quicksand island below "
+                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts, poisonous clouds, and explosive spike bombs in the way above, and a strange quicksand island below "
                               "in an attempt to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
                               "to climb:\n\n"
 
