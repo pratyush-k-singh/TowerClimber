@@ -745,6 +745,9 @@ void create_spikes(state_t *state) {
     asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, 
                                                       state->vertical_offset);
     list_add(state->spikes, spike_asset);
+    create_collision(state->scene, state->user, spike,
+                      (collision_handler_t)spike_collision, state, 
+                      SPIKE_ELASTICITY);
     scene_add_body(state->scene, spike);
   }
 }
@@ -1085,13 +1088,6 @@ void add_force_creators(state_t *state) {
     case QUICKSAND_ISLAND:
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case SPIKE1:
-    case SPIKE2:
-    case SPIKE3:
-      create_collision(state->scene, state->user, body,
-                      (collision_handler_t)spike_collision, state, 
-                      SPIKE_ELASTICITY);
       break;
     default:
       break;
