@@ -116,8 +116,8 @@ const double PLATFORM_SCALING = 5;
 const double PLATFORM_HEIGHT = 100;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
-const double WALL_FRICTION = .95;
-const double PLATFORM_FRICTION = .90;
+const vector_t WALL_FRICTION_FORCE = {0, -400};
+const double PLATFORM_FRICTION = .875;
 const size_t PLATFORM_LEVEL = 0;
 const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
@@ -853,7 +853,7 @@ void check_gravity_and_friction(state_t *state) {
     body_set_velocity(state->user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
   } else if (get_type(state->collided_obj) == LEFT_WALL || 
              get_type(state->collided_obj) == RIGHT_WALL) {
-      body_set_velocity(state->user, (vector_t) {0, v1.y * WALL_FRICTION});
+      body_add_force(state->user, WALL_FRICTION_FORCE);
   }
 }
 
