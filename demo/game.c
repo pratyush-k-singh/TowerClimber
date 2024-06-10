@@ -966,10 +966,7 @@ void reset_button_handler(state_t *state) {
   state->game_state = GAME_RUNNING;
   state->restart_buffer = 0;
   state->distance_halfpoint = false;
-  state->spikes = list_init(NUM_SPIKES, (free_func_t) asset_destroy);
-  state->spike2_idx = SPIKE2_INDEX;
-  state->spike3_idx = SPIKE3_INDEX;
-  create_spikes(state);
+
 
   bool contains_jump = false;
   bool contains_health = false;
@@ -1009,6 +1006,10 @@ void reset_button_handler(state_t *state) {
   if (!contains_health){
     create_health_power_up(state);
   }
+  state->spikes = list_init(NUM_SPIKES, (free_func_t) asset_destroy);
+  state->spike2_idx = SPIKE2_INDEX;
+  state->spike3_idx = SPIKE3_INDEX;
+  create_spikes(state);
 }
 
 /**
