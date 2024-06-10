@@ -114,7 +114,7 @@ const rgb_color_t WALL_COLOR = (rgb_color_t) {255, 255, 255};
 const size_t TEMP_LENGTH = 3;
 const double NORMAL_SCALING = 1;
 const double PLATFORM_SCALING = 5;
-const double PLATFORM_HEIGHT = 100;
+const double PLATFORM_HEIGHT = 250;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
 const double PLATFORM_FRICTION = .85;
@@ -376,7 +376,7 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
     radius = SPIKE_RADIUS;
     double y = (WALL_LENGTH.y) * (idx+1) - SPIKE_OFFSET;
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
-    double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
+    double x = WALL_WIDTH.x - SPIKE_RADIUS, position + 1)
               + GAP_DISTANCE ;
     center_body = (vector_t){x, y};
   }
