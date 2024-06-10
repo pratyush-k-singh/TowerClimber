@@ -851,8 +851,8 @@ void check_gravity_and_friction(state_t *state) {
 
   if (get_type(state->collided_obj) == PLATFORM) {
     body_set_velocity(state->user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
-  } else if (get_type(state->collided_obj == LEFT_WALL) || 
-             get_type(state->collided_obj == RIGHT_WALL)) {
+  } else if (get_type(state->collided_obj) == LEFT_WALL || 
+             get_type(state->collided_obj) == RIGHT_WALL) {
       body_set_velocity(state->user, (vector_t) {0, v1.y * WALL_FRICTION});
   }
 }
