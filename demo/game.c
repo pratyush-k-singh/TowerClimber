@@ -158,7 +158,7 @@ const size_t MUSIC_VOLUME = 50;
 const size_t SPIKE1_ENUM = 10;
 const size_t SPIKE_RADIUS = 150;
 const size_t SPIKE_MASS = 10;
-const double SPIKE_OFFSET = 100;
+const double SPIKE_OFFSET = 400;
 const size_t NUM_SPIKES = 3;
 const size_t SPIKE1_INDEX = 0;
 const size_t SPIKE2_INDEX = 1;
@@ -377,7 +377,7 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
     double y = (WALL_LENGTH.y) * (idx+1) - SPIKE_OFFSET;
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
-             + GAP_DISTANCE * (position);
+             + GAP_DISTANCE * (1 - position);
     center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
