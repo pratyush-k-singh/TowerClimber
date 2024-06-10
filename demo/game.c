@@ -45,6 +45,7 @@ const char *GAS_IMPACT_PATH = "assets/gas_impact.wav";
 const char *PLATFORM_IMPACT_PATH = "assets/platform_land.wav";
 const char *WALL_IMPACT_PATH = "assets/wall_impact.wav";
 const char *MUSIC_PATH = "assets/Pixel-Drama.wav";
+const char *SPIKE_PATH = "assets/spike.png";
 
 // User Constants
 const double USER_MASS = 5;
@@ -153,6 +154,11 @@ const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
 const size_t MUSIC_VOLUME = 50;
 
+// SPIKE CONSTANTS
+const size_t SPIKE1_ENUM = 10;
+const size_t SPIKE_RADIUS = 150;
+const size_t SPIKE_MASS = 10;
+
 // Button and Title Constants
 const vector_t TITLE_OFFSETS = {0, 75};
 const vector_t VICTORY_OFFSETS = {0, 150};
@@ -195,7 +201,7 @@ const size_t ONE_HEART = 1;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
               HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND,
-              NONE } body_type_t;
+              SPIKE1, SPIKE2, SPIKE3, NONE } body_type_t;
 
 typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, 
               GAME_OVER, GAME_VICTORY } game_state_t;
@@ -248,6 +254,8 @@ struct state {
   list_t *sounds;
   Mix_Music *music;
   double colliding_buffer;
+
+  list_t *spikes;
 };
 
 
@@ -355,6 +363,13 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
     radius = PORTAL_RADIUS;
     double y = WALL_LENGTH.y * NUM_LEVELS + PORTAL_OFFSET;
     double x = GAP_DISTANCE / 2 + WALL_WIDTH.x;
+    center_body = (vector_t){x, y};
+  } else if (*info == SPIKE1 || *info == SPIKE2 || *info == SPIKE3){
+    radius = SPIKE_RADIUS;
+    double y = (WALL_LENGTH.y) * (idx+1) - SPIKE_OFFSET;
+    size_t position = idx % (GAS_NUM / NUM_LEVELS);
+    double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
+             + GAP_DISTANCE * (position);
     center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
@@ -693,8 +708,8 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
  * damaging collision between them
  *
  * @param state state object representing the current demo state
- * @param body1 the user
- * @param body2 the body with which the user is colliding
+ * @param user the user
+ * @param body the body with which the user is colliding
  * @param aux information about the state of the collision
  * @param force_const the force constant to be applied to the collision
  */
@@ -708,6 +723,56 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
     }
     state->user_immunity = 0;
   }
+}
+
+/**
+ * Creates a spikes and adds to state
+ * @param state the current state of the demo
+*/
+void create_spikes(state_t *state) {
+  for (size_t i = 0; i < NUM_SPIKES; i++){
+    list_t *points = make_circle(VEC_ZERO, make_type_info(spike), i);
+    body_t *spike = body_init_with_info(points, SPIKE_MASS, USER_COLOR, 
+                                          make_type_info(SPIKE1_ENUM + i), NULL);
+    asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, 
+                                                      state->vertical_offset);
+    list_add(state->spikes, spike_asset);
+    scene_add_body(state->scene, spike);
+  }
+}
+
+/**
+ * Check whether two bodies are colliding and applies a 
+ * explosive collision between them
+ *
+ * @param state state object representing the current demo state
+ * @param user the user
+ * @param spike the body with which the user is colliding
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
+ */
+void spike_collision(body_t *user, body_t *spike, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  if (state->user_health >= ONE_HEART){
+    state->user_health --;
+    sdl_play_sound(get_sound(state, GHOST_IMPACT));
+  }
+  switch (get_type(spike)) {
+    case SPIKE1:
+      list_remove(state->spikes, SPIKE1_INDEX);
+      break;
+    case SPIKE2:
+      list_remove(state->spikes, SPIKE2_INDEX);
+      break;
+    case SPIKE3:
+      list_remove(state->spikes, SPIKE3_INDEX);
+      break;
+    default:
+      break;
+    }
+  body_remove(spike);
+  state->user_immunity = 0;
 }
 
 /**
@@ -1004,10 +1069,13 @@ void add_force_creators(state_t *state) {
       create_collision(state->scene, state->user, body, 
                       (collision_handler_t)sticky_collision, state, ELASTICITY);
       break;
-    case GHOST:
+    case SPIKE1:
+    case SPIKE2:
+    case SPIKE3:
       create_collision(state->scene, state->user, body,
-                      (collision_handler_t)damaging_collision, state, 
-                      GHOST_ELASTICITY);
+                      (collision_handler_t)spike_collision, state, 
+                      SPIKE_ELASTICITY);
+      break;
     default:
       break;
     }
@@ -1119,6 +1187,7 @@ state_t *emscripten_init() {
   spawn_gas(state);
   create_portal(state);
   create_island(state);
+  create_spikes(state);
 
   // Initialize buttons and in-game text
   SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, 
@@ -1237,6 +1306,7 @@ void emscripten_free(state_t *state) {
   Mix_FreeMusic(state->music);
   scene_free(state->scene);
   list_free(state->body_assets);
+  list_free(state->spikes);
   body_free(state->user);
   asset_cache_destroy();
   free(state);
