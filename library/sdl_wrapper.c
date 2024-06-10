@@ -116,7 +116,7 @@ void sdl_init(vector_t min, vector_t max) {
   SDL_Init(SDL_INIT_EVERYTHING);
   window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT,
-                            SDL_WINDOW_RESIZABLE);
+                            SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
   TTF_Init();
   if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
@@ -251,21 +251,6 @@ TTF_Font *sdl_load_font(const char *font_path, int8_t font_size) {
 }
 
 void sdl_show(double vector_offset) {
-  // Draw boundary lines
-  vector_t window_center = get_window_center();
-  vector_t max = vec_add(center, max_diff),
-           min = vec_subtract(center, max_diff);
-  vector_t max_pixel = get_window_position(max, window_center, vector_offset),
-           min_pixel = get_window_position(min, window_center, vector_offset);
-  SDL_Rect *boundary = malloc(sizeof(*boundary));
-  boundary->x = min_pixel.x;
-  boundary->y = max_pixel.y;
-  boundary->w = max_pixel.x - min_pixel.x;
-  boundary->h = min_pixel.y - max_pixel.y;
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  SDL_RenderDrawRect(renderer, boundary);
-  free(boundary);
-
   SDL_RenderPresent(renderer);
 }
 

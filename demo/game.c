@@ -117,7 +117,8 @@ const double PLATFORM_SCALING = 5;
 const double PLATFORM_HEIGHT = 250;
 const vector_t PLATFORM_LENGTH = {0, 15};
 const vector_t PLATFORM_WIDTH = {110, 0};
-const double PLATFORM_FRICTION = .85;
+const vector_t WALL_FRICTION_FORCE = {0, -500};
+const double PLATFORM_FRICTION = .88;
 const size_t PLATFORM_LEVEL = 0;
 const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
@@ -126,7 +127,7 @@ const size_t WALL_TYPES = 2;
 
 // Health Bar Location
 const vector_t HEALTH_BAR_MIN = {15, 15};
-const vector_t HEALTH_BAR_MAX = {90, 30};
+const vector_t HEALTH_BAR_MAX = {105, 30};
 SDL_Rect HEALTH_BAR_BOX = {.x = HEALTH_BAR_MIN.x, .y = HEALTH_BAR_MIN.y, 
                            .w = HEALTH_BAR_MAX.x, .h = HEALTH_BAR_MAX.y};
 
@@ -173,7 +174,7 @@ const vector_t PAUSE_BUTTON_OFFSETS = {45, 40};
 
 // Messages
 const char* WELCOME_MESSAGE = "Welcome to Tower Climber! In this game you are going to have to help the ninja jump to the top of the tower, where the "
-                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts and poisonous clouds in the way above, and a strange quicksand island below "
+                              "mysterious path to the REALM OF EVIL awaits. The Evil King has left ghosts, poisonous clouds, and explosive spikes in the way above, and a strange quicksand island below "
                               "in an attempt to stop your ascent, but I doubt they'll stop you for long. Still, that doesn't mean it will be easy, so here is a refresher on how "
                               "to climb:\n\n"
 
@@ -928,11 +929,13 @@ void check_jump(state_t *state) {
 */
 void check_gravity_and_friction(state_t *state) {
   check_jump(state);
+  vector_t v1 = body_get_velocity(state->user);
 
-  // add horizontal friction if the user is on the platform
   if (get_type(state->collided_obj) == PLATFORM) {
-    vector_t v1 = body_get_velocity(state->user);
     body_set_velocity(state->user, (vector_t) {v1.x * PLATFORM_FRICTION, 0});
+  } else if (get_type(state->collided_obj) == LEFT_WALL || 
+             get_type(state->collided_obj) == RIGHT_WALL) {
+      body_add_force(state->user, WALL_FRICTION_FORCE);
   }
 }
 
@@ -1324,7 +1327,7 @@ bool emscripten_main(state_t *state) {
   if (state->user_health == 0) {
     state->game_state = GAME_OVER;
   }
-  
+
   return false;
 }
 
