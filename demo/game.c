@@ -191,6 +191,7 @@ const vector_t GRAVITY = {0, -1000};
 const size_t BODY_ASSETS = 3;
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
+const size_t ONE_HEART = 1;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
               HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND,
@@ -352,7 +353,7 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x + GAS_RADIUS * pow((-1), position + 1)
              + GAP_DISTANCE * (1 - position);
-    center_body = (vector_t){x, y}; //first GAS coorder: (700, 800)
+    center_body = (vector_t){x, y};
   } else if (*info == PORTAL){
     radius = PORTAL_RADIUS;
     double y = WALL_LENGTH.y * NUM_LEVELS + PORTAL_OFFSET;
@@ -722,7 +723,7 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
                 double force_const){
   state_t *state = aux;
   if (state->user_immunity > IMMUNITY){
-    if (state->user_health >= 1){
+    if (state->user_health >= ONE_HEART){
       state->user_health --;
       sdl_play_sound(get_sound(state, GHOST_IMPACT));
     }
@@ -901,6 +902,7 @@ void add_force_creators(state_t *state) {
  */
 void start_button_handler(state_t *state) {
   state->game_state = GAME_RUNNING;
+  state->restart_buffer = 0;
 }
 
 /**
@@ -1220,7 +1222,6 @@ bool emscripten_main(state_t *state) {
   if (state->user_health == 0) {
     state->game_state = GAME_OVER;
   }
-
   return false;
 }
 
