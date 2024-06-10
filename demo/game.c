@@ -733,24 +733,7 @@ void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
   }
 }
 
-/**
- * Creates a spikes and adds to state
- * @param state the current state of the demo
-*/
-void create_spikes(state_t *state) {
-  for (size_t i = 0; i < NUM_SPIKES; i++){
-    list_t *points = make_circle(VEC_ZERO, make_type_info(SPIKE1_ENUM + i), i);
-    body_t *spike = body_init_with_info(points, SPIKE_MASS, USER_COLOR, 
-                                          make_type_info(SPIKE1_ENUM + i), NULL);
-    asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, 
-                                                      state->vertical_offset);
-    list_add(state->spikes, spike_asset);
-    create_collision(state->scene, state->user, spike,
-                      (collision_handler_t)spike_collision, state, 
-                      SPIKE_ELASTICITY);
-    scene_add_body(state->scene, spike);
-  }
-}
+
 
 /**
  * Check whether two bodies are colliding and applies a 
@@ -789,6 +772,25 @@ void spike_collision(body_t *user, body_t *spike, vector_t axis, void *aux,
     }
   body_remove(spike);
   state->user_immunity = 0;
+}
+
+/**
+ * Creates a spikes and adds to state
+ * @param state the current state of the demo
+*/
+void create_spikes(state_t *state) {
+  for (size_t i = 0; i < NUM_SPIKES; i++){
+    list_t *points = make_circle(VEC_ZERO, make_type_info(SPIKE1_ENUM + i), i);
+    body_t *spike = body_init_with_info(points, SPIKE_MASS, USER_COLOR, 
+                                          make_type_info(SPIKE1_ENUM + i), NULL);
+    asset_t *spike_asset = asset_make_image_with_body(SPIKE_PATH, spike, 
+                                                      state->vertical_offset);
+    list_add(state->spikes, spike_asset);
+    create_collision(state->scene, state->user, spike,
+                      (collision_handler_t)spike_collision, state, 
+                      SPIKE_ELASTICITY);
+    scene_add_body(state->scene, spike);
+  }
 }
 
 /**
