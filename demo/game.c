@@ -39,7 +39,6 @@ const char *GHOST_PATH = "assets/ghost.png";
 const char *GAS_PATH = "assets/obstacle.png";
 const char *PORTAL_PATH = "assets/portal.png";
 const char *ISLAND_PATH = "assets/island.png";
-
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
 const char *GAS_IMPACT_PATH = "assets/gas_impact.wav";
@@ -58,7 +57,7 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
-const size_t WALL_BUFFER = 50;
+const size_t WALL_BUFFER = 40; // how many pixels away from wall can user move horizontally
 const size_t FULL_HEALTH = 3;
 const size_t ZERO_SEED;
 
@@ -82,7 +81,7 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 const double RESTART_BUFFER = 5;
 
-// Obstacle Constants
+// Gas Obstacle Constants
 const double GAS_RADIUS = 250;
 const vector_t GAS_MIN = {150, 500};
 const vector_t GAS_MAX = {600, 0};
@@ -635,7 +634,7 @@ void create_portal(state_t *state) {
  * portal and body
  *
  * @param state state object representing the current demo state
- * @param body1 a pointer to the body of the user
+ * @param user a pointer to the body of the user
  * @param portal a pointer to the body of the portal
  */
 void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
@@ -974,13 +973,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
     switch (key) {
       case LEFT_ARROW: {
-        if (get_type(state->collided_obj) != LEFT_WALL && cur_pos.x > WALL_WIDTH.x + WALL_BUFFER) {
+        if (cur_pos.x > WALL_WIDTH.x + WALL_BUFFER) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
       }
       case RIGHT_ARROW: {
-        if (get_type(state->collided_obj) != RIGHT_WALL && cur_pos.x < MAX.x - WALL_WIDTH.x - WALL_BUFFER) {
+        if (cur_pos.x < MAX.x - WALL_WIDTH.x - WALL_BUFFER) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
