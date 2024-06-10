@@ -1227,6 +1227,7 @@ bool emscripten_main(state_t *state) {
   if (state->user_health == 0) {
     state->game_state = GAME_OVER;
   }
+  
   return false;
 }
 
