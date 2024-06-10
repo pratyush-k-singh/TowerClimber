@@ -39,7 +39,6 @@ const char *GHOST_PATH = "assets/ghost.png";
 const char *GAS_PATH = "assets/obstacle.png";
 const char *PORTAL_PATH = "assets/portal.png";
 const char *ISLAND_PATH = "assets/island.png";
-
 const char *GHOST_HIT_PATH = "assets/ghost_hit.wav";
 const char *WIND_PATH = "assets/wind.wav";
 const char *GAS_IMPACT_PATH = "assets/gas_impact.wav";
@@ -58,6 +57,7 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
+const size_t WALL_BUFFER = 40; // how many pixels away from wall can user move horizontally
 const size_t FULL_HEALTH = 3;
 const size_t ZERO_SEED;
 
@@ -81,7 +81,7 @@ const vector_t RAND_VELOCITY = {80, 80};
 const size_t IMMUNITY = 3;
 const double RESTART_BUFFER = 5;
 
-// Obstacle Constants
+// Gas Obstacle Constants
 const double GAS_RADIUS = 250;
 const vector_t GAS_MIN = {150, 500};
 const vector_t GAS_MAX = {600, 0};
@@ -121,6 +121,7 @@ const size_t PLATFORM_LEVEL = 0;
 const size_t NUM_PLATFORMS = 5;
 const double GAP_DISTANCE = 800;
 const size_t MIDDLE = 1;
+const size_t WALL_TYPES = 2;
 
 // Health Bar Location
 const vector_t HEALTH_BAR_MIN = {15, 15};
@@ -150,6 +151,7 @@ const size_t STEREO = 2;
 const size_t AUDIO_BUFFER = 2048;
 const size_t DEFAULT_CHANNEL = -1;
 const size_t LOOPS = 20;
+const size_t MUSIC_VOLUME = 50;
 
 // Button and Title Constants
 const vector_t TITLE_OFFSETS = {0, 75};
@@ -189,11 +191,17 @@ const vector_t GRAVITY = {0, -1000};
 const size_t BODY_ASSETS = 3;
 const double BACKGROUND_CORNER = 150;
 const double VERTICAL_OFFSET = 100;
+const size_t ONE_HEART = 1;
 
 typedef enum { USER, LEFT_WALL, RIGHT_WALL, PLATFORM, JUMP_POWER, 
-              HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND, NONE } body_type_t;
-typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, GAME_OVER, GAME_VICTORY } game_state_t;
-typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
+              HEALTH_POWER, GHOST, GAS, PORTAL, QUICKSAND_ISLAND,
+              NONE } body_type_t;
+
+typedef enum { GAME_START, GAME_RUNNING, GAME_PAUSED, 
+              GAME_OVER, GAME_VICTORY } game_state_t;
+
+typedef enum { GHOST_IMPACT, WIND, GAS_IMPACT, 
+              PLATFORM_IMPACT, WALL_IMPACT } sound_type_t;
 
 typedef struct sound {
   Mix_Chunk *player;
@@ -233,20 +241,35 @@ struct state {
   asset_t *reset_button;
   game_state_t game_state;
 
-  bool state_based_message_tracker;
-  bool distance_based_message_tracker_halfpoint;
-  bool distance_based_message_tracker_portal;
+  bool state_msg_tracker;
+  bool distance_halfpoint;
+  bool distance_portal;
 
   list_t *sounds;
   Mix_Music *music;
   double colliding_buffer;
 };
 
+
+/**
+ * Frees all the memory allocated by a sound
+ * sound_t struct
+ * 
+ * @param sound the pointer to the sound type
+*/
 void sound_free(sound_t *sound){
   Mix_FreeChunk(sound->player);
+  free(sound->info);
   free(sound);
 }
 
+/**
+ * Initializes all of the sound paths and 
+ * stores them inside of the list sounds field
+ * in the state
+ * 
+ * @param state the pointer to the state
+*/
 void sound_init(state_t *state){
   list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
   const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, GAS_IMPACT_PATH, 
@@ -254,6 +277,8 @@ void sound_init(state_t *state){
   for (size_t i = 0; i < SOUND_SIZE; i++){
     sound_t *sound = malloc(sizeof(sound_t));
     sound_type_t *info = malloc(sizeof(sound_type_t));
+    assert(sound);
+    assert(info);
     *info = i;
     sound->info = info;
     sound->player = sdl_load_sound(paths[i]);
@@ -262,6 +287,13 @@ void sound_init(state_t *state){
   state->sounds = sounds;
 }
 
+/**
+ * Gets the actual sound file from the state from
+ * the type passed in
+ * 
+ * @param state the pointer to the state
+ * @param sound_type the type of sound to be played
+*/
 Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
   list_t* sounds = state->sounds;
   for (size_t i = 0; i < SOUND_SIZE; i++){
@@ -272,7 +304,6 @@ Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
   }
   return NULL;
 }
-
 
 /**
  * Get body_type_t type of body
@@ -288,34 +319,39 @@ body_type_t get_type(body_t *body) {
 }
 
 /**
- * Covert body type into pointer
+ * Convert body type into pointer
  * 
  * @param type body_type_t to be converted
  * @return body_type_t* pointer to type
 */
 body_type_t *make_type_info(body_type_t type) {
   body_type_t *info = malloc(sizeof(body_type_t));
+  assert(info);
   *info = type;
   return info;
 }
 
-
 /**
- * Creates user shape.
+ * Creates a circle shape
+ * @param ceneter the coordinates of the center of the circle
+ * @param info a pointer to the type of the body
+ * @param idx index of the body to be made. If multiple bodies 
+ * are created in a loop, then the index distinguishes the coordinates
+ * of the different bodies
  * 
  * @return list_t containing the points of the shape
 */
-list_t *make_circle(vector_t center, void *info, size_t idx) {
+list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
   double radius = RADIUS;
   vector_t center_body = center;
-  if (*(body_type_t *)info == GAS){
+  if (*info == GAS){
     radius = GAS_RADIUS;
     double y = (WALL_LENGTH.y/2) * (idx+1) - GAS_OFFSET;
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x + GAS_RADIUS * pow((-1), position + 1)
              + GAP_DISTANCE * (1 - position);
-    center_body = (vector_t){x, y}; //first GAS coorder: (700, 800)
-  } else if (*(body_type_t *)info == PORTAL){
+    center_body = (vector_t){x, y};
+  } else if (*info == PORTAL){
     radius = PORTAL_RADIUS;
     double y = WALL_LENGTH.y * NUM_LEVELS + PORTAL_OFFSET;
     double x = GAP_DISTANCE / 2 + WALL_WIDTH.x;
@@ -334,12 +370,15 @@ list_t *make_circle(vector_t center, void *info, size_t idx) {
 }
 
 /**
- * Generates the list of points for a Wall shape given the vector of the bottom left
+ * Generates the list of points for a Wall shape
+ * given the vector of the bottom left
  * corner
  *
- * @param corner a vector that contains the coordinates of the bottom left corner of
+ * @param corner a vector that contains the coordinates 
+ * of the bottom left corner of
  * the wall
- * @param points an empty list to add the points to, the points are pointers to vectors
+ * @param points an empty list to add the points to, 
+ * the points are pointers to vectors
  */
 void make_rectangle_points(vector_t corner, list_t *points, body_type_t *info){
   vector_t gap = {MAX.x, 0};
@@ -356,9 +395,9 @@ void make_rectangle_points(vector_t corner, list_t *points, body_type_t *info){
     temp[2] = vec_negate(WALL_LENGTH);
   }
   vector_t *v_1 = malloc(sizeof(*v_1));
+  assert(v_1);
   *v_1 = corner;
   list_add(points, v_1);
-  assert(v_1);
   for (size_t i = 0; i < WALL_POINTS-1; i++){
     vector_t *v = malloc(sizeof(*v));
     *v = vec_add(*(vector_t*)list_get(points, i), temp[i]);
@@ -372,6 +411,7 @@ void make_rectangle_points(vector_t corner, list_t *points, body_type_t *info){
  * Initializes a single wall or platform given the info about the body
  * 
  * @param wall_info the object type of the body
+ * @param level the level at which to play the object
 */
 list_t *make_rectangle(body_type_t *wall_info, size_t level) {
   vector_t corner = VEC_ZERO;
@@ -400,11 +440,13 @@ list_t *make_rectangle(body_type_t *wall_info, size_t level) {
 }
 
 /**
- * Generates the list of points for a powerup shape given the size of the powerup and
+ * Generates the list of points for a powerup shape
+ * given the size of the powerup and
  * the relative location in the vertical direction.
  *
  * @param length corresponds to the length/width of the generated powerup
- * @param power_up_y_loc the relative location of the powerup in the y direction
+ * @param power_up_y_loc the relative location of the 
+ * powerup in the y direction
  * @return list_t containing points of the powerup
 */
 list_t *make_power_up_shape(double length, double power_up_y_loc) {
@@ -427,6 +469,10 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
   return c;
 }
 
+/**
+ * Initializes the user at the beginning of the game
+ * @param state pointer to the current state of the game
+ */
 void create_user(state_t *state) {
   vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
                     MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
@@ -446,22 +492,24 @@ void create_user(state_t *state) {
  * 
 */
 void create_walls_and_platforms(state_t *state) {
-  scene_t *scene = state -> scene;
+  scene_t *scene = state->scene;
+  body_type_t *info = NULL;
   for (size_t i = 0; i < NUM_LEVELS; i++){
-    list_t *left_points = make_rectangle(make_type_info(LEFT_WALL), i);
-    list_t *right_points = make_rectangle(make_type_info(RIGHT_WALL), i);
-    body_t *left_wall = body_init_with_info(left_points, WALL_MASS, 
-                                            USER_COLOR, make_type_info(LEFT_WALL), 
-                                            NULL);
-    body_t *right_wall = body_init_with_info(right_points, WALL_MASS, 
-                                            USER_COLOR, make_type_info(RIGHT_WALL), 
-                                            NULL);
-    scene_add_body(scene, left_wall);
-    scene_add_body(scene, right_wall);
-    asset_t *wall_asset_l = asset_make_image_with_body(WALL_PATH, left_wall, VERTICAL_OFFSET);
-    asset_t *wall_asset_r = asset_make_image_with_body(WALL_PATH, right_wall, VERTICAL_OFFSET);
-    list_add(state->body_assets, wall_asset_l);
-    list_add(state->body_assets, wall_asset_r);
+    for (size_t j = 0; j < WALL_TYPES; j++){
+      if (j == 0){
+        info = make_type_info(LEFT_WALL);
+      } else {
+        info = make_type_info(RIGHT_WALL);
+      }
+      list_t *points = make_rectangle(info, i);
+      body_t *wall = body_init_with_info(points, WALL_MASS, 
+                                              USER_COLOR, info, 
+                                              NULL);
+      scene_add_body(scene, wall);
+      asset_t *wall_asset = asset_make_image_with_body(WALL_PATH, wall, 
+                                                      VERTICAL_OFFSET);
+      list_add(state->body_assets, wall_asset);
+    }
   }
 
   for (size_t i = 0; i < NUM_PLATFORMS; i++){
@@ -470,7 +518,9 @@ void create_walls_and_platforms(state_t *state) {
                                               USER_COLOR, make_type_info(PLATFORM), 
                                               NULL);
     scene_add_body(scene, platform);
-    asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
+    asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, 
+                                                              platform, 
+                                                              VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_platform);
     state->collided_obj = platform; // inital start location
   }
@@ -486,11 +536,9 @@ void create_walls_and_platforms(state_t *state) {
  * @param aux information about the state of the collision
  * @param force_const the force constant to be applied to the collision
  */
-void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const) {
+void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, 
+                              void *aux, double force_const) {
   state_t *state = aux;
-
-  // add to health only if health is not full
   if (state->user_health < FULL_HEALTH) {
       body_remove(body2);
       list_remove(state->body_assets, state->health_powerup_index);
@@ -513,8 +561,8 @@ void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void 
  * @param aux information about the state of the collision
  * @param force_const the force constant to be applied to the collision
  */
-void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const) {
+void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, 
+                            void *aux, double force_const) {
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->jump_powerup_index);
@@ -535,14 +583,16 @@ void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *a
 void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
-                                       make_type_info(JUMP_POWER), NULL);
-  asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
+                                        make_type_info(JUMP_POWER), NULL);
+  asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, 
+                                                      powerup, 
+                                                      state->vertical_offset);
   state->jump_powerup_index = list_size(state->body_assets);
   state->jump_powerup_jumps = 0;
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
   create_collision(state->scene, state->user, powerup,
-                       (collision_handler_t)jump_powerup_collision, 
+                  (collision_handler_t)jump_powerup_collision, 
                         state, POWERUP_ELASTICITY);
 }
 
@@ -554,7 +604,9 @@ void create_health_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, HEALTH_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                         make_type_info(HEALTH_POWER), NULL);
-  asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, powerup, state->vertical_offset);
+  asset_t *powerup_asset = asset_make_image_with_body(HEALTH_POWERUP_PATH, 
+                                                      powerup, 
+                                                      state->vertical_offset);
   state->health_powerup_index = list_size(state->body_assets);
   list_add(state->body_assets, powerup_asset);
   scene_add_body(state->scene, powerup);
@@ -571,23 +623,10 @@ void create_portal(state_t *state) {
   list_t *points = make_circle(VEC_ZERO, make_type_info(PORTAL), ZERO_SEED);
   body_t *portal = body_init_with_info(points, PORTAL_MASS, USER_COLOR, 
                                         make_type_info(PORTAL), NULL);
-  asset_t *portal_asset = asset_make_image_with_body(PORTAL_PATH, portal, state->vertical_offset);
+  asset_t *portal_asset = asset_make_image_with_body(PORTAL_PATH, portal, 
+                                                    state->vertical_offset);
   list_add(state->body_assets, portal_asset);
   scene_add_body(state->scene, portal);
-}
-
-/**
- * Check whether two bodies are colliding and applies a collision between
- * portal and body
- *
- * @param state state object representing the current demo state
- * @param body1 the user
- * @param body2 the portal
- */
-void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
-                double force_const){
-  state_t *state = aux;
-  state->game_state = GAME_VICTORY;
 }
 
 /**
@@ -598,12 +637,11 @@ void create_island(state_t *state) {
   list_t *points = make_rectangle(make_type_info(QUICKSAND_ISLAND), ISLAND_LEVEL);
   body_t *island = body_init_with_info(points, ISLAND_MASS, USER_COLOR, 
                                         make_type_info(QUICKSAND_ISLAND), NULL);
-  asset_t *island_asset = asset_make_image_with_body(ISLAND_PATH, island, state->vertical_offset);
+  asset_t *island_asset = asset_make_image_with_body(ISLAND_PATH, island, 
+                                                    state->vertical_offset);
   list_add(state->body_assets, island_asset);
   scene_add_body(state->scene, island);
 }
-
-
 
 /**
  * Called whenever the user health changes so that the health bar asset can be updated
@@ -625,8 +663,8 @@ void update_health_bar(state_t *state) {
 }
 
 /**
- * Check whether two bodies are colliding and applies a sticky collision between them
- * and to be called every tick
+ * Check whether two bodies are colliding and 
+ * applies a sticky collision between them
  *
  * @param body1 the user
  * @param body2 the body with which the user is colliding
@@ -651,62 +689,83 @@ void sticky_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
 
 
 /**
- * Check whether two bodies are colliding and applies a sticky collision between them
- * and to be called every tick
+ * Check whether two bodies are colliding and applies a 
+ * damaging collision between them
  *
  * @param state state object representing the current demo state
  * @param body1 the user
  * @param body2 the body with which the user is colliding
+ * @param aux information about the state of the collision
+ * @param force_const the force constant to be applied to the collision
  */
 void damaging_collision(body_t *user, body_t *body, vector_t axis, void *aux,
                 double force_const){
   state_t *state = aux;
-  if (state -> user_immunity > IMMUNITY){
-    if (state -> user_health >= 1){
-      state -> user_health --;
+  if (state->user_immunity > IMMUNITY){
+    if (state->user_health >= ONE_HEART){
+      state->user_health --;
       sdl_play_sound(get_sound(state, GHOST_IMPACT));
     }
-    state -> user_immunity = 0;
+    state->user_immunity = 0;
   }
 }
 
+/**
+ * Check whether two bodies are colliding and applies a collision between
+ * portal and body
+ *
+ * @param state state object representing the current demo state
+ * @param user a pointer to the body of the user
+ * @param portal a pointer to the body of the portal
+ */
+void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
+                double force_const){
+  state_t *state = aux;
+  state->game_state = GAME_VICTORY;
+}
 
 /**
  * Spawns a ghost on the screen at fixed y value and at a random x value
  * that is within the bounds of the window
- * 
+ * @param state pointer to the current demo state
  */
 void spawn_ghost(state_t *state) {
-  vector_t max = {MAX.x, 0};
+  vector_t max = {MAX.x, VEC_ZERO.y};
   double x = rand_vec(VEC_ZERO, max, ZERO_SEED).x;
   vector_t ghost_center = {x, Y_OFFSET_GHOST};
   list_t *c = make_circle(ghost_center, make_type_info(GHOST), ZERO_SEED);
   body_t *ghost = body_init_with_info(c, GHOST_MASS, GHOST_COLOUR, 
                                       make_type_info(GHOST), NULL);
-  scene_add_body(state -> scene, ghost);
-  asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, VERTICAL_OFFSET);
+  scene_add_body(state->scene, ghost);
+  asset_t *ghost_asset = asset_make_image_with_body(GHOST_PATH, ghost, 
+                                                    VERTICAL_OFFSET);
   create_collision(state->scene, state->user, ghost,
-                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
+                  (collision_handler_t)damaging_collision, 
+                  state, GHOST_ELASTICITY);
   list_add(state->body_assets, ghost_asset);
-  state -> ghost_counter++;
-  state -> ghost_timer = 0;
+  state->ghost_counter++;
+  state->ghost_timer = 0;
 }
 
 /**
  * Spawns a ghost on the screen at fixed y value and at a random x value
  * that is within the bounds of the window
+ * @param state pointer to the current state of the game
  */
 void ghost_move(state_t *state){
   scene_t *scene = state->scene;
   size_t num_bodies = scene_bodies(scene);
   for (size_t i = 0; i < num_bodies; i++){
     body_t *body = scene_get_body(scene, i);
-    if (get_type(body) == GHOST && (state->velocity_timer > VELOCITY_BUFFER)){
+    if (get_type(body) == GHOST && 
+    (state->velocity_timer > VELOCITY_BUFFER)){
       vector_t user_center = body_get_centroid(state->user);
       vector_t ghost_center = body_get_centroid(body);
-      vector_t direction = vec_unit(vec_add(user_center, vec_negate(ghost_center)));
+      vector_t direction = vec_unit(vec_add(user_center, 
+                                    vec_negate(ghost_center)));
       vector_t velocity = vec_multiply(GHOST_SPEED, direction);
-      vector_t rand_add = rand_vec(vec_negate(RAND_VELOCITY), RAND_VELOCITY, i);
+      vector_t rand_add = rand_vec(vec_negate(RAND_VELOCITY), 
+                                  RAND_VELOCITY, i);
       vector_t rand_velocity = vec_add(velocity, rand_add);
       body_set_velocity(body, rand_velocity);
       if (i == num_bodies - 1){
@@ -718,7 +777,7 @@ void ghost_move(state_t *state){
 
 
 /**
- * Spawns GASs on the screen at random y value and at a random x value
+ * Spawns toxic gas on the screen at fixed positions
  * that is within the bounds wall height and the space in between
  */
 void spawn_gas(state_t *state) {
@@ -726,9 +785,26 @@ void spawn_gas(state_t *state) {
     list_t *c = make_circle(VEC_ZERO, make_type_info(GAS), i);
     body_t *gas = body_init_with_info(c, GAS_MASS, GHOST_COLOUR, 
                                         make_type_info(GAS), NULL);
-    scene_add_body(state -> scene, gas);
-    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, gas, VERTICAL_OFFSET);
+    scene_add_body(state->scene, gas);
+    asset_t *gas_asset = asset_make_image_with_body(GAS_PATH, gas, 
+                                                    VERTICAL_OFFSET);
     list_add(state->body_assets, gas_asset);
+  }
+}
+
+/** 
+ * spawn and move ghosts during the game
+ * 
+ * @param state the current demo of the state
+*/
+void spawn_and_move_ghosts(state_t *state) {
+  if (state->ghost_timer > SPAWN_TIMER && 
+      state->ghost_counter <= GHOST_NUM){
+    spawn_ghost(state);
+  }
+
+  if (state->restart_buffer > RESTART_BUFFER){
+    ghost_move(state);
   }
 }
 
@@ -742,15 +818,9 @@ void check_jump(state_t *state) {
   if (state->jumping) {
     state->collided_obj = NULL;
     body_add_force(state->user, GRAVITY);
-  } 
-
-  // removes gravity if user is not in the air
-  else {
+  } else {
     body_reset(state->user);
-
     bool is_collided = false;
-
-    // check if the user is still collided
     for (size_t i = 0; i < scene_bodies(state->scene); i++) {
       body_t *body = scene_get_body(state->scene, i);
       if (find_collision(state->user, body).collided) {
@@ -758,7 +828,6 @@ void check_jump(state_t *state) {
         break;
       }
     }
-    
     // determines whether the user has fallen and can no longer jump
     if (is_collided == false) {
       double user_xpos = body_get_centroid(state->user).x;
@@ -786,51 +855,18 @@ void check_gravity_and_friction(state_t *state) {
 }
 
 /**
- * Adds collision handler force creators between appropriate bodies.
- *
- * @param state the current state of the demo
+ * Handler for the start button
+ * @param state pointer to the current state
  */
-void add_force_creators(state_t *state) { 
-  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
-    body_t *body = scene_get_body(state->scene, i);
-    switch (get_type(body)) {
-    case LEFT_WALL:
-      create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case RIGHT_WALL:
-      create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case PLATFORM:
-      create_collision(state->scene, state->user, body,
-                       (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case GAS:
-      create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
-      break;
-    case PORTAL:
-      create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)portal_collision, state, ELASTICITY);
-      break;
-    case QUICKSAND_ISLAND:
-      create_collision(state->scene, state->user, body, 
-                      (collision_handler_t)sticky_collision, state, ELASTICITY);
-      break;
-    case GHOST:
-      create_collision(state->scene, state->user, body,
-                      (collision_handler_t)damaging_collision, state, GHOST_ELASTICITY);
-    default:
-      break;
-    }
-  }
-}
-
 void start_button_handler(state_t *state) {
   state->game_state = GAME_RUNNING;
+  state->restart_buffer = 0;
 }
 
+/**
+ * Handler for the pause button
+ * @param state pointer to the current state
+ */
 void pause_button_handler(state_t *state) {
   if (state->game_state == GAME_RUNNING) {
     state->game_state = GAME_PAUSED;
@@ -839,10 +875,15 @@ void pause_button_handler(state_t *state) {
   }
 }
 
+/**
+ * Handler for the restart button
+ * @param state pointer to the current state
+ */
 void reset_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
   state->restart_buffer = 0;
+  state->distance_halfpoint = false;
 
   bool contains_jump = false;
   bool contains_health = false;
@@ -892,6 +933,7 @@ void reset_button_handler(state_t *state) {
 void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   body_t *user = state->user;
   vector_t cur_v = body_get_velocity(user);
+  vector_t cur_pos = body_get_centroid(user);
   double new_vx = cur_v.x;
   double new_vy = cur_v.y;
 
@@ -899,13 +941,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
     switch (key) {
       case LEFT_ARROW: {
-        if (get_type(state->collided_obj) != LEFT_WALL) {
+        if (cur_pos.x > WALL_WIDTH.x + WALL_BUFFER) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
       }
       case RIGHT_ARROW: {
-        if (get_type(state->collided_obj) != RIGHT_WALL) {
+        if (cur_pos.x < MAX.x - WALL_WIDTH.x - WALL_BUFFER) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
@@ -928,9 +970,55 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
 }
 
 /**
+ * Adds collision handler force creators between appropriate bodies.
+ *
+ * @param state the current state of the demo
+ */
+void add_force_creators(state_t *state) { 
+  for (size_t i = 0; i < scene_bodies(state->scene); i++) {
+    body_t *body = scene_get_body(state->scene, i);
+    switch (get_type(body)) {
+    case LEFT_WALL:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
+      break;
+    case RIGHT_WALL:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
+      break;
+    case PLATFORM:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)sticky_collision, 
+                      state, ELASTICITY);
+      break;
+    case GAS:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)damaging_collision, 
+                      state, ELASTICITY);
+      break;
+    case PORTAL:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)portal_collision, state, ELASTICITY);
+      break;
+    case QUICKSAND_ISLAND:
+      create_collision(state->scene, state->user, body, 
+                      (collision_handler_t)sticky_collision, state, ELASTICITY);
+      break;
+    case GHOST:
+      create_collision(state->scene, state->user, body,
+                      (collision_handler_t)damaging_collision, state, 
+                      GHOST_ELASTICITY);
+    default:
+      break;
+    }
+  }
+}
+
+/**
  * Updates all the buffers in the main loop
  * 
  * @param dt the time between each tick
+ * @param state the current demo state
  */
 void update_buffers(state_t *state, double dt){
   state->ghost_timer += dt;
@@ -938,6 +1026,47 @@ void update_buffers(state_t *state, double dt){
   state->user_immunity += dt;
   state->colliding_buffer += dt;
   state->restart_buffer += dt;
+}
+
+/**
+ * prints out storyline for game based on game_state
+ * 
+ * @param state the current demo state
+*/
+void print_story(state_t *state) {
+  if (state->game_state == GAME_START && 
+      state->state_msg_tracker == false) {
+    printf("%s", WELCOME_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_OVER && 
+             state->state_msg_tracker == false) {
+    printf("%s", FAILIURE_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_PAUSED && 
+             state->state_msg_tracker == false) {
+    printf("%s", PAUSE_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_VICTORY && 
+             state->state_msg_tracker == false) {
+    printf("%s", VICTORY_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_RUNNING) {
+    state->state_msg_tracker = false;
+  }
+
+  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && 
+      state->distance_halfpoint == false && 
+      state->game_state == GAME_RUNNING && 
+      state->restart_buffer >= RESTART_BUFFER) {
+    printf("%s", PORTAL_SENSED_MESSAGE);
+    state->distance_halfpoint = true;
+  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE &&
+             state->distance_portal == false && 
+             state->game_state == GAME_RUNNING &&
+             state->restart_buffer >= RESTART_BUFFER) {
+    printf("%s", PORTAL_SEEN_MESSAGE);
+    state->distance_portal = true;
+  }
 }
 
 state_t *emscripten_init() {
@@ -959,18 +1088,24 @@ state_t *emscripten_init() {
   state->music = Mix_LoadMUS(MUSIC_PATH);
   
   // Initialize backgrounds
-  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, .w = MAX.x, .h = MAX.y};
-  state->background_asset = asset_make_image(BACKGROUND_PATH, background_box);
-  SDL_Rect victory_background_box = {.x = MIN.x, .y = MIN.y / 2, .w = MAX.x, .h = MAX.y / 2};
-  state->victory_background = asset_make_image(VICTORY_BACKGROUND_PATH, victory_background_box);
+  SDL_Rect background_box = {.x = MIN.x, .y = MIN.y, 
+                            .w = MAX.x, .h = MAX.y};
+  state->background_asset = asset_make_image(BACKGROUND_PATH, 
+                                              background_box);
+  SDL_Rect victory_background_box = {.x = MIN.x, .y = MIN.y / 2, 
+                                    .w = MAX.x, .h = MAX.y / 2};
+  state->victory_background = asset_make_image(VICTORY_BACKGROUND_PATH, 
+                                                victory_background_box);
 
   // Initialize health bar
-  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, HEALTH_BAR_BOX);
+  asset_t *health_bar_asset = asset_make_image(FULL_HEALTH_BAR_PATH, 
+                                              HEALTH_BAR_BOX);
   state->health_bar = health_bar_asset;
 
   // Initialize user
   create_user(state);
-  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, state->vertical_offset);
+  asset_t *user_asset = asset_make_image_with_body(USER_PATH, state->user, 
+                                                  state->vertical_offset);
   list_add(state->body_assets, user_asset);
 
   // Intialize walls and platforms
@@ -986,28 +1121,39 @@ state_t *emscripten_init() {
   create_island(state);
 
   // Initialize buttons and in-game text
-  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, .w = 500, .h = 100};
+  SDL_Rect game_title_box = {.x = MAX.x / 2 - 250, .y = TITLE_OFFSETS.y, 
+                            .w = 500, .h = 100};
   state->game_title = asset_make_image(TITLE_PATH, game_title_box);
 
-  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, .w = 400, .h = 200};
+  SDL_Rect victory_text_box = {.x = MAX.x / 2 - 200, .y = TITLE_OFFSETS.y, 
+                              .w = 400, .h = 200};
   state->victory_text = asset_make_image(VICTORY_TEXT_PATH, victory_text_box);
 
-  SDL_Rect button_box = {.x = MAX.x / 2 - 100, .y = BUTTON_OFFSETS.y, .w = 200, .h = 100};
-  state->start_button = asset_make_button(button_box, asset_make_image(START_BUTTON_PATH, button_box), NULL, (button_handler_t)start_button_handler);
+  SDL_Rect button_box = {.x = MAX.x / 2 - 100, .y = BUTTON_OFFSETS.y, 
+                        .w = 200, .h = 100};
+
+  state->start_button = asset_make_button(button_box, 
+                        asset_make_image(START_BUTTON_PATH, button_box),
+                        NULL, (button_handler_t)start_button_handler);
   asset_cache_register_button(state->start_button);
 
-  state->reset_button = asset_make_button(button_box, asset_make_image(RESET_BUTTON_PATH, button_box), NULL, (button_handler_t)reset_button_handler);
+  state->reset_button = asset_make_button(button_box, 
+                        asset_make_image(RESET_BUTTON_PATH, button_box), 
+                        NULL, (button_handler_t)reset_button_handler);
   asset_cache_register_button(state->reset_button);
 
-  SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
-  state->pause_button = asset_make_button(pause_button_box, asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), NULL, (button_handler_t)pause_button_handler);
+  SDL_Rect pause_button_box = {.x = MAX.x - PAUSE_BUTTON_OFFSETS.x, 
+                              .y = PAUSE_BUTTON_OFFSETS.y, .w = 35, .h = 30};
+  state->pause_button = asset_make_button(pause_button_box, 
+                        asset_make_image(PAUSE_BUTTON_PATH, pause_button_box), 
+                        NULL, (button_handler_t)pause_button_handler);
   asset_cache_register_button(state->pause_button);
 
   // Initialize miscellaneous state values
   state->game_state = GAME_START;
-  state->state_based_message_tracker = false;
-  state->distance_based_message_tracker_halfpoint = false;
-  state->distance_based_message_tracker_portal = false;
+  state->state_msg_tracker = false;
+  state->distance_halfpoint = false;
+  state->distance_portal = false;
   state->vertical_offset = 0;
   state->velocity_timer = 0;
   state->ghost_counter = 0;
@@ -1022,29 +1168,7 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && state->state_based_message_tracker == false) {
-    printf("%s", WELCOME_MESSAGE);
-    state->state_based_message_tracker = true;
-  } else if (state->game_state == GAME_OVER && state->state_based_message_tracker == false) {
-    printf("%s", FAILIURE_MESSAGE);
-    state->state_based_message_tracker = true;
-  } else if (state->game_state == GAME_PAUSED && state->state_based_message_tracker == false) {
-    printf("%s", PAUSE_MESSAGE);
-    state->state_based_message_tracker = true;
-  } else if (state->game_state == GAME_VICTORY && state->state_based_message_tracker == false) {
-    printf("%s", VICTORY_MESSAGE);
-    state->state_based_message_tracker = true;
-  } else if (state->game_state == GAME_RUNNING) {
-    state->state_based_message_tracker = false;
-  }
-
-  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && state->distance_based_message_tracker_halfpoint == false && state->game_state == GAME_RUNNING) {
-    printf("%s", PORTAL_SENSED_MESSAGE);
-    state->distance_based_message_tracker_halfpoint = true;
-  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE && state->distance_based_message_tracker_portal == false && state->game_state == GAME_RUNNING) {
-    printf("%s", PORTAL_SEEN_MESSAGE);
-    state->distance_based_message_tracker_portal = true;
-  }
+  print_story(state);
 
   double dt = time_since_last_tick();
   update_buffers(state, dt);
@@ -1064,14 +1188,7 @@ bool emscripten_main(state_t *state) {
   vector_t player_pos = body_get_centroid(user);
   state->vertical_offset = player_pos.y - VERTICAL_OFFSET;
 
-  // spawn and move ghosts
-  if (state->ghost_timer > SPAWN_TIMER && state->ghost_counter <= GHOST_NUM){
-    spawn_ghost(state);
-  }
-
-  if (state->restart_buffer > RESTART_BUFFER){
-    ghost_move(state);
-  }
+  spawn_and_move_ghosts(state);
   
   // Render assets
   asset_render(state->background_asset, state->vertical_offset);
@@ -1093,8 +1210,8 @@ bool emscripten_main(state_t *state) {
   } else if (state->game_state == GAME_OVER) {
     asset_render(state->reset_button, state->vertical_offset);
   } else if (state->game_state == GAME_VICTORY) {
-    state->distance_based_message_tracker_halfpoint = false;
-    state->distance_based_message_tracker_portal = false;
+    state->distance_halfpoint = false;
+    state->distance_portal = false;
     asset_render(state->victory_background, state->vertical_offset);
     asset_render(state->reset_button, state->vertical_offset);
     asset_render(state->victory_text, state->vertical_offset);
@@ -1102,6 +1219,7 @@ bool emscripten_main(state_t *state) {
 
   if (Mix_PlayingMusic() == 0) {
     Mix_PlayMusic(state->music, -1);
+    Mix_VolumeMusic(MUSIC_VOLUME);
   }
 
   sdl_show(state->vertical_offset);
@@ -1109,7 +1227,7 @@ bool emscripten_main(state_t *state) {
   if (state->user_health == 0) {
     state->game_state = GAME_OVER;
   }
-
+  
   return false;
 }
 
