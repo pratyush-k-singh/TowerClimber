@@ -377,7 +377,7 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
     double y = (WALL_LENGTH.y) * (idx+1) - SPIKE_OFFSET;
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x + SPIKE_RADIUS * pow((-1), position + 1)
-             + GAP_DISTANCE * (1 - position);
+              + GAP_DISTANCE ;
     center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
