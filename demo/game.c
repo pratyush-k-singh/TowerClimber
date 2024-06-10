@@ -1015,6 +1015,47 @@ void update_buffers(state_t *state, double dt){
   state->restart_buffer += dt;
 }
 
+/**
+ * prints out storyline for game based on game_state
+ * 
+ * @param state the current demo state
+*/
+void print_story(state_t *state) {
+  if (state->game_state == GAME_START && 
+      state->state_msg_tracker == false) {
+    printf("%s", WELCOME_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_OVER && 
+    state->state_msg_tracker == false) {
+    printf("%s", FAILIURE_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_PAUSED && 
+            state->state_msg_tracker == false) {
+    printf("%s", PAUSE_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_VICTORY && 
+            state->state_msg_tracker == false) {
+    printf("%s", VICTORY_MESSAGE);
+    state->state_msg_tracker = true;
+  } else if (state->game_state == GAME_RUNNING) {
+    state->state_msg_tracker = false;
+  }
+
+  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && 
+      state->distance_halfpoint == false && 
+      state->game_state == GAME_RUNNING && 
+      state->restart_buffer >= RESTART_BUFFER) {
+    printf("%s", PORTAL_SENSED_MESSAGE);
+    state->distance_halfpoint = true;
+  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE &&
+             state->distance_portal == false && 
+             state->game_state == GAME_RUNNING &&
+             state->restart_buffer >= RESTART_BUFFER) {
+    printf("%s", PORTAL_SEEN_MESSAGE);
+    state->distance_portal = true;
+  }
+}
+
 state_t *emscripten_init() {
   sdl_init(MIN, MAX);
   asset_cache_init();
@@ -1114,39 +1155,7 @@ state_t *emscripten_init() {
 }
 
 bool emscripten_main(state_t *state) {
-  if (state->game_state == GAME_START && 
-      state->state_msg_tracker == false) {
-    printf("%s", WELCOME_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_OVER && 
-            state->state_msg_tracker == false) {
-    printf("%s", FAILIURE_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_PAUSED && 
-            state->state_msg_tracker == false) {
-    printf("%s", PAUSE_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_VICTORY && 
-            state->state_msg_tracker == false) {
-    printf("%s", VICTORY_MESSAGE);
-    state->state_msg_tracker = true;
-  } else if (state->game_state == GAME_RUNNING) {
-    state->state_msg_tracker = false;
-  }
-
-  if (state->vertical_offset >= HALFWAY_VERTICAL_DISTANCE && 
-      state->distance_halfpoint == false && 
-      state->game_state == GAME_RUNNING && 
-      state->restart_buffer >= RESTART_BUFFER) {
-    printf("%s", PORTAL_SENSED_MESSAGE);
-    state->distance_halfpoint = true;
-  } else if (state->vertical_offset >= PORTAL_VERTICAL_DISTANCE &&
-            state->distance_portal == false && 
-            state->game_state == GAME_RUNNING &&
-            state->restart_buffer >= RESTART_BUFFER) {
-    printf("%s", PORTAL_SEEN_MESSAGE);
-    state->distance_portal = true;
-  }
+  print_story(state);
 
   double dt = time_since_last_tick();
   update_buffers(state, dt);
