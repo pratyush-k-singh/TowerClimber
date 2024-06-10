@@ -251,12 +251,6 @@ TTF_Font *sdl_load_font(const char *font_path, int8_t font_size) {
 }
 
 void sdl_show(double vector_offset) {
-  vector_t window_center = get_window_center();
-  vector_t max = vec_add(center, max_diff),
-           min = vec_subtract(center, max_diff);
-  vector_t max_pixel = get_window_position(max, window_center, vector_offset),
-           min_pixel = get_window_position(min, window_center, vector_offset);
-
   SDL_RenderPresent(renderer);
 }
 
