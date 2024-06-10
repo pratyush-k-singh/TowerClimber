@@ -251,7 +251,6 @@ TTF_Font *sdl_load_font(const char *font_path, int8_t font_size) {
 }
 
 void sdl_show(double vector_offset) {
-  // Draw boundary lines
   vector_t window_center = get_window_center();
   vector_t max = vec_add(center, max_diff),
            min = vec_subtract(center, max_diff);
@@ -263,7 +262,6 @@ void sdl_show(double vector_offset) {
   boundary->w = max_pixel.x - min_pixel.x;
   boundary->h = min_pixel.y - max_pixel.y;
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  SDL_RenderDrawRect(renderer, boundary);
   free(boundary);
 
   SDL_RenderPresent(renderer);
