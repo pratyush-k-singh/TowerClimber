@@ -249,12 +249,26 @@ struct state {
   double colliding_buffer;
 };
 
+
+/**
+ * Frees all the memory allocated by a sound
+ * sound_t struct
+ * 
+ * @param sound the pointer to the sound type
+*/
 void sound_free(sound_t *sound){
   Mix_FreeChunk(sound->player);
   free(sound->info);
   free(sound);
 }
 
+/**
+ * Initializes all of the sound paths and 
+ * stores them inside of the list sounds field
+ * in the state
+ * 
+ * @param state the pointer to the state
+*/
 void sound_init(state_t *state){
   list_t *sounds = list_init(SOUND_SIZE, (free_func_t) sound_free);
   const char* paths[] = {GHOST_HIT_PATH, WIND_PATH, GAS_IMPACT_PATH, 
@@ -272,6 +286,14 @@ void sound_init(state_t *state){
   state->sounds = sounds;
 }
 
+
+/**
+ * Gets the actual sound file from the state from
+ * the type passed in
+ * 
+ * @param state the pointer to the state
+ * @param sound_type the type of sound to be played
+*/
 Mix_Chunk *get_sound(state_t *state, sound_type_t sound_type){
   list_t* sounds = state->sounds;
   for (size_t i = 0; i < SOUND_SIZE; i++){
@@ -298,7 +320,7 @@ body_type_t get_type(body_t *body) {
 }
 
 /**
- * Covert body type into pointer
+ * Convert body type into pointer
  * 
  * @param type body_type_t to be converted
  * @return body_type_t* pointer to type
@@ -350,12 +372,15 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
 }
 
 /**
- * Generates the list of points for a Wall shape given the vector of the bottom left
+ * Generates the list of points for a Wall shape
+ * given the vector of the bottom left
  * corner
  *
- * @param corner a vector that contains the coordinates of the bottom left corner of
+ * @param corner a vector that contains the coordinates 
+ * of the bottom left corner of
  * the wall
- * @param points an empty list to add the points to, the points are pointers to vectors
+ * @param points an empty list to add the points to, 
+ * the points are pointers to vectors
  */
 void make_rectangle_points(vector_t corner, list_t *points, body_type_t *info){
   vector_t gap = {MAX.x, 0};
@@ -388,6 +413,7 @@ void make_rectangle_points(vector_t corner, list_t *points, body_type_t *info){
  * Initializes a single wall or platform given the info about the body
  * 
  * @param wall_info the object type of the body
+ * @param level the level at which to play the object
 */
 list_t *make_rectangle(body_type_t *wall_info, size_t level) {
   vector_t corner = VEC_ZERO;
@@ -416,11 +442,13 @@ list_t *make_rectangle(body_type_t *wall_info, size_t level) {
 }
 
 /**
- * Generates the list of points for a powerup shape given the size of the powerup and
+ * Generates the list of points for a powerup shape
+ * given the size of the powerup and
  * the relative location in the vertical direction.
  *
  * @param length corresponds to the length/width of the generated powerup
- * @param power_up_y_loc the relative location of the powerup in the y direction
+ * @param power_up_y_loc the relative location of the 
+ * powerup in the y direction
  * @return list_t containing points of the powerup
 */
 list_t *make_power_up_shape(double length, double power_up_y_loc) {
@@ -443,6 +471,10 @@ list_t *make_power_up_shape(double length, double power_up_y_loc) {
   return c;
 }
 
+/**
+ * Initializes the user at the beginning of the game
+ * @param state pointer to the current state of the game
+ */
 void create_user(state_t *state) {
   vector_t center = {MIN.x + RADIUS + WALL_WIDTH.x, 
                     MIN.y + RADIUS + PLATFORM_HEIGHT + PLATFORM_LENGTH.y};
@@ -476,7 +508,8 @@ void create_walls_and_platforms(state_t *state) {
                                               USER_COLOR, info, 
                                               NULL);
       scene_add_body(scene, wall);
-      asset_t *wall_asset = asset_make_image_with_body(WALL_PATH, wall, VERTICAL_OFFSET);
+      asset_t *wall_asset = asset_make_image_with_body(WALL_PATH, wall, 
+                                                      VERTICAL_OFFSET);
       list_add(state->body_assets, wall_asset);
     }
   }
@@ -487,7 +520,9 @@ void create_walls_and_platforms(state_t *state) {
                                               USER_COLOR, make_type_info(PLATFORM), 
                                               NULL);
     scene_add_body(scene, platform);
-    asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, platform, VERTICAL_OFFSET);
+    asset_t *wall_asset_platform = asset_make_image_with_body(PLATFORM_PATH, 
+                                                              platform, 
+                                                              VERTICAL_OFFSET);
     list_add(state->body_assets, wall_asset_platform);
     state->collided_obj = platform; // inital start location
   }
@@ -503,8 +538,8 @@ void create_walls_and_platforms(state_t *state) {
  * @param aux information about the state of the collision
  * @param force_const the force constant to be applied to the collision
  */
-void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const) {
+void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, 
+                              void *aux, double force_const) {
   state_t *state = aux;
 
   // add to health only if health is not full
@@ -530,8 +565,8 @@ void health_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void 
  * @param aux information about the state of the collision
  * @param force_const the force constant to be applied to the collision
  */
-void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, void *aux,
-                double force_const) {
+void jump_powerup_collision(body_t *body1, body_t *body2, vector_t axis, 
+                            void *aux, double force_const) {
   state_t *state = aux;
   body_remove(body2);
   list_remove(state->body_assets, state->jump_powerup_index);
@@ -553,7 +588,9 @@ void create_jump_power_up(state_t *state) {
   list_t *points = make_power_up_shape(POWERUP_LENGTH, JUMP_POWERUP_LOC);
   body_t *powerup = body_init_with_info(points, POWERUP_MASS, USER_COLOR, 
                                        make_type_info(JUMP_POWER), NULL);
-  asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, powerup, state->vertical_offset);
+  asset_t *powerup_asset = asset_make_image_with_body(JUMP_POWERUP_PATH, 
+                                                      powerup, 
+                                                      state->vertical_offset);
   state->jump_powerup_index = list_size(state->body_assets);
   state->jump_powerup_jumps = 0;
   list_add(state->body_assets, powerup_asset);
@@ -590,7 +627,8 @@ void create_portal(state_t *state) {
   list_t *points = make_circle(VEC_ZERO, make_type_info(PORTAL), ZERO_SEED);
   body_t *portal = body_init_with_info(points, PORTAL_MASS, USER_COLOR, 
                                         make_type_info(PORTAL), NULL);
-  asset_t *portal_asset = asset_make_image_with_body(PORTAL_PATH, portal, state->vertical_offset);
+  asset_t *portal_asset = asset_make_image_with_body(PORTAL_PATH, portal, 
+                                                    state->vertical_offset);
   list_add(state->body_assets, portal_asset);
   scene_add_body(state->scene, portal);
 }
@@ -600,8 +638,8 @@ void create_portal(state_t *state) {
  * portal and body
  *
  * @param state state object representing the current demo state
- * @param body1 the user
- * @param body2 the portal
+ * @param body1 a pointer to the body of the user
+ * @param portal a pointer to the body of the portal
  */
 void portal_collision(body_t *user, body_t *portal, vector_t axis, void *aux,
                 double force_const){
@@ -617,7 +655,8 @@ void create_island(state_t *state) {
   list_t *points = make_rectangle(make_type_info(QUICKSAND_ISLAND), ISLAND_LEVEL);
   body_t *island = body_init_with_info(points, ISLAND_MASS, USER_COLOR, 
                                         make_type_info(QUICKSAND_ISLAND), NULL);
-  asset_t *island_asset = asset_make_image_with_body(ISLAND_PATH, island, state->vertical_offset);
+  asset_t *island_asset = asset_make_image_with_body(ISLAND_PATH, island, 
+                                                    state->vertical_offset);
   list_add(state->body_assets, island_asset);
   scene_add_body(state->scene, island);
 }
@@ -745,7 +784,7 @@ void ghost_move(state_t *state){
 
 
 /**
- * Spawns GASs on the screen at random y value and at a random x value
+ * Spawns toxic gas on the screen at fixed positions
  * that is within the bounds wall height and the space in between
  */
 void spawn_gas(state_t *state) {
@@ -856,10 +895,18 @@ void add_force_creators(state_t *state) {
   }
 }
 
+/**
+ * Handler for the start button
+ * @param state pointer to the current state
+ */
 void start_button_handler(state_t *state) {
   state->game_state = GAME_RUNNING;
 }
 
+/**
+ * Handler for the pause button
+ * @param state pointer to the current state
+ */
 void pause_button_handler(state_t *state) {
   if (state->game_state == GAME_RUNNING) {
     state->game_state = GAME_PAUSED;
@@ -868,6 +915,10 @@ void pause_button_handler(state_t *state) {
   }
 }
 
+/**
+ * Handler for the restart button
+ * @param state pointer to the current state
+ */
 void reset_button_handler(state_t *state) {
   state->user_health = FULL_HEALTH;
   state->game_state = GAME_RUNNING;
