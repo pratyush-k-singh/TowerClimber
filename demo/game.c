@@ -364,7 +364,8 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
     radius = GAS_RADIUS;
     double y = (WALL_LENGTH.y/2) * (idx+1) - GAS_OFFSET;
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
-    double x = WALL_WIDTH.x + GAS_RADIUS + GAP_DISTANCE * (1 - position);
+    double x = WALL_WIDTH.x + GAS_RADIUS * pow((-1), position + 1)
+             + GAP_DISTANCE * (1 - position);
     center_body = (vector_t){x, y};
   } else if (*info == PORTAL){
     radius = PORTAL_RADIUS;
@@ -375,8 +376,8 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
     radius = SPIKE_RADIUS;
     double y = (WALL_LENGTH.y) * (idx+1) - SPIKE_OFFSET;
     size_t position = idx % (GAS_NUM / NUM_LEVELS);
-    double x = WALL_WIDTH.x - SPIKE_RADIUS * pow((-1), position + 1)
-              + GAP_DISTANCE ;
+    double x = WALL_WIDTH.x - SPIKE_RADIUS 
+              + GAP_DISTANCE;
     center_body = (vector_t){x, y};
   }
   list_t *c = list_init(USER_NUM_POINTS, free);
