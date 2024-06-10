@@ -1119,7 +1119,7 @@ void update_buffers(state_t *state, double dt){
 }
 
 /**
- * prints out storyline for game based on game_state
+ * Prints out the relevant portion of the storyline for game based on game_state.
  * 
  * @param state the current demo state
 */
