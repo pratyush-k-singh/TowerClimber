@@ -58,6 +58,7 @@ const double RESTING_SPEED = 200;
 const double VELOCITY_SCALE = 100;
 const double ACCEL = 100;
 const size_t JUMP_BUFFER = 30; // how many pixels away from wall can user jump
+const size_t WALL_BUFFER = 50;
 const size_t FULL_HEALTH = 3;
 const size_t ZERO_SEED;
 
@@ -973,13 +974,13 @@ void on_key(char key, key_event_type_t type, double held_time, state_t *state) {
   if (type == KEY_PRESSED) {
     switch (key) {
       case LEFT_ARROW: {
-        if (get_type(state->collided_obj) != LEFT_WALL && cur_pos.x > WALL_WIDTH.x) {
+        if (get_type(state->collided_obj) != LEFT_WALL && cur_pos.x > WALL_WIDTH.x + WALL_BUFFER) {
           new_vx = -1 * (RESTING_SPEED + ACCEL * held_time);
         }
         break;
       }
       case RIGHT_ARROW: {
-        if (get_type(state->collided_obj) != RIGHT_WALL && cur_pos.x < MAX.x - WALL_WIDTH.x) {
+        if (get_type(state->collided_obj) != RIGHT_WALL && cur_pos.x < MAX.x - WALL_WIDTH.x - WALL_BUFFER) {
           new_vx = RESTING_SPEED + ACCEL * held_time;
         }
         break;
