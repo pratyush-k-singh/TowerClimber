@@ -375,7 +375,6 @@ list_t *make_circle(vector_t center, body_type_t *info, size_t idx) {
   } else if (*info == SPIKE1 || *info == SPIKE2 || *info == SPIKE3){
     radius = SPIKE_RADIUS;
     double y = (WALL_LENGTH.y) * (idx+1) - SPIKE_OFFSET;
-    size_t position = idx % (GAS_NUM / NUM_LEVELS);
     double x = WALL_WIDTH.x - SPIKE_RADIUS 
               + GAP_DISTANCE;
     center_body = (vector_t){x, y};
@@ -997,6 +996,10 @@ void reset_button_handler(state_t *state) {
     }
     if (get_type(body) == HEALTH_POWER){
       contains_health = true;
+    }
+    if (get_type(body) == SPIKE1 || get_type(body) == SPIKE2 ||
+        get_type(body) == SPIKE3){
+      body_remove(body);
     }
   }
   if (!contains_jump){
