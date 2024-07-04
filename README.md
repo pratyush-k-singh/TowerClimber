@@ -4,3 +4,6 @@ The primary game loop will be centered around a treasure hunter jumping from wal
 Beyond the enemies and obstacles the treasure hunter will face, the nature of the tower itself will also vary, as it will be made up of three types of walls: normal, icy, and sticky. Normal walls or platforms will have some friction, causing the player to slide slowly down them in the case of vertical walls, and land with no sliding in the case of horizontal platforms. The icy walls, naturally, will make the hunter slip, causing them to slide down the vertical walls faster, and to slip to the side on horizontal platforms. In contrast, sticky walls will stop the hunter from sliding down vertical walls entirely, negating the gravity which otherwise constantly affects the hunter.
 
 The game will feel like a constant sprint forward, as the gravity pulling the hunter down, and the enemies chasing them, both serve as motivation to quickly leap from wall to wall, and to create plans of action on the fly. If the player manages to reach the top of the tower, they will reach the goal they have been seeking the entire time, the massive pile of treasure the hunter is seeking.
+
+# Credits
+Created in collaboration with Karen Zhou (Caltech) and Tommaso Colombo (Caltech)
